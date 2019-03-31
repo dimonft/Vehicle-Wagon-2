@@ -1,4 +1,27 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.2.9
+Date: 31. 3. 2019
+  Bugfixes:
+    - RU: Исправлено падение игрового клиента.
+Во время копирования транспортного вагона нажатием кнопки «Q» и одновременного удержания автомобиля на платформе транспортного вагона и последующей попытки выгрузить автомобиль из транспортного вагона клиент игры потерпел краш. (Спасибо robot256 за подробное объяснение и предложение способа решения проблемы)
+	  EU: Fixed game client crash.During copying of the transport vagon, pressing the “Q” button and simultaneously holding the car on the platform of the transport vagon and the subsequent attempt to unload the car from the transport vagon, the game client suffered a crash. (Thanks to robot256 for a detailed explanation and suggestion of a way to solve the problem)
+  Changes:
+    -
+  The note:
+    - RU: Это исправление было введено в качестве экспериментального, поскольку во время выпуска обновления у меня не было физической возможности проверить производительность этого решения.
+    - EN: This fix was introduced as an experimental one, since during the release of the update I didn’t have the physical ability to test the performance of this solution.
+---------------------------------------------------------------------------------------------------
+Version: 1.2.8
+Date: 31. 3. 2019
+  Bugfixes:
+    - RU: Исправлено падение клиента игры. Во время выгрузки из транспортного вагона в моде "Disco Science" клиент игры вылетал. (Спасибо robot256 за подробное объяснение и предложение способа решения проблемы)
+	  EU: Fixed crash. During the unloading from the vehicle in the mod "Disco Science" the client of the game crashed. (Thanks to robot256 for a detailed explanation and suggestion of a way to solve the problem)
+  Changes:
+    -
+  The note:
+    - RU: Это исправление было введено в качестве экспериментального, поскольку во время выпуска обновления у меня не было физической возможности проверить производительность этого решения.
+    - EN: This fix was introduced as an experimental one, since during the release of the update I didn’t have the physical ability to test the performance of this solution.
+---------------------------------------------------------------------------------------------------
 Version: 1.2.7
 Date: 17. 3. 2019
   Bugfixes:
