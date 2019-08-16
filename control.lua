@@ -49,6 +49,7 @@ function getItemsIn(entity)
 			items.grid[i].name = equipment[i].name
 			items.grid[i].position = equipment[i].position
 			items.grid[i].energy = equipment[i].energy
+			items.grid[i].shield = equipment[i].shield
 
 			if equipment[i].burner then
 				items.grid[i].burner = {}
@@ -109,6 +110,9 @@ function insertItems(entity, items, player_index, make_flying_text, extract_grid
 			for i = 1, #items.grid do
 				local equipment = entity.grid.put{name = items.grid[i].name, position = items.grid[i].position}
 				equipment.energy = items.grid[i].energy or 0
+				if items.grid[i].shield > 0 then
+					equipment.shield = items.grid[i].shield
+				end
 				if items.grid[i].burner and equipment.burner then
 					for name, count in pairs(items.grid[i].burner.inventory) do
 						equipment.burner.inventory.insert{name = name, count = count}
