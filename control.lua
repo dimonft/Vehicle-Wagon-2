@@ -53,7 +53,9 @@ function getItemsIn(entity)
 			if equipment[i].burner then
 				items.grid[i].burner = {}
 				items.grid[i].burner.inventory = equipment[i].burner.inventory.get_contents()
-				items.grid[i].burner.burnt_result_inventory = equipment[i].burner.burnt_result_inventory.get_contents()
+				if equipment[i].burner.burnt_result_inventory.valid then
+					items.grid[i].burner.burnt_result_inventory = equipment[i].burner.burnt_result_inventory.get_contents()
+				end
 				items.grid[i].burner.currently_burning = equipment[i].burner.currently_burning
 				items.grid[i].burner.remaining_burning_fuel = equipment[i].burner.remaining_burning_fuel
 				items.grid[i].burner.heat = equipment[i].burner.heat
@@ -114,8 +116,10 @@ function insertItems(entity, items, player_index, make_flying_text, extract_grid
 						equipment.burner.inventory.insert{name = name, count = count}
 						-- should we be saving/loading item health, durability, and/or ammo?
 					end
-					for name, count in pairs(items.grid[i].burner.burnt_result_inventory) do
-						equipment.burner.burnt_result_inventory.insert{name = name, count = count}
+					if items.grid[i].burner.burnt_result_inventory then
+						for name, count in pairs(items.grid[i].burner.burnt_result_inventory) do
+							equipment.burner.burnt_result_inventory.insert{name = name, count = count}
+						end
 					end
 					equipment.burner.currently_burning = items.grid[i].burner.currently_burning
 					equipment.burner.remaining_burning_fuel = items.grid[i].burner.remaining_burning_fuel
