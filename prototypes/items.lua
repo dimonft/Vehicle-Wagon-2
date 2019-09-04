@@ -1,10 +1,16 @@
+local subgroup_vehrail = "transport"
+
+if mods["SchallTransportGroup"] then
+	subgroup_vehrail = "vehicles-railway"
+end
+
 data:extend({
 	{
 		type = "item",
 		name = "vehicle-wagon",
 		icon = "__VehicleWagon2__/graphics/tech-icon.png",
 		icon_size = 128,
-		subgroup = "transport",
+		subgroup = subgroup_vehrail,
 		order = "a[train-system]-v[vehicle-wagon]",
 		place_result = "vehicle-wagon",
 		stack_size = 5
