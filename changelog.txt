@@ -7,8 +7,8 @@ Date: 14. 9. 2019
     	- RU:
 	- EN:
   The note:
-    	- RU:
-    	- EN:
+    	- RU: ЭТО ВЕРСИЯ ЭКСПЕРЕМЕНТАЛЬНАЯ, НЕКОТОРЫЙ ФУНКЦИОНАЛ МОЖЕТ НЕ РАБОТАТЬ ИЗ-ЗА ВОЗМОЖНЫХ ОШИБОК!
+    	- EN: THIS IS AN EXPERIMENTAL VERSION, SOME FUNCTIONALS MAY NOT WORK DUE TO POSSIBLE ERRORS!
 ---------------------------------------------------------------------------------------------------
 Version: 1.2.12
 Date: 17. 8. 2019
