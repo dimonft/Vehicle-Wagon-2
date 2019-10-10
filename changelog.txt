@@ -1,3 +1,44 @@
+Version: 1.2.13 [BETA]
+Date: 14. 9. 2019
+  Bugfixes:
+  	- RU: Исправлены расхождения версий. Теперь основная версия базируется в GIT.
+	- EU: Version discrepancies fixed. Now the main version is based in GIT.
+  Changes:
+    	- RU:
+	- EN:
+  The note:
+    	- RU: ЭТО ВЕРСИЯ ЭКСПЕРЕМЕНТАЛЬНАЯ, НЕКОТОРЫЙ ФУНКЦИОНАЛ МОЖЕТ НЕ РАБОТАТЬ ИЗ-ЗА ВОЗМОЖНЫХ ОШИБОК!
+    	- EN: THIS IS AN EXPERIMENTAL VERSION, SOME FUNCTIONALS MAY NOT WORK DUE TO POSSIBLE ERRORS!
+---------------------------------------------------------------------------------------------------
+Version: 1.2.12
+Date: 17. 8. 2019
+  Bugfixes:
+    - RU: Добавлены описания мода для разных языков.
+		  Теперь при погрузке, количество щитов для танспорта будет сохраняться предварительно убедившись что это необходимо.
+		  Исправлена ошибка, связанная с инвентаризацией сгоревшего топлива.
+	- EU: Added mod descriptions for different languages.
+		  Now, when loading, the number of shields for vehicles will be saved, a check has been added to see if this action is necessary.
+		  Fixed a bug related to the inventory of burned fuel.
+  Changes:
+    -
+  The note:
+    - RU: Это исправление было введено в качестве экспериментального, поскольку во время выпуска обновления у меня не было физической возможности проверить производительность этого решения.
+    - EN: This fix was introduced as an experimental one, since during the release of the update I didn’t have the physical ability to test the performance of this solution.
+---------------------------------------------------------------------------------------------------
+Version: 1.2.11
+Date: 3. 4. 2019
+  Bugfixes:
+    - RU: Исправление дефектов версии 1.2.8 (спасибо robot256)
+	- EN: Correction of defects of version 1.2.8 (Thanks to robot256)
+  Changes:
+    -
+---------------------------------------------------------------------------------------------------
+Version: 1.2.10
+Date: 31. 3. 2019
+  Bugfixes:
+    -
+  Changes:
+    - Dodano obsługę języka polskiego. | Polish language support added.
 ---------------------------------------------------------------------------------------------------
 Version: 1.2.9
 Date: 31. 3. 2019
@@ -154,3 +195,5 @@ Version: 1.0.0 - First public release
 Date: 24. 8. 2016
   Major Features:
     - Initial release, featuring Vehicle Wagons that can carry your fully-laden combat vehicle so you can take it along with you on your rail journey!
+
+              
