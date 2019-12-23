@@ -419,6 +419,10 @@ script.on_event(defines.events.on_player_used_capsule, function(event)
 		if global.wagon_data[index] and global.wagon_data[index].wagon and not global.wagon_data[index].status then
 			local wagon = global.wagon_data[index].wagon
 			local unload_position = player.surface.find_non_colliding_position(global.wagon_data[wagon.unit_number].name, position, 5, 1)
+			if not unload_position then
+				player.print({"position-error"})
+				return player.insert{name = "winch", count = 1}
+			end
 			if Position.distance(wagon.position, unload_position) > 9 then
 				player.print({"too-far-away"})
 				return player.insert{name = "winch", count = 1}
