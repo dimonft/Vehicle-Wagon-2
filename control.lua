@@ -284,7 +284,7 @@ function isSpecialCase(name)
 		return "nope"
 	elseif string.contains(name, "heli") or string.contains(name, "rotor") then
 		return "nope"
-	elseif string.contains(name, "cargo-plane") then  -- General check makes it compatible with Better Cargo Planes mod.
+	elseif string.contains(name, "plane") then  -- General check makes it compatible with Better Cargo Planes mod.
 		return "tarp"
 	elseif name == "vwtransportercargo" then
 		return "tarp"
