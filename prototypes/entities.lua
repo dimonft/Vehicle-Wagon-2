@@ -308,3 +308,51 @@ if data.raw["car"]["dumper-truck"] then
 
 	data:extend({loaded_vehicle_wagon_truck})
 end
+
+
+if data.raw["car"]["cargo-plane"] then
+	local loaded_vehicle_wagon_cargo_plane = util.table.deepcopy(data.raw["cargo-wagon"]["cargo-wagon"])
+
+	loaded_vehicle_wagon_cargo_plane.name = "loaded-vehicle-wagon-cargoplane"
+	loaded_vehicle_wagon_cargo_plane.icon = "__VehicleWagon2__/graphics/vehicle-wagon-icon.png"
+	loaded_vehicle_wagon_cargo_plane.icon_size = 32
+	loaded_vehicle_wagon_cargo_plane.inventory_size = 0
+	loaded_vehicle_wagon_cargo_plane.minable = {mining_time = 1, result = "vehicle-wagon"}
+	loaded_vehicle_wagon_cargo_plane.horizontal_doors = nil
+	loaded_vehicle_wagon_cargo_plane.vertical_doors = nil
+	loaded_vehicle_wagon_cargo_plane.pictures =
+	{
+		layers =
+		{
+			{
+				priority = "very-low",
+				width = 256,
+				height = 256,
+				direction_count = 128,
+				filenames =
+				{
+					"__VehicleWagon2__/graphics/cargo_fb_sheet.png",
+					"__VehicleWagon2__/graphics/cargo_fb_sheet.png"
+				},
+				line_length = 8,
+				lines_per_file = 8,
+				shift={0.4, -1.20}
+			},
+			{
+				width = 224,
+				height = 224,
+				direction_count = 36,
+				shift = {0, -0.5},
+				scale = 0.75,
+				filenames =
+				{
+					"__Aircraft__/graphics/Cargo_Plane_Spritesheet.png",
+				},
+				line_length = 6,
+				lines_per_file = 6,
+			}
+		}
+	}
+
+	data:extend({loaded_vehicle_wagon_cargo_plane})
+end

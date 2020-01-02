@@ -284,8 +284,8 @@ function isSpecialCase(name)
 		return "nope"
 	elseif string.contains(name, "heli") or string.contains(name, "rotor") then
 		return "nope"
-	elseif string.contains(name, "plane") then  -- General check makes it compatible with Better Cargo Planes mod.
-		return "tarp"
+	elseif string.contains(name, "plane") and string.contains(name,"cargo") then  -- General check makes it compatible with Better Cargo Planes mod.
+		return "cargoplane"
 	elseif name == "vwtransportercargo" then
 		return "tarp"
 	elseif name == "nixie-tube-sprite" then -- These should be obsolete in recent versions of Nixies
@@ -399,6 +399,9 @@ script.on_event(defines.events.on_player_used_capsule, function(event)
 			loaded_wagon = surface.find_entities_filtered{name = "loaded-vehicle-wagon-truck", position = position, force = player.force}
 		end
 		if not loaded_wagon[1] then
+			loaded_wagon = surface.find_entities_filtered{name = "loaded-vehicle-wagon-cargoplane", position = position, force = player.force}
+		end
+		if not loaded_wagon[1] then
 			loaded_wagon = surface.find_entities_filtered{name = "loaded-vehicle-wagon-tarp", position = position, force = player.force}
 		end
 		vehicle = vehicle[1]
@@ -434,9 +437,21 @@ script.on_event(defines.events.on_player_used_capsule, function(event)
 	end
 end)
 
+function isLoadedWagon(entity)
+	if (entity.name == "loaded-vehicle-wagon-tank" or 
+	    entity.name == "loaded-vehicle-wagon-car" or 
+		entity.name == "loaded-vehicle-wagon-truck" or 
+		entity.name == "loaded-vehicle-wagon-tarp" or
+		entity.name == "loaded-vehicle-wagon-cargoplane") then
+		return true
+	else
+		return false
+	end
+end
+	
 script.on_event(defines.events.on_pre_player_mined_item, function(event)
 	local entity = event.entity
-	if entity.name == "loaded-vehicle-wagon-tank" or entity.name == "loaded-vehicle-wagon-car" or entity.name == "loaded-vehicle-wagon-truck" or entity.name == "loaded-vehicle-wagon-tarp" then
+	if isLoadedWagon(entity) then
 		local player = game.players[event.player_index]
 		local unload_position = player.surface.find_non_colliding_position(global.wagon_data[entity.unit_number].name, entity.position, 5, 1)
 		if not unload_position then
@@ -496,7 +511,7 @@ end)
 script.on_event(defines.events.on_player_pipette, function(event)
 	local item = event.item
 	if item and item.valid then
-		if item.name == "loaded-vehicle-wagon-tank" or item.name == "loaded-vehicle-wagon-car" or item.name == "loaded-vehicle-wagon-truck" or item.name == "loaded-vehicle-wagon-tarp" then
+		if isLoadedWagon(item) then
 			local player = game.players[event.player_index]
 			local cursor = player.cursor_stack
 			local inventory = player.get_main_inventory()
@@ -528,7 +543,7 @@ local function purgeBlueprint(bp)
 	-- Find any downgradable items and downgrade them
 	if entities and next(entities) then
 		for _,e in pairs(entities) do
-			if e.name == "loaded-vehicle-wagon-tank" or e.name == "loaded-vehicle-wagon-car" or e.name == "loaded-vehicle-wagon-truck" or e.name == "loaded-vehicle-wagon-tarp" then
+			if isLoadedWagon(e) then
 				e.name = "vehicle-wagon"
 			end
 		end

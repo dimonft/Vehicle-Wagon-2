@@ -19,7 +19,8 @@
 		"? aai-vehicles-miner",
 		"? aai-vehicles-warden",
 		"? vwtransporter_A16",
-		"? SchallTransportGroup"
+		"? SchallTransportGroup",
+		"? Aircraft"
 	],
 	"description": "Возьмите с собой полностью заряженный и готовый к бою транспорт и отправьте его в путешествие по железной дороге."
 }
