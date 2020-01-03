@@ -342,8 +342,8 @@ if data.raw["car"]["cargo-plane"] then
 				width = 224,
 				height = 224,
 				direction_count = 128,
-				shift = {0, -0.5},
-				scale = 0.75,
+				shift = {0.18, 0},
+				scale = 0.8,
 				filenames =
 				{
 					"__VehicleWagon2__/graphics/cargoplane/Cargo_Plane_Spritesheet_Shadowless_128r.png",
