@@ -341,15 +341,15 @@ if data.raw["car"]["cargo-plane"] then
 			{
 				width = 224,
 				height = 224,
-				direction_count = 36,
+				direction_count = 128,
 				shift = {0, -0.5},
 				scale = 0.75,
 				filenames =
 				{
-					"__Aircraft__/graphics/Cargo_Plane_Spritesheet.png",
+					"__VehicleWagon2__/graphics/cargoplane/Cargo_Plane_Spritesheet_Shadowless_128r.png",
 				},
-				line_length = 6,
-				lines_per_file = 6,
+				line_length = 4,
+				lines_per_file = 32,
 			}
 		}
 	}
