@@ -325,31 +325,18 @@ if data.raw["car"]["cargo-plane"] then
 		layers =
 		{
 			{
-				priority = "very-low",
+				--priority = "very-low",
 				width = 256,
 				height = 256,
 				direction_count = 128,
 				filenames =
 				{
-					"__VehicleWagon2__/graphics/cargo_fb_sheet.png",
-					"__VehicleWagon2__/graphics/cargo_fb_sheet.png"
+					"__VehicleWagon2__/graphics/cargoplane/flyer3onr_sheet-0.png",
+					"__VehicleWagon2__/graphics/cargoplane/flyer3onr_sheet-1.png"
 				},
 				line_length = 8,
 				lines_per_file = 8,
-				shift={0.4, -1.20}
-			},
-			{
-				width = 224,
-				height = 224,
-				direction_count = 128,
-				shift = {0.18, 0},
-				scale = 0.8,
-				filenames =
-				{
-					"__VehicleWagon2__/graphics/cargoplane/Cargo_Plane_Spritesheet_Shadowless_128r.png",
-				},
-				line_length = 4,
-				lines_per_file = 32,
+				shift={0, -0.6}
 			}
 		}
 	}
