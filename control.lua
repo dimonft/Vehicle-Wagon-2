@@ -189,6 +189,7 @@ function process_tick(event)
 					global.wagon_data[loaded_wagon.unit_number].name = vehicle.name
 				end
 				global.wagon_data[loaded_wagon.unit_number].health = vehicle.health
+        global.wagon_data[loaded_wagon.unit_number].color = vehicle.color
 				global.wagon_data[loaded_wagon.unit_number].items = getItemsIn(vehicle)
 				global.wagon_data[loaded_wagon.unit_number].filters = getFilters(vehicle)
 				-- Deal with vehicles that use burners:
@@ -230,6 +231,9 @@ function process_tick(event)
 					return player.print({"generic-error"})
 				end
 				vehicle.health = global.wagon_data[loaded_wagon.unit_number].health
+        if global.wagon_data[loaded_wagon.unit_number].color then 
+          vehicle.color = global.wagon_data[loaded_wagon.unit_number].color
+        end
 				setFilters(vehicle, global.wagon_data[loaded_wagon.unit_number].filters)
 				insertItems(vehicle, global.wagon_data[loaded_wagon.unit_number].items, player_index)
 				-- Restore burner
