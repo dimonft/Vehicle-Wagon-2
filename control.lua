@@ -290,6 +290,8 @@ function isSpecialCase(name)
 		return "nope"
 	elseif string.contains(name, "plane") and string.contains(name,"cargo") then  -- General check makes it compatible with Better Cargo Planes mod.
 		return "cargoplane"
+  elseif name == "jet" then
+    return "jet"
 	elseif name == "vwtransportercargo" then
 		return "tarp"
 	elseif name == "nixie-tube-sprite" then -- These should be obsolete in recent versions of Nixies
@@ -406,6 +408,9 @@ script.on_event(defines.events.on_player_used_capsule, function(event)
 			loaded_wagon = surface.find_entities_filtered{name = "loaded-vehicle-wagon-cargoplane", position = position, force = player.force}
 		end
 		if not loaded_wagon[1] then
+			loaded_wagon = surface.find_entities_filtered{name = "loaded-vehicle-wagon-jet", position = position, force = player.force}
+		end
+		if not loaded_wagon[1] then
 			loaded_wagon = surface.find_entities_filtered{name = "loaded-vehicle-wagon-tarp", position = position, force = player.force}
 		end
 		vehicle = vehicle[1]
@@ -446,7 +451,8 @@ function isLoadedWagon(entity)
 	    entity.name == "loaded-vehicle-wagon-car" or 
 		entity.name == "loaded-vehicle-wagon-truck" or 
 		entity.name == "loaded-vehicle-wagon-tarp" or
-		entity.name == "loaded-vehicle-wagon-cargoplane") then
+		entity.name == "loaded-vehicle-wagon-cargoplane" or
+		entity.name == "loaded-vehicle-wagon-jet") then
 		return true
 	else
 		return false
@@ -468,7 +474,10 @@ script.on_event(defines.events.on_pre_player_mined_item, function(event)
 		end
 		local vehicle = player.surface.create_entity({name = global.wagon_data[entity.unit_number].name, position = unload_position, force = player.force})
 		vehicle.health = global.wagon_data[entity.unit_number].health
-		setFilters(vehicle, global.wagon_data[entity.unit_number].filters)
+    if global.wagon_data[entity.unit_number].color then
+      vehicle.color = global.wagon_data[entity.unit_number].color
+		end
+    setFilters(vehicle, global.wagon_data[entity.unit_number].filters)
 		insertItems(vehicle, global.wagon_data[entity.unit_number].items, event.player_index)
 		-- Restore burner
 		if vehicle.burner and global.wagon_data[entity.unit_number].burner then

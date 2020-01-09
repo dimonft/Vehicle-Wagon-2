@@ -343,3 +343,38 @@ if data.raw["car"]["cargo-plane"] then
 
 	data:extend({loaded_vehicle_wagon_cargo_plane})
 end
+
+
+if data.raw["car"]["jet"] then
+	local loaded_vehicle_wagon_jet = util.table.deepcopy(data.raw["cargo-wagon"]["cargo-wagon"])
+
+	loaded_vehicle_wagon_jet.name = "loaded-vehicle-wagon-jet"
+	loaded_vehicle_wagon_jet.icon = "__VehicleWagon2__/graphics/vehicle-wagon-icon.png"
+	loaded_vehicle_wagon_jet.icon_size = 32
+	loaded_vehicle_wagon_jet.inventory_size = 0
+	loaded_vehicle_wagon_jet.minable = {mining_time = 1, result = "vehicle-wagon"}
+	loaded_vehicle_wagon_jet.horizontal_doors = nil
+	loaded_vehicle_wagon_jet.vertical_doors = nil
+	loaded_vehicle_wagon_jet.pictures =
+	{
+		layers =
+		{
+			{
+				--priority = "very-low",
+				width = 256,
+				height = 256,
+				direction_count = 128,
+				filenames =
+				{
+					"__VehicleWagon2__/graphics/jet/flyer2onr_sheet-0.png",
+					"__VehicleWagon2__/graphics/jet/flyer2onr_sheet-1.png"
+				},
+				line_length = 8,
+				lines_per_file = 8,
+				shift={0, -0.6}
+			}
+		}
+	}
+
+	data:extend({loaded_vehicle_wagon_jet})
+end
