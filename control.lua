@@ -453,7 +453,10 @@ script.on_event(defines.events.on_pre_player_mined_item, function(event)
 		end
 		local vehicle = player.surface.create_entity({name = global.wagon_data[entity.unit_number].name, position = unload_position, force = player.force})
 		vehicle.health = global.wagon_data[entity.unit_number].health
-		setFilters(vehicle, global.wagon_data[entity.unit_number].filters)
+    if global.wagon_data[loaded_wagon.unit_number].color then 
+      vehicle.color = global.wagon_data[loaded_wagon.unit_number].color
+    end
+    setFilters(vehicle, global.wagon_data[entity.unit_number].filters)
 		insertItems(vehicle, global.wagon_data[entity.unit_number].items, event.player_index)
 		-- Restore burner
 		if vehicle.burner and global.wagon_data[entity.unit_number].burner then
