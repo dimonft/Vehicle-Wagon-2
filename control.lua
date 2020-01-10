@@ -292,6 +292,8 @@ function isSpecialCase(name)
 		return "cargoplane"
   elseif name == "jet" then
     return "jet"
+	elseif name == "gunship" then
+    return "gunship"
 	elseif name == "vwtransportercargo" then
 		return "tarp"
 	elseif name == "nixie-tube-sprite" then -- These should be obsolete in recent versions of Nixies
@@ -411,6 +413,9 @@ script.on_event(defines.events.on_player_used_capsule, function(event)
 			loaded_wagon = surface.find_entities_filtered{name = "loaded-vehicle-wagon-jet", position = position, force = player.force}
 		end
 		if not loaded_wagon[1] then
+			loaded_wagon = surface.find_entities_filtered{name = "loaded-vehicle-wagon-gunship", position = position, force = player.force}
+		end
+		if not loaded_wagon[1] then
 			loaded_wagon = surface.find_entities_filtered{name = "loaded-vehicle-wagon-tarp", position = position, force = player.force}
 		end
 		vehicle = vehicle[1]
@@ -452,6 +457,7 @@ function isLoadedWagon(entity)
 		entity.name == "loaded-vehicle-wagon-truck" or 
 		entity.name == "loaded-vehicle-wagon-tarp" or
 		entity.name == "loaded-vehicle-wagon-cargoplane" or
+		entity.name == "loaded-vehicle-wagon-gunship" or
 		entity.name == "loaded-vehicle-wagon-jet") then
 		return true
 	else

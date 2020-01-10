@@ -143,3 +143,19 @@ if data.raw["car"]["jet"] then
 		},
 	})
 end
+
+if data.raw["car"]["gunship"] then
+	data:extend({
+		{
+			type = "item",
+			name = "loaded-vehicle-wagon-gunship",
+			icon = "__VehicleWagon2__/graphics/tech-icon.png",
+			icon_size = 128,
+			flags = {"hidden"},
+			subgroup = "transport",
+			order = "a[train-system]-z[vehicle-wagon]",
+			place_result = "loaded-vehicle-wagon-gunship",
+			stack_size = 1
+		},
+	})
+end

@@ -378,3 +378,37 @@ if data.raw["car"]["jet"] then
 
 	data:extend({loaded_vehicle_wagon_jet})
 end
+
+if data.raw["car"]["gunship"] then
+	local loaded_vehicle_wagon_gunship = util.table.deepcopy(data.raw["cargo-wagon"]["cargo-wagon"])
+
+	loaded_vehicle_wagon_gunship.name = "loaded-vehicle-wagon-jet"
+	loaded_vehicle_wagon_gunship.icon = "__VehicleWagon2__/graphics/vehicle-wagon-icon.png"
+	loaded_vehicle_wagon_gunship.icon_size = 32
+	loaded_vehicle_wagon_gunship.inventory_size = 0
+	loaded_vehicle_wagon_gunship.minable = {mining_time = 1, result = "vehicle-wagon"}
+	loaded_vehicle_wagon_gunship.horizontal_doors = nil
+	loaded_vehicle_wagon_gunship.vertical_doors = nil
+	loaded_vehicle_wagon_gunship.pictures =
+	{
+		layers =
+		{
+			{
+				--priority = "very-low",
+				width = 256,
+				height = 256,
+				direction_count = 128,
+				filenames =
+				{
+					"__VehicleWagon2__/graphics/gunship/flyer1onr_sheet-0.png",
+					"__VehicleWagon2__/graphics/gunship/flyer1onr_sheet-1.png"
+				},
+				line_length = 8,
+				lines_per_file = 8,
+				shift={0, -0.6}
+			}
+		}
+	}
+
+	data:extend({loaded_vehicle_wagon_gunship})
+end
