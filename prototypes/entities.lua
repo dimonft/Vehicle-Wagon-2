@@ -382,7 +382,7 @@ end
 if data.raw["car"]["gunship"] then
 	local loaded_vehicle_wagon_gunship = util.table.deepcopy(data.raw["cargo-wagon"]["cargo-wagon"])
 
-	loaded_vehicle_wagon_gunship.name = "loaded-vehicle-wagon-jet"
+	loaded_vehicle_wagon_gunship.name = "loaded-vehicle-wagon-gunship"
 	loaded_vehicle_wagon_gunship.icon = "__VehicleWagon2__/graphics/vehicle-wagon-icon.png"
 	loaded_vehicle_wagon_gunship.icon_size = 32
 	loaded_vehicle_wagon_gunship.inventory_size = 0

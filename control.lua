@@ -155,7 +155,7 @@ function process_tick(event)
 				local wagon_health = wagon.health
 				local vehicle = global.wagon_data[player_index].vehicle
 				local position = wagon.position
-				player.clear_gui_arrow()
+        player.clear_gui_arrow()
 				if wagon.get_driver() or get_driver_or_passenger(vehicle) then
 					global.wagon_data[player_index] = nil
 					return player.print({"passenger-error"})
@@ -170,7 +170,7 @@ function process_tick(event)
 				end
 				local trainInManual = wagon.train.valid and wagon.train.manual_mode or false
 				wagon.destroy()
-				local loaded_wagon = player.surface.create_entity({name = global.wagon_data[player_index].name, position = position, force = player.force})
+				local loaded_wagon = player.surface.create_entity({name = global.wagon_data[player_index].name, position = position, force = player.force, orientation = vehicle.orientation})
 				player.surface.play_sound({path = "utility/build_medium", position = position, volume_modifier = 0.7})
 				if not loaded_wagon or not loaded_wagon.valid then
 					return player.print({"generic-error"})
@@ -226,7 +226,7 @@ function process_tick(event)
 					global.wagon_data[player_index] = nil
 					return player.print({"position-error"})
 				end
-				local vehicle = player.surface.create_entity({name = global.wagon_data[loaded_wagon.unit_number].name, position = unload_position, force = player.force})
+				local vehicle = player.surface.create_entity({name = global.wagon_data[loaded_wagon.unit_number].name, position = unload_position, force = player.force, orientation = loaded_wagon.orientation})
 				if not vehicle then
 					return player.print({"generic-error"})
 				end
@@ -478,7 +478,7 @@ script.on_event(defines.events.on_pre_player_mined_item, function(event)
 			player.surface.create_entity({name = "flying-text", position = text_position, text = {"item-inserted", 1, game.entity_prototypes[global.wagon_data[entity.unit_number].name].localised_name}})
 			return insertItems(player, global.wagon_data[entity.unit_number].items, event.player_index, true, true)
 		end
-		local vehicle = player.surface.create_entity({name = global.wagon_data[entity.unit_number].name, position = unload_position, force = player.force})
+		local vehicle = player.surface.create_entity({name = global.wagon_data[entity.unit_number].name, position = unload_position, force = player.force, orientation = entity.orientation})
 		vehicle.health = global.wagon_data[entity.unit_number].health
     if global.wagon_data[entity.unit_number].color then
       vehicle.color = global.wagon_data[entity.unit_number].color
