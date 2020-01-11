@@ -1,6 +1,6 @@
 {
 	"name": "VehicleWagon2",
-	"version": "1.2.200",
+	"version": "1.2.202",
 	"factorio_version": "0.17",
 	"title": "Vehicle Wagon 2",
 	"author": "Artanis_Mattias",
@@ -8,6 +8,7 @@
 	"contact": "gorlovdiman@gmail.com",
 	"dependencies": [
 		"base >= 0.17.0",
+        "Robot256Lib",
 		"? trucks",
 		"? aai-programmable-vehicles",
 		"? aai-vehicles-chaingunner",
