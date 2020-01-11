@@ -849,11 +849,7 @@ script.on_event({defines.events.on_player_setup_blueprint,defines.events.on_play
 	end
 end)
 
-
-
-
-
-
+------------------------------------------
 -- Debug (print text to player console)
 function debug(...)
   if global.debug then
@@ -913,11 +909,3 @@ function cmd_debug(params)
   end
 end
 commands.add_command("vehicle-wagon-debug", {"command-help.vehicle-wagon-debug"}, cmd_debug)
-
-
-
-
-
-
-
-
