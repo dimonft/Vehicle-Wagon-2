@@ -6,16 +6,59 @@ replaceCarriage = require("__Robot256Lib__/script/carriage_replacement").replace
 blueprintLib = require("__Robot256Lib__/script/blueprint_replacement")
 
 script.on_init(function() On_Init() end)
-script.on_configuration_changed(function() On_Init() end)
+script.on_configuration_changed(function() 
+   On_Init()
+   InitializeTypeMapping()
+  
+  
+end)
 script.on_load(function() On_Load() end)
 
-local LoadedWagonList = {"loaded-vehicle-wagon-tank",
-                         "loaded-vehicle-wagon-car",
-                         "loaded-vehicle-wagon-truck",
-                         "loaded-vehicle-wagon-cargoplane",
-                         "loaded-vehicle-wagon-jet",
-                         "loaded-vehicle-wagon-gunship",
-                         "loaded-vehicle-wagon-tarp"}
+
+
+-- Go through all the available prototypes and assign them to a valid loaded wagon or "nope"
+function InitializeTypeMapping()
+  global.vehicleMap = {}
+  for k,v in pairs(game.get_filtered_entity_prototypes({{filter="type", type="car"}})) do
+    
+    if string.contains(k,"nixie") then
+      global.vehicleMap[k] = nil
+    elseif string.contains(k,"heli") or string.contains(k,"rotor") then
+      global.vehicleMap[k] = nil
+    elseif k == "uplink-station" then
+      global.vehicleMap[k] = nil
+    elseif k == "vwtransportercargo" then
+      global.vehicleMap[k] = nil
+    elseif string.contains(k,"airborne") then
+      global.vehicleMap[k] = nil
+    elseif string.contains(k,"cargo%-plane") then
+      global.vehicleMap[k] = "loaded-vehicle-wagon-cargoplane"
+    elseif k == "jet" then
+      global.vehicleMap[k] = "loaded-vehicle-wagon-jet"
+    elseif k == "gunship" then
+      global.vehicleMap[k] = "loaded-vehicle-wagon-gunship"
+    elseif k == "dumper-truck" then
+      global.vehicleMap[k] = "loaded-vehicle-wagon-truck"
+    elseif string.contains(k,"tank") then
+      global.vehicleMap[k] = "loaded-vehicle-wagon-tank"
+    elseif string.contains(k,"car") then
+      global.vehicleMap[k] = "loaded-vehicle-wagon-car"
+    else
+      global.vehicleMap[k] = "loaded-vehicle-wagon-tarp"
+    end
+
+  end
+  
+  global.loadedWagonList = {}
+  global.loadedWagonMap = {}
+  for k,v in pairs(global.vehicleMap) do
+    table.insert(global.loadedWagonList, v)
+    global.loadedWagonMap[v] = "vehicle-wagon"
+  end
+
+end
+
+
 
 --== ON_INIT EVENT ==--
 -- Initialize global data tables
@@ -27,11 +70,14 @@ function On_Init()
 		global.tutorials[player.index] = {}
 	end
   
+  InitializeTypeMapping()
+  
   -- Scrub tables to remove references to non-existent loaded wagons and non-existent players
   local all_wagons = {}
   for _,surface in pairs(game.surfaces) do
-    local new_wagons = surface.find_entities_filtered{name=LoadedWagonList}
+    local new_wagons = surface.find_entities_filtered{name=global.loadedWagonList}
     for _,nw in pairs(new_wagons) do
+      game.print("Found loaded wagon "..nw.unit_number..": "..nw.name)
       table.insert(all_wagons, nw)
     end
   end
@@ -464,7 +510,7 @@ function queueLoadWagon(wagon, vehicle, player_index, name)
 	global.wagon_data[player_index].status = "load"
 	global.wagon_data[player_index].wagon = wagon
 	global.wagon_data[player_index].vehicle = vehicle
-	global.wagon_data[player_index].name = "loaded-vehicle-wagon-" .. name
+	global.wagon_data[player_index].name = name
 	global.wagon_data[player_index].tick = game.tick + 120
 	script.on_event(defines.events.on_tick, process_tick)
 end
@@ -476,30 +522,6 @@ function queueUnloadWagon(loaded_wagon, player_index)
 	global.wagon_data[player_index].status = "unload"
 	global.wagon_data[player_index].tick = game.tick + 120
 	script.on_event(defines.events.on_tick, process_tick)
-end
-
-
--- Awkward way of performing half the lookup for which loaded wagon to use for each vehicle
-function isSpecialCase(name)
-	if name == "uplink-station" then
-		return "nope"
-	elseif string.contains(name, "heli") or string.contains(name, "rotor") then
-		return "nope"
-	elseif string.contains(name, "plane") and string.contains(name,"cargo") then  -- General check makes it compatible with Better Cargo Planes mod.
-		return "cargoplane"
-  elseif name == "jet" then
-    return "jet"
-	elseif name == "gunship" then
-    return "gunship"
-	elseif name == "vwtransportercargo" then
-		return "tarp"
-	elseif name == "nixie-tube-sprite" then -- These should be obsolete in recent versions of Nixies
-		return "nope"
-	elseif name == "nixie-tube-small-sprite" then
-		return "nope"
-	else
-		return false
-	end
 end
 
 
@@ -548,27 +570,17 @@ function handleWagon(wagon, player_index)
 		if Position.distance(wagon.position, vehicle.position) > 9 then
 			return player.print({"too-far-away"})
 		end
-		local special = isSpecialCase(vehicle.name) -- Stuff like CARgo-plane can be mistaken for a "car"-type, so test for special cases
-		if special then
-			if special == "nope" then
-				global.vehicle_data[player_index] = nil
-				player.clear_gui_arrow()
-				return player.print({"unknown-vehicle-error"})
-			else
-				return queueLoadWagon(wagon, vehicle, player_index, special)
-			end
+
+    local loadedName = global.vehicleMap[vehicle.name]
+
+		if not loadedName then
+      global.vehicle_data[player_index] = nil
+      player.clear_gui_arrow()
+      return player.print({"unknown-vehicle-error"})
+    else
+      return queueLoadWagon(wagon, vehicle, player_index, loadedName)
 		end
-		if not special then
-			if string.contains(vehicle.name, "tank") then
-				queueLoadWagon(wagon, vehicle, player_index, "tank") -- Special graphics for "tank"-types
-			elseif string.contains(vehicle.name, "car") then
-				queueLoadWagon(wagon, vehicle, player_index, "car") -- Special graphics for "car"-types
-			elseif vehicle.name == "dumper-truck" then
-				queueLoadWagon(wagon, vehicle, player_index, "truck") -- Special graphics for the Trucks mod by KatzSmile
-			else
-				queueLoadWagon(wagon, vehicle, player_index, "tarp") -- Fallback/generic graphics for all other cases
-			end
-		end
+		
 	else
 		player.print({"no-vehicle-selected"})
 	end
@@ -604,15 +616,7 @@ script.on_event(defines.events.on_player_used_capsule, function(event)
 		local position = event.position
 		local vehicle = surface.find_entities_filtered{type = "car", position = position, force = player.force}
 		local wagon = surface.find_entities_filtered{name = "vehicle-wagon", position = position, force = player.force}
-		local loaded_wagon = surface.find_entities_filtered{name = {"loaded-vehicle-wagon-tank",
-                                                                "loaded-vehicle-wagon-car",
-                                                                "loaded-vehicle-wagon-truck",
-                                                                "loaded-vehicle-wagon-cargoplane",
-                                                                "loaded-vehicle-wagon-jet",
-                                                                "loaded-vehicle-wagon-gunship",
-                                                                "loaded-vehicle-wagon-tarp"},
-                                                        position = position,
-                                                        force = player.force}
+		local loaded_wagon = surface.find_entities_filtered{name = global.loadedWagonList, position = position, force = player.force}
 		
 		vehicle = vehicle[1]
 		wagon = wagon[1]
@@ -650,13 +654,7 @@ end)
 
 -- Table showing which entities can be unloaded
 function isLoadedWagon(entity)
-	if (entity.name == "loaded-vehicle-wagon-tank" or 
-	    entity.name == "loaded-vehicle-wagon-car" or 
-		entity.name == "loaded-vehicle-wagon-truck" or 
-		entity.name == "loaded-vehicle-wagon-tarp" or
-		entity.name == "loaded-vehicle-wagon-cargoplane" or
-		entity.name == "loaded-vehicle-wagon-gunship" or
-		entity.name == "loaded-vehicle-wagon-jet") then
+	if global.loadedWagonMap[entity.name] then
 		return true
 	else
 		return false
@@ -791,63 +789,28 @@ end)
 
 
 ------------------------- CURSOR AND BLUEPRINT HANDLING FOR 0.17.x ---------------------------------------
-
--- Force Pipette Tool to select empty vehicle wagons when used on loaded wagons
-script.on_event(defines.events.on_player_pipette, function(event)
-	local item = event.item
-	if item and item.valid then
-		if isLoadedWagon(item) then
-			local player = game.players[event.player_index]
-			local cursor = player.cursor_stack
-			local inventory = player.get_main_inventory()
-			if cursor.valid_for_read == true and event.used_cheat_mode == false then
-				-- Somehow got loaded items from inventory, convert them to unloaded (vehicle is probably invalid anyways, right?)
-				cursor.set_stack({name="vehicle-wagon",count=cursor.count})
-			else
-				-- Check if the player could have gotten the right thing from inventory/cheat, otherwise clear the cursor
-				local newItemStack = inventory.find_item_stack("vehicle-wagon")
-				cursor.set_stack(newItemStack)  -- if nil, clears cursor
-				if not cursor.valid_for_read then
-					-- no stack available in inventory, check for cheat mode
-					if player.cheat_mode==true then
-						cursor.set_stack({name="vehicle-wagon", count=game.item_prototypes["vehicle-wagon"].stack_size})
-					end
-				else
-					-- remove the stack that was moved to cursor from inventory
-					inventory.remove(newItemStack)
-				end
-			end
-		end
-	end
-end)
-
--- Finds the blueprint a player created and changes all loaded wagons to unloaded
-local function purgeBlueprint(bp)
-	-- Get Entity table from blueprint
-	local entities = bp.get_blueprint_entities()
-	-- Find any downgradable items and downgrade them
-	if entities and next(entities) then
-		for _,e in pairs(entities) do
-			if isLoadedWagon(e) then
-				e.name = "vehicle-wagon"
-			end
-		end
-		-- Write tables back to the blueprint
-		bp.set_blueprint_entities(entities)
-	end
+--== ON_PLAYER_CONFIGURED_BLUEPRINT EVENT ==--
+-- ID 70, fires when you select a blueprint to place
+--== ON_PLAYER_SETUP_BLUEPRINT EVENT ==--
+-- ID 68, fires when you select an area to make a blueprint or copy
+local function OnPlayerSetupBlueprint(event)
+	mapBlueprint(event,global.loadedWagonMap)
 end
 
+
+--== ON_PLAYER_PIPETTE ==--
+-- Fires when player presses 'Q'.  We need to sneakily grab the correct item from inventory if it exists,
+--  or sneakily give the correct item in cheat mode.
+local function OnPlayerPipette(event)
+	mapPipette(event,global.loadedWagonMap)
+end
+
+-- Force Pipette Tool to select empty vehicle wagons when used on loaded wagons
+script.on_event(defines.events.on_player_pipette, OnPlayerPipette)
+
 -- Force Blueprints to only store empty vehicle wagons
-script.on_event({defines.events.on_player_setup_blueprint,defines.events.on_player_configured_blueprint}, function(event)
-	-- Get Blueprint from player (LuaItemStack object). Could be in either of two places.
-	local bp1 = game.get_player(event.player_index).blueprint_to_setup
-	local bp2 = game.get_player(event.player_index).cursor_stack
-	if bp1 and bp1.valid_for_read==true then
-		purgeBlueprint(bp1)
-	elseif bp2 and bp2.valid_for_read==true and bp2.is_blueprint==true then
-		purgeBlueprint(bp2)
-	end
-end)
+script.on_event({defines.events.on_player_setup_blueprint,
+                 defines.events.on_player_configured_blueprint}, OnPlayerSetupBlueprint)
 
 ------------------------------------------
 -- Debug (print text to player console)

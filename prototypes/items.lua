@@ -112,7 +112,7 @@ if data.raw["car"]["dumper-truck"] then
 	})
 end
 
-if data.raw["car"]["cargo-plane"] then
+if mods["Aircraft"] then
 	data:extend({
 		{
 			type = "item",
@@ -126,9 +126,7 @@ if data.raw["car"]["cargo-plane"] then
 			stack_size = 1
 		},
 	})
-end
 
-if data.raw["car"]["jet"] then
 	data:extend({
 		{
 			type = "item",
@@ -142,9 +140,7 @@ if data.raw["car"]["jet"] then
 			stack_size = 1
 		},
 	})
-end
 
-if data.raw["car"]["gunship"] then
 	data:extend({
 		{
 			type = "item",

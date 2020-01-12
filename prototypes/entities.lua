@@ -310,7 +310,7 @@ if data.raw["car"]["dumper-truck"] then
 end
 
 
-if data.raw["car"]["cargo-plane"] then
+if mods["Aircraft"] then
 	local loaded_vehicle_wagon_cargo_plane = util.table.deepcopy(data.raw["cargo-wagon"]["cargo-wagon"])
 
 	loaded_vehicle_wagon_cargo_plane.name = "loaded-vehicle-wagon-cargoplane"
@@ -341,11 +341,6 @@ if data.raw["car"]["cargo-plane"] then
 		}
 	}
 
-	data:extend({loaded_vehicle_wagon_cargo_plane})
-end
-
-
-if data.raw["car"]["jet"] then
 	local loaded_vehicle_wagon_jet = util.table.deepcopy(data.raw["cargo-wagon"]["cargo-wagon"])
 
 	loaded_vehicle_wagon_jet.name = "loaded-vehicle-wagon-jet"
@@ -376,10 +371,6 @@ if data.raw["car"]["jet"] then
 		}
 	}
 
-	data:extend({loaded_vehicle_wagon_jet})
-end
-
-if data.raw["car"]["gunship"] then
 	local loaded_vehicle_wagon_gunship = util.table.deepcopy(data.raw["cargo-wagon"]["cargo-wagon"])
 
 	loaded_vehicle_wagon_gunship.name = "loaded-vehicle-wagon-gunship"
@@ -410,5 +401,7 @@ if data.raw["car"]["gunship"] then
 		}
 	}
 
-	data:extend({loaded_vehicle_wagon_gunship})
+	data:extend({loaded_vehicle_wagon_cargo_plane,
+               loaded_vehicle_wagon_gunship,
+               loaded_vehicle_wagon_jet})
 end
