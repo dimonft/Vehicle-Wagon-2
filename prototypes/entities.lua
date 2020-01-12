@@ -391,8 +391,8 @@ if mods["Aircraft"] then
 				direction_count = 128,
 				filenames =
 				{
-					"__VehicleWagon2__/graphics/gunship/flyer1onr_sheet-0.png",
-					"__VehicleWagon2__/graphics/gunship/flyer1onr_sheet-1.png"
+					"__VehicleWagon2__/graphics/gunship/flyer1onr_sheet-0b.png",
+					"__VehicleWagon2__/graphics/gunship/flyer1onr_sheet-1b.png"
 				},
 				line_length = 8,
 				lines_per_file = 8,
