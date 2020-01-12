@@ -4,6 +4,7 @@ require "stdlib/area/position"
 
 replaceCarriage = require("__Robot256Lib__/script/carriage_replacement").replaceCarriage
 blueprintLib = require("__Robot256Lib__/script/blueprint_replacement")
+saveRestoreLib = require("__Robot256Lib__/script/save_restore")
 
 script.on_init(function() On_Init() end)
 script.on_configuration_changed(function() On_Init() end)
@@ -136,35 +137,12 @@ end
 -- Store the inventory and grid contents of a vehicle before loading it.
 function getItemsIn(entity)
   local items = {}
-  for i = 1, 3 do
-    for name, count in pairs(entity.get_inventory(i).get_contents()) do
-      items[name] = items[name] or 0
-      items[name] = items[name] + count
-    end
-  end
-  if entity.grid then
-    local equipment = entity.grid.equipment
-    items.grid = {}
-
-    for i = 1, #equipment do
-      items.grid[i] = {}
-      items.grid[i].name = equipment[i].name
-      items.grid[i].position = equipment[i].position
-      items.grid[i].energy = equipment[i].energy
-      items.grid[i].shield = equipment[i].shield
-
-      if equipment[i].burner then
-        items.grid[i].burner = {}
-        items.grid[i].burner.inventory = equipment[i].burner.inventory.get_contents()
-        if equipment[i].burner.burnt_result_inventory.valid then
-          items.grid[i].burner.burnt_result_inventory = equipment[i].burner.burnt_result_inventory.get_contents()
-        end
-        items.grid[i].burner.currently_burning = equipment[i].burner.currently_burning
-        items.grid[i].burner.remaining_burning_fuel = equipment[i].burner.remaining_burning_fuel
-        items.grid[i].burner.heat = equipment[i].burner.heat
-      end
-    end
-  end
+  
+  items.fuel = saveRestoreLib.saveInventory(entity.get_inventory(defines.inventory.fuel))
+  items.ammo = saveRestoreLib.saveInventory(entity.get_inventory(defines.inventory.car_ammo))
+  items.trunk = saveRestoreLib.saveInventory(entity.get_inventory(defines.inventory.car_trunk))
+  items.grid = saveRestoreLib.saveGrid(entity.grid)
+  
   return items
 end
 
@@ -206,60 +184,16 @@ function setFilters(entity, filters)
 end
 
 -- Insert items and grid equipment into vehicle inventory after unloading the vehicle
-function insertItems(entity, items, player_index, make_flying_text, extract_grid)
-  local text_position = entity.position
-  if items.grid then
-    if extract_grid then
-      for i = 1, #items.grid do
-        local name = items.grid[i].name
-        if game.item_prototypes[name] then
-          entity.insert{name = name, count = 1}
-          entity.surface.create_entity({name = "flying-text", position = text_position, text = {"item-inserted", 1, game.item_prototypes[name].localised_name}})
-          text_position.y = text_position.y - 1
-        end
-      end
-    else
-      for i = 1, #items.grid do
-        local ename = items.grid[i].name
-        if game.equipment_prototypes[ename] then
-          local equipment = entity.grid.put{name = ename, position = items.grid[i].position}
-          equipment.energy = items.grid[i].energy or 0
-          if items.grid[i].shield > 0 then
-            equipment.shield = items.grid[i].shield
-          end
-          if items.grid[i].burner and equipment.burner then
-            for name, count in pairs(items.grid[i].burner.inventory) do
-              if game.item_prototypes[name] then
-                equipment.burner.inventory.insert{name = name, count = count}
-                -- should we be saving/loading item health, durability, and/or ammo?
-              end
-            end
-            if items.grid[i].burner.burnt_result_inventory then
-              for name, count in pairs(items.grid[i].burner.burnt_result_inventory) do
-                if game.item_prototypes[name] then
-                  equipment.burner.burnt_result_inventory.insert{name = name, count = count}
-                end
-              end
-            end
-            equipment.burner.currently_burning = items.grid[i].burner.currently_burning
-            equipment.burner.remaining_burning_fuel = items.grid[i].burner.remaining_burning_fuel
-            equipment.burner.heat = items.grid[i].burner.heat
-          end
-          script.raise_event(defines.events.on_player_placed_equipment, {player_index = player_index, equipment = equipment, grid = entity.grid})
-        end
-      end
-    end
-    items.grid = nil
+function insertItems(entity, items, player_index)
+  
+  saveRestoreLib.restoreInventory(entity.get_inventory(defines.inventory.fuel), items.fuel)
+  saveRestoreLib.restoreInventory(entity.get_inventory(defines.inventory.car_ammo), items.ammo)
+  saveRestoreLib.restoreInventory(entity.get_inventory(defines.inventory.car_trunk), items.trunk)
+  
+  if entity.grid and entity.grid.valid then
+    restoreGrid(entity.grid, items.grid, player_index)
   end
-  for n, c in pairs(items) do
-    if game.item_prototypes[n] then
-      entity.insert{name = n, count = c}
-      if make_flying_text then
-        entity.surface.create_entity({name = "flying-text", position = text_position, text = {"item-inserted", c, game.item_prototypes[n].localised_name}})
-        text_position.y = text_position.y - 1
-      end
-    end
-  end
+  
 end
 
 
