@@ -14,7 +14,7 @@ script.on_load(function() On_Load() end)
 -- Go through all the available prototypes and assign them to a valid loaded wagon or "nope"
 function InitializeTypeMapping()
   global.vehicleMap = {}
-  for k,v in pairs(game.get_filtered_entity_prototypes({{filter="type", type="car"}})) do
+  for k,_ in pairs(game.get_filtered_entity_prototypes({{filter="type", type="car"}})) do
     
     if string.contains(k,"nixie") then
       global.vehicleMap[k] = nil
@@ -34,6 +34,8 @@ function InitializeTypeMapping()
       global.vehicleMap[k] = "loaded-vehicle-wagon-gunship"
     elseif k == "dumper-truck" then
       global.vehicleMap[k] = "loaded-vehicle-wagon-truck"
+    elseif string.contains(k,"ht%-RA") then
+      global.vehicleMap[k] = "loaded-vehicle-wagon-tank"
     elseif string.contains(k,"tank") then
       global.vehicleMap[k] = "loaded-vehicle-wagon-tank"
     elseif string.contains(k,"car") then
@@ -46,7 +48,7 @@ function InitializeTypeMapping()
   
   global.loadedWagonList = {}
   global.loadedWagonMap = {}
-  for k,v in pairs(global.vehicleMap) do
+  for _,v in pairs(global.vehicleMap) do
     table.insert(global.loadedWagonList, v)
     global.loadedWagonMap[v] = "vehicle-wagon"
   end
@@ -93,6 +95,30 @@ function On_Init()
       -- Purge data
       global.wagon_data[id] = nil
       game.print("Purged loaded wagon data for unit or player "..id)
+    else
+      -- Migrate data
+      local migrated = false
+      -- First migrate grid
+      if global.wagon_data[id].items.grid then
+        for k,v in pairs(global.wagon_data[id].items.grid) do
+          if v.name then
+            v.item = {name=v.name, position=v.position}
+            v.name = nil
+            v.position = nil
+            migrated = true
+          end
+        end
+      end
+      -- Then check items
+      for k,v in pairs(global.wagon_data[id].items) do
+        -- anything besides fuel, ammo, trunk, and grid are names of items
+        if type(v) == "number" then
+          global.wagon_data[id].items.general = global.wagon_data[id].items.general or {}
+          global.wagon_data[id].items.general[k] = v
+          migrated = true
+        end
+      end
+      game.print("Migrated loaded wagon data for unit or player "..id)
     end
   end
   
@@ -134,19 +160,6 @@ function get_driver_or_passenger(entity)
 end
 
 
--- Store the inventory and grid contents of a vehicle before loading it.
-function getItemsIn(entity)
-  local items = {}
-  
-  items.fuel = saveRestoreLib.saveInventory(entity.get_inventory(defines.inventory.fuel))
-  items.ammo = saveRestoreLib.saveInventory(entity.get_inventory(defines.inventory.car_ammo))
-  items.trunk = saveRestoreLib.saveInventory(entity.get_inventory(defines.inventory.car_trunk))
-  items.grid = saveRestoreLib.saveGrid(entity.grid)
-  
-  return items
-end
-
-
 -- Store the inventory filters in a vehicle before loading it.
 function getFilters(entity)
   local filters = {}
@@ -168,7 +181,6 @@ function getFilters(entity)
   return filters
 end
 
-
 -- Restore inventory filters to vehicle after unloading it.
 function setFilters(entity, filters)
   if filters then
@@ -183,12 +195,25 @@ function setFilters(entity, filters)
   end
 end
 
+
+-- Store the inventory and grid contents of a vehicle before loading it.
+function getItemsIn(entity)
+  local items = {}
+  
+  items.ammo = saveRestoreLib.saveInventory(entity.get_inventory(defines.inventory.car_ammo))
+  items.trunk = saveRestoreLib.saveInventory(entity.get_inventory(defines.inventory.car_trunk))
+  
+  items.grid = saveRestoreLib.saveGrid(entity.grid)
+  
+  return items
+end
+
 -- Insert items and grid equipment into vehicle inventory after unloading the vehicle
 function insertItems(entity, items, player_index)
   
-  saveRestoreLib.restoreInventory(entity.get_inventory(defines.inventory.fuel), items.fuel)
   saveRestoreLib.restoreInventory(entity.get_inventory(defines.inventory.car_ammo), items.ammo)
   saveRestoreLib.restoreInventory(entity.get_inventory(defines.inventory.car_trunk), items.trunk)
+  saveRestoreLib.restoreInventory(entity, items.general) -- migrated items inserted directly to car entity
   
   if entity.grid and entity.grid.valid then
     restoreGrid(entity.grid, items.grid, player_index)
@@ -258,12 +283,8 @@ function unloadWagon(loaded_wagon, player)
   setFilters(vehicle, wagon_data.filters)
   insertItems(vehicle, wagon_data.items, player_index)
   -- Restore burner
-  if vehicle.burner and wagon_data.burner then
-    -- Set the current fuel item first, or it clips remaining_burning_fuel
-    vehicle.burner.currently_burning = wagon_data.burner.currently_burning
-    vehicle.burner.heat = wagon_data.burner.heat
-    vehicle.burner.remaining_burning_fuel = wagon_data.burner.remaining_burning_fuel
-  end
+  saveRestoreLib.restoreBurner(vehicle.burner, wagon_data.burner)
+  -- Raise event for scripts
   script.raise_event(defines.events.script_raised_built, {entity = vehicle, player_index = player_index})
   
   -- Finished creating vehicle, clear loaded wagon data
@@ -341,13 +362,7 @@ function loadWagon(player)
   global.wagon_data[loaded_wagon.unit_number].items = getItemsIn(vehicle)
   global.wagon_data[loaded_wagon.unit_number].filters = getFilters(vehicle)
   -- Deal with vehicles that use burners:
-  if vehicle.burner then
-    global.wagon_data[loaded_wagon.unit_number].burner = {
-      heat = vehicle.burner.heat,
-      remaining_burning_fuel = vehicle.burner.remaining_burning_fuel,
-      currently_burning = vehicle.burner.currently_burning
-    }
-  end
+  global.wagon_data[loaded_wagon.unit_number].burner = saveRestoreLib.saveBurner(vehicle.burner)
   
   -- Destroy vehicle
   vehicle.destroy()
