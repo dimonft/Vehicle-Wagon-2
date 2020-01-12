@@ -51,7 +51,7 @@ function InitializeTypeMapping()
   for _,v in pairs(global.vehicleMap) do
     if not global.loadedWagonMap[v] then
       global.loadedWagonMap[v] = "vehicle-wagon"
-      table.insert(global.loadedWagonList, k)
+      table.insert(global.loadedWagonList, v)
     end
   end
 
@@ -62,7 +62,7 @@ function migrateWagonData(id)
   if global.wagon_data[id].items then
     -- First migrate grid
     if global.wagon_data[id].items.grid then
-      for k,v in pairs(global.wagon_data[id].items.grid) do
+      for _,v in pairs(global.wagon_data[id].items.grid) do
         if v.name then
           v.item = {name=v.name, position=v.position}
           migrated = true
@@ -112,7 +112,7 @@ function ScrubDataTables()
         break
       end
     end
-    for pid,player in pairs(game.players) do
+    for pid,_ in pairs(game.players) do
       if pid == id then
         found = true
         break
@@ -132,7 +132,7 @@ function ScrubDataTables()
   
   for id,data in pairs(global.vehicle_data) do
     local found = false
-    for pid,player in pairs(game.players) do
+    for pid,_ in pairs(game.players) do
       if pid == id then
         found = true
         break
