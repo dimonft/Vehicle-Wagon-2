@@ -460,6 +460,17 @@ function handleLoadedWagon(loaded_wagon, player_index)
     player.print({"passenger-error"})
   elseif loaded_wagon.train.speed ~= 0 then
     player.print({"train-in-motion-error"})
+  elseif not global.wagon_data[loaded_wagon.unit_number] then
+    game.print("ERROR: Missing global data for unit "..loaded_wagon.unit_number)  
+    -- Loaded wagon data or vehicle entity is invalid
+    -- Replace wagon with unloaded version and delete data
+    replaceCarriage(loaded_wagon, "vehicle-wagon", false, false)
+  elseif not game.entity_prototypes[global.wagon_data[loaded_wagon.unit_number].name] then
+    game.print("ERROR: Missing prototype \""..global.wagon_data[loaded_wagon.unit_number].name.."\" for unit "..loaded_wagon.unit_number)  
+    -- Loaded wagon data or vehicle entity is invalid
+    -- Replace wagon with unloaded version and delete data
+    global.wagon_data[loaded_wagon.unit_number] = nil
+    replaceCarriage(loaded_wagon, "vehicle-wagon", false, false)
   else
     player.play_sound({path = "latch-on"})
     player.set_gui_arrow({type = "entity", entity = loaded_wagon})
@@ -543,28 +554,23 @@ script.on_event(defines.events.on_player_used_capsule, function(event)
     loaded_wagon = loaded_wagon[1]
     if loaded_wagon and loaded_wagon.valid then
       handleLoadedWagon(loaded_wagon, index)
-      player.insert{name = "winch", count = 1}
     elseif wagon and wagon.valid then
       handleWagon(wagon, index)
-      player.insert{name = "winch", count = 1}
     elseif vehicle and vehicle.valid then
       handleVehicle(vehicle, index)
-      player.insert{name = "winch", count = 1}
     elseif global.wagon_data[index] and global.wagon_data[index].wagon and not global.wagon_data[index].status then
       local wagon = global.wagon_data[index].wagon
       local unload_position = player.surface.find_non_colliding_position(global.wagon_data[wagon.unit_number].name, position, 5, 1)
       if not unload_position then
         player.print({"position-error"})
-        player.insert{name = "winch", count = 1}
       elseif Position.distance(wagon.position, unload_position) > 9 then
         player.print({"too-far-away"})
-        player.insert{name = "winch", count = 1}
       else
         global.wagon_data[index].unload_position = unload_position
         queueUnloadWagon(wagon, index)
       end
-      player.insert{name = "winch", count = 1}
     end
+    player.insert{name = "winch", count = 1}
   end
 end)
 
