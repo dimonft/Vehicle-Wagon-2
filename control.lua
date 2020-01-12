@@ -46,11 +46,13 @@ function InitializeTypeMapping()
 
   end
   
-  global.loadedWagonList = {}
   global.loadedWagonMap = {}
+  global.loadedWagonList = {}
   for _,v in pairs(global.vehicleMap) do
-    table.insert(global.loadedWagonList, v)
-    global.loadedWagonMap[v] = "vehicle-wagon"
+    if not global.loadedWagonMap[v] then
+      global.loadedWagonMap[v] = "vehicle-wagon"
+      table.insert(global.loadedWagonList, k)
+    end
   end
 
 end
