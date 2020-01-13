@@ -48,12 +48,17 @@ function InitializeTypeMapping()
   
   global.loadedWagonMap = {}
   global.loadedWagonList = {}
+  global.loadedWagonFlip = {}
   for _,v in pairs(global.vehicleMap) do
     if not global.loadedWagonMap[v] then
       global.loadedWagonMap[v] = "vehicle-wagon"
       table.insert(global.loadedWagonList, v)
     end
   end
+  
+  global.loadedWagonFlip["loaded-vehicle-wagon-gunship"] = true
+  global.loadedWagonFlip["loaded-vehicle-wagon-jet"] = true
+  global.loadedWagonFlip["loaded-vehicle-wagon-cargoplane"] = true
 
 end
 
@@ -221,12 +226,17 @@ function unloadWagon(loaded_wagon, player)
     force = player.force
   end
   
+  local direction = math.floor(loaded_wagon.orientation*8 + 0.5)
+  if global.loadedWagonFlip[loaded_wagon.name] then
+    direction = math.fmod(direction + 4, 8)
+  end
+  
   -- Create the vehicle
   local vehicle = surface.create_entity{
                       name = wagon_data.name, 
                       position = unload_position, 
-                      force = force, 
-                      orientation = loaded_wagon.orientation
+                      force = force,
+                      direction = direction
                     }
   if not vehicle then
     if player then
@@ -252,7 +262,7 @@ function unloadWagon(loaded_wagon, player)
   -- Restore inventory contents
   saveRestoreLib.restoreInventory(vehicle.get_inventory(defines.inventory.car_ammo), wagon_data.items.ammo)
   saveRestoreLib.restoreInventory(vehicle.get_inventory(defines.inventory.car_trunk), wagon_data.items.trunk)
-  saveRestoreLib.restoreInventory(vehicle, wagon_data.items.general) -- migrated items inserted directly to car entity
+  saveRestoreLib.restoreInventory(vehicle, wagon_data.items.general, true) -- migrated items inserted directly to car entity
   if vehicle.grid and vehicle.grid.valid then
     saveRestoreLib.restoreGrid(vehicle.grid, wagon_data.items.grid, player_index)
   end
@@ -300,8 +310,14 @@ function loadWagon(player)
   -- Save parameters of empty wagon
   local position = wagon.position
   
+  -- Find direction for wagon (either as-is or rotate 180)
+  local flip = (math.abs(vehicle.orientation - wagon.orientation) > 0.25)
+  if global.loadedWagonFlip[player_data.name] then
+    flip = not flip
+  end
+  
   -- Replace the unloaded wagon with loaded one
-  local loaded_wagon = replaceCarriage(wagon, player_data.name, false, false)
+  local loaded_wagon = replaceCarriage(wagon, player_data.name, false, false, flip)
   
   -- Check that loaded wagon was created correctly
   if not loaded_wagon or not loaded_wagon.valid then
@@ -312,9 +328,6 @@ function loadWagon(player)
   
   -- Play sound associated with creating loaded wagon
   surface.play_sound({path = "utility/build_medium", position = position, volume_modifier = 0.7})
-  
-  -- Restore parameters to loaded wagon
-  --loaded_wagon.health = wagon_health
   
   -- Store data on vehicle in global table
   global.wagon_data[loaded_wagon.unit_number] = {}
