@@ -262,7 +262,7 @@ function unloadWagon(loaded_wagon, player)
   -- Restore inventory contents
   saveRestoreLib.restoreInventory(vehicle.get_inventory(defines.inventory.car_ammo), wagon_data.items.ammo)
   saveRestoreLib.restoreInventory(vehicle.get_inventory(defines.inventory.car_trunk), wagon_data.items.trunk)
-  saveRestoreLib.restoreInventory(vehicle, wagon_data.items.general, true) -- migrated items inserted directly to car entity
+  saveRestoreLib.restoreInventory(vehicle, wagon_data.items.general) -- migrated items inserted directly to car entity
   if vehicle.grid and vehicle.grid.valid then
     saveRestoreLib.restoreGrid(vehicle.grid, wagon_data.items.grid, player_index)
   end
@@ -602,34 +602,40 @@ end
 
 function insertIntoRobot(inventory, items)
   -- get first item in list
-  local name,count = next(items)
-  if not name then return 0 end
-  game.print("Trying to give robot "..name..":"..tostring(count))
-  -- try to insert this many, rounding up if fractional
-  local inserted = inventory.insert({name=name, count=math.ceil(count)})
-  -- handle fractional
-  if inserted > count then  -- fractional stack, added the last one
-    local stack = inventory.find_item_stack(name)  -- apply fractional value to any stack of this type
-    local magazine = stack.prototype.magazine_size  -- nil if not ammo
-    local durability = stack.prototype.durability  -- nil if not durable
-    local f
-    _,f = math.modf(count)  -- find fractional value of last item
-    if magazine and f > 0 then
-      stack.ammo = math.floor(f*magazine+0.5)  -- set ammo to fractional value
-    elseif durability and f > 0 then
-      stack.durability = math.floor(f*durability+0.5)  -- set durability to fractional value
+  for name,count in pairs(items) do
+    if not name then return 0 end
+    local proto = game.item_prototypes[name]
+    if proto then
+      game.print("Trying to give robot "..name..":"..tostring(count))
+      -- try to insert this many, rounding up if fractional
+      local stack = {name=name, count=math.ceil(count)}
+      _,f = math.modf(count)  -- find fractional value of last item
+      if f > 0 then
+        local magazine = proto.magazine_size  -- nil if not ammo
+        local durability = proto.durability  -- nil if not durable
+        if magazine then
+          stack.ammo = math.floor(f*magazine+0.5)  -- set ammo to fractional value
+        elseif durability then
+          stack.durability = math.floor(f*durability+0.5)  -- set durability to fractional value
+        end
+      end
+      local inserted = inventory.insert(stack)
+      -- remove that many from list
+      items[name] = math.max(0, items[name] - inserted)
+      -- clear item if empty
+      if items[name] == 0 then
+        items[name] = nil
+      end
+      if table_size(items) == 0 then
+        items = nil
+      end
+      game.print("Gave robot "..name..":"..tostring(inserted))
+      break
+    else
+      -- item type no longer exists in game
+      items[name] = nil
     end
   end
-  -- remove that many from list, rounding down if fractional
-  items[name] = math.max(0, items[name] - inserted)
-  -- clear item if empty
-  if items[name] == 0 then
-    items[name] = nil
-  end
-  if table_size(items) == 0 then
-    items = nil
-  end
-  game.print("Gave robot "..name..":"..tostring(inserted))
   return inserted
 end
 
@@ -700,7 +706,7 @@ script.on_event({defines.events.on_pre_player_mined_item, defines.events.on_robo
                 inserted = insertIntoRobot(inventory, equip.burner.burnt_result_inventory)
               end
               if inserted == 0 then
-                inserted = inventory.insert({name=equip.item.name, count=1})
+                inserted = inventory.insert({name=equip.item.name})
                 if inserted > 0 then
                   game.print("Gave robot "..equip.item.name..":1")
                   wagon_data.items.grid[k] = nil
@@ -711,19 +717,23 @@ script.on_event({defines.events.on_pre_player_mined_item, defines.events.on_robo
               end
             end
           end
-          if inserted == 0 then             
-            inventory.insert(wagon_data.name)
-            local stack = inventory.find_item_stack(wagon_data.name)
-            if not stack.grid then
-              game.print("Vehicle stack has nil grid")
-            elseif wagon_data.items.grid and stack and stack.grid and stack.grid.valid then
-              game.print("Trying to restore grid")
-              saveRestoreLib.restoreGrid(stack.grid, wagon_data.items.grid)
+          if inserted == 0 then
+            if game.item_prototypes(wagon_data.name) then
+              inventory.insert({name=wagon_data.name})
+              game.print("Gave robot "..wagon_data.name..":1")
+            else
+              game.print("Unknown entity "..wagon_data.name)
             end
-            game.print("Gave robot "..wagon_data.name..":1")
             replaceCarriage(entity, "vehicle-wagon", false, false)
           else
             keepData = true
+            --for _,force in pairs(game.forces) do
+            --  if entity.to_be_deconstructed(force) then
+            --    entity.cancel_deconstruction(force)
+            --    entity.order_deconstruction(force)
+            --    break
+            --  end
+            end
           end
         end
       end
