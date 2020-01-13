@@ -599,13 +599,49 @@ function isLoadedWagon(entity)
   end
 end
 
+
+function insertIntoRobot(inventory, items)
+  -- get first item in list
+  local name,count = next(items)
+  if not name then return 0 end
+  game.print("Trying to give robot "..name..":"..tostring(count))
+  -- try to insert this many, rounding up if fractional
+  local inserted = inventory.insert({name=name, count=math.ceil(count)})
+  -- handle fractional
+  if inserted > count then  -- fractional stack, added the last one
+    local stack = inventory.find_item_stack(name)  -- apply fractional value to any stack of this type
+    local magazine = stack.prototype.magazine_size  -- nil if not ammo
+    local durability = stack.prototype.durability  -- nil if not durable
+    local f
+    _,f = math.modf(count)  -- find fractional value of last item
+    if magazine and f > 0 then
+      stack.ammo = math.floor(f*magazine+0.5)  -- set ammo to fractional value
+    elseif durability and f > 0 then
+      stack.durability = math.floor(f*durability+0.5)  -- set durability to fractional value
+    end
+  end
+  -- remove that many from list, rounding down if fractional
+  items[name] = math.max(0, items[name] - inserted)
+  -- clear item if empty
+  if items[name] == 0 then
+    items[name] = nil
+  end
+  if table_size(items) == 0 then
+    items = nil
+  end
+  game.print("Gave robot "..name..":"..tostring(inserted))
+  return inserted
+end
+
 --== ON_PRE_PLAYER_MINED_ITEM ==--
 --== ON_ROBOT_PRE_MINED ==--
 -- When player mines a loaded wagon, try to unload the vehicle first!
 script.on_event({defines.events.on_pre_player_mined_item, defines.events.on_robot_pre_mined}, function(event)
   local entity = event.entity
   if isLoadedWagon(entity) then
-    -- Player is mining a loaded wagon
+    local keepData = false
+    
+    -- Player or robot is mining a loaded wagon
     -- Attempt to unload the wagon nearby
     local unit_number = entity.unit_number
     local player_index = event.player_index
@@ -637,48 +673,99 @@ script.on_event({defines.events.on_pre_player_mined_item, defines.events.on_robo
           player.surface.create_entity({name = "flying-text", position = text_position, text = {"item-inserted", 1, game.entity_prototypes[wagon_data.name].localised_name}})
           insertItems(player, wagon_data.items, event.player_index, true, true)
         else
-          -- Robot can't carry vehicle, try to abort the mining
+          -- Robot can't carry vehicle, give it contents instead
           game.print("NOTICE: Loaded Vehicle Wagon could not be unloaded by robot.  Vehicle lost.")
+          -- First check for inventory contents
+          local inventory = event.robot.get_inventory(defines.inventory.robot_cargo)
+          local inserted = 0
+          if wagon_data.items.general then
+            inserted = insertIntoRobot(inventory, wagon_data.items.general)
+          end
+          if inserted == 0 and wagon_data.items.trunk then
+            inserted = insertIntoRobot(inventory, wagon_data.items.trunk)
+          end
+          if inserted == 0 and wagon_data.items.ammo then
+            inserted = insertIntoRobot(inventory, wagon_data.items.ammo)
+          end
+          if inserted == 0 and wagon_data.burner.inventory then
+            inserted = insertIntoRobot(inventory, wagon_data.burner.inventory)
+          end
+          if inserted == 0 and wagon_data.items.grid then
+            k,equip = next(wagon_data.items.grid)
+            if equip then
+              if equip.burner and equip.burner.inventory then
+                inserted = insertIntoRobot(inventory, equip.burner.inventory)
+              end
+              if inserted == 0 and equip.burner and equip.burner.burnt_result_inventory then
+                inserted = insertIntoRobot(inventory, equip.burner.burnt_result_inventory)
+              end
+              if inserted == 0 then
+                inserted = inventory.insert({name=equip.item.name, count=1})
+                if inserted > 0 then
+                  game.print("Gave robot "..equip.item.name..":1")
+                  wagon_data.items.grid[k] = nil
+                  if table_size(wagon_data.items.grid) == 0 then
+                    wagon_data.items.grid = nil
+                  end
+                end
+              end
+            end
+          end
+          if inserted == 0 then             
+            inventory.insert(wagon_data.name)
+            local stack = inventory.find_item_stack(wagon_data.name)
+            if not stack.grid then
+              game.print("Vehicle stack has nil grid")
+            elseif wagon_data.items.grid and stack and stack.grid and stack.grid.valid then
+              game.print("Trying to restore grid")
+              saveRestoreLib.restoreGrid(stack.grid, wagon_data.items.grid)
+            end
+            game.print("Gave robot "..wagon_data.name..":1")
+            replaceCarriage(entity, "vehicle-wagon", false, false)
+          else
+            keepData = true
+          end
         end
       end
       
     end
     
-    -- Either way, delete the data associated with the mined wagon
-    global.wagon_data[unit_number] = nil
-    
+    -- Delete the data associated with the mined wagon unless robots are unloading it
+    if not keepData then
+      global.wagon_data[unit_number] = nil
+    end
   end
 end)
 
 
 --== ON_MARKED_FOR_DECONSTRUCTION ==--
 -- When player marks loaded wagon for deconstruction, check if there is space for the robot to unload the vehicle.
-script.on_event(defines.events.on_marked_for_deconstruction, function(event)
-  local entity = event.entity
-  if isLoadedWagon(entity) then
-    local unit_number = entity.unit_number
-    local wagon_data = global.wagon_data[unit_number]
-    if wagon_data then
-      -- Check if there is space
-      local unload_position = entity.surface.find_non_colliding_position(wagon_data.name, entity.position, 5, 1)
-      if not unload_position then
-        -- No space to unload nearby
-        -- Display error message
-        if event.player then
-          player.print("Deconstruction cancelled: no space for robot to unload "..wagon_data.name.." from wagon.")
-        else
-          game.print("Deconstruction cancelled: no space for robot to unload "..wagon_data.name.." from wagon.")
-        end
-        -- Try to remove deconstruction order
-        for _,force in pairs(game.forces) do
-          if entity.to_be_deconstructed(force) then
-            entity.cancel_deconstruction(force)
-          end
-        end
-      end
-    end
-  end
-end)
+-- script.on_event(defines.events.on_marked_for_deconstruction, function(event)
+  -- local entity = event.entity
+  -- if isLoadedWagon(entity) then
+    -- local unit_number = entity.unit_number
+    -- local wagon_data = global.wagon_data[unit_number]
+    -- if wagon_data then
+      -- -- Check if there is space
+      -- local unload_position = entity.surface.find_non_colliding_position(wagon_data.name, entity.position, 5, 1)
+      -- if not unload_position then
+        -- -- No space to unload nearby
+        -- -- Display error message
+        -- if event.player then
+          -- player.print("Deconstruction cancelled: no space for robot to unload "..wagon_data.name.." from wagon.")
+        -- else
+          -- game.print("Deconstruction cancelled: no space for robot to unload "..wagon_data.name.." from wagon.")
+        -- end
+        -- -- Try to remove deconstruction order
+        -- for _,force in pairs(game.forces) do
+          -- if entity.to_be_deconstructed(force) then
+            -- entity.cancel_deconstruction(force)
+          -- end
+        -- end
+      -- end
+    -- end
+  -- end
+-- end)
 
 
 --== ON_ENTITY_DIED ==--
