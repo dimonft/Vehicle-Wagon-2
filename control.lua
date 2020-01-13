@@ -600,40 +600,28 @@ function isLoadedWagon(entity)
 end
 
 
-function insertIntoRobot(inventory, items)
+function insertIntoRobot(inventory, items, stack_size)
   -- get first item in list
+  local inserted = 0
   for name,count in pairs(items) do
-    if not name then return 0 end
-    local proto = game.item_prototypes[name]
-    if proto then
-      game.print("Trying to give robot "..name..":"..tostring(count))
-      -- try to insert this many, rounding up if fractional
-      local stack = {name=name, count=math.ceil(count)}
-      _,f = math.modf(count)  -- find fractional value of last item
-      if f > 0 then
-        local magazine = proto.magazine_size  -- nil if not ammo
-        local durability = proto.durability  -- nil if not durable
-        if magazine then
-          stack.ammo = math.floor(f*magazine+0.5)  -- set ammo to fractional value
-        elseif durability then
-          stack.durability = math.floor(f*durability+0.5)  -- set durability to fractional value
+    if name and count and count > 0 then
+      inserted = saveRestoreLib.insertItem(inventory, name, count, stack_size)
+      if inserted > 0 then
+        -- remove that many from list
+        items[name] = items[name] - inserted
+        -- clear item if empty
+        if items[name] <= 0 then
+          items[name] = nil
         end
-      end
-      local inserted = inventory.insert(stack)
-      -- remove that many from list
-      items[name] = math.max(0, items[name] - inserted)
-      -- clear item if empty
-      if items[name] == 0 then
+        if table_size(items) == 0 then
+          items = nil
+        end
+        game.print("Gave robot "..name..":"..tostring(inserted))
+        break
+      else
+        -- item type no longer exists in list or game
         items[name] = nil
       end
-      if table_size(items) == 0 then
-        items = nil
-      end
-      game.print("Gave robot "..name..":"..tostring(inserted))
-      break
-    else
-      -- item type no longer exists in game
-      items[name] = nil
     end
   end
   return inserted
@@ -683,29 +671,30 @@ script.on_event({defines.events.on_pre_player_mined_item, defines.events.on_robo
           game.print("NOTICE: Loaded Vehicle Wagon could not be unloaded by robot.  Vehicle lost.")
           -- First check for inventory contents
           local inventory = event.robot.get_inventory(defines.inventory.robot_cargo)
+          local stack_size = 1 + event.robot.force.worker_robots_storage_bonus
           local inserted = 0
           if wagon_data.items.general then
-            inserted = insertIntoRobot(inventory, wagon_data.items.general)
+            inserted = insertIntoRobot(inventory, wagon_data.items.general, stack_size)
           end
           if inserted == 0 and wagon_data.items.trunk then
-            inserted = insertIntoRobot(inventory, wagon_data.items.trunk)
+            inserted = insertIntoRobot(inventory, wagon_data.items.trunk, stack_size)
           end
           if inserted == 0 and wagon_data.items.ammo then
-            inserted = insertIntoRobot(inventory, wagon_data.items.ammo)
+            inserted = insertIntoRobot(inventory, wagon_data.items.ammo, stack_size)
           end
           if inserted == 0 and wagon_data.burner.inventory then
-            inserted = insertIntoRobot(inventory, wagon_data.burner.inventory)
+            inserted = insertIntoRobot(inventory, wagon_data.burner.inventory, stack_size)
           end
           if inserted == 0 and wagon_data.items.grid then
             k,equip = next(wagon_data.items.grid)
             if equip then
               if equip.burner and equip.burner.inventory then
-                inserted = insertIntoRobot(inventory, equip.burner.inventory)
+                inserted = insertIntoRobot(inventory, equip.burner.inventory, stack_size)
               end
               if inserted == 0 and equip.burner and equip.burner.burnt_result_inventory then
-                inserted = insertIntoRobot(inventory, equip.burner.burnt_result_inventory)
+                inserted = insertIntoRobot(inventory, equip.burner.burnt_result_inventory, stack_size)
               end
-              if inserted == 0 then
+              if inserted == 0 and game.item_prototypes[equip.item.name] then
                 inserted = inventory.insert({name=equip.item.name})
                 if inserted > 0 then
                   game.print("Gave robot "..equip.item.name..":1")
@@ -718,7 +707,7 @@ script.on_event({defines.events.on_pre_player_mined_item, defines.events.on_robo
             end
           end
           if inserted == 0 then
-            if game.item_prototypes(wagon_data.name) then
+            if game.item_prototypes[wagon_data.name] then
               inventory.insert({name=wagon_data.name})
               game.print("Gave robot "..wagon_data.name..":1")
             else
@@ -733,7 +722,7 @@ script.on_event({defines.events.on_pre_player_mined_item, defines.events.on_robo
             --    entity.order_deconstruction(force)
             --    break
             --  end
-            end
+            --end
           end
         end
       end
