@@ -1,5 +1,10 @@
-local vehicle_wagon = util.table.deepcopy(data.raw["cargo-wagon"]["cargo-wagon"])
 
+
+local useWeights = settings.startup["vehicle-wagon-use-custom-weights"].value
+local weightFactor = settings.startup["vehicle-wagon-vehicle-weight-factor"].value
+local emptyWeightFactor = settings.startup["vehicle-wagon-empty-weight-factor"].value
+
+local vehicle_wagon = util.table.deepcopy(data.raw["cargo-wagon"]["cargo-wagon"])
 vehicle_wagon.name = "vehicle-wagon"
 vehicle_wagon.icon = "__VehicleWagon2__/graphics/vehicle-wagon-icon.png"
 vehicle_wagon.icon_size = 32
@@ -27,17 +32,16 @@ vehicle_wagon.pictures =
 		}
 	}
 }
+if useWeights then
+  vehicle_wagon.weight = vehicle_wagon.weight * emptyWeightFactor
+end
 
-local loaded_vehicle_wagon_tank = util.table.deepcopy(data.raw["cargo-wagon"]["cargo-wagon"])
-
+local loaded_vehicle_wagon_tank = util.table.deepcopy(vehicle_wagon)
 loaded_vehicle_wagon_tank.name = "loaded-vehicle-wagon-tank"
-loaded_vehicle_wagon_tank.icon = "__VehicleWagon2__/graphics/vehicle-wagon-icon.png"
-loaded_vehicle_wagon_tank.icon_size = 32
-loaded_vehicle_wagon_tank.inventory_size = 0
-loaded_vehicle_wagon_tank.minable = {mining_time = 1, result = "vehicle-wagon"}
-loaded_vehicle_wagon_tank.horizontal_doors = nil
-loaded_vehicle_wagon_tank.vertical_doors = nil
-loaded_vehicle_wagon_tank.pictures =
+if useWeights then
+  loaded_vehicle_wagon_tank.weight = vehicle_wagon.weight + (data.raw["car"]["tank"].weight * weightFactor)
+end
+loaded_vehicle_wagon_tank.pictures = 
 {
 	layers =
 	{
@@ -106,15 +110,13 @@ loaded_vehicle_wagon_tank.pictures =
 	}
 }
 
-local loaded_vehicle_wagon_car = util.table.deepcopy(data.raw["cargo-wagon"]["cargo-wagon"])
+
+local loaded_vehicle_wagon_car = util.table.deepcopy(vehicle_wagon)
 
 loaded_vehicle_wagon_car.name = "loaded-vehicle-wagon-car"
-loaded_vehicle_wagon_car.icon = "__VehicleWagon2__/graphics/vehicle-wagon-icon.png"
-loaded_vehicle_wagon_car.icon_size = 32
-loaded_vehicle_wagon_car.inventory_size = 0
-loaded_vehicle_wagon_car.minable = {mining_time = 1, result = "vehicle-wagon"}
-loaded_vehicle_wagon_car.horizontal_doors = nil
-loaded_vehicle_wagon_car.vertical_doors = nil
+if useWeights then
+  loaded_vehicle_wagon_car.weight = vehicle_wagon.weight + (data.raw["car"]["car"].weight * weightFactor)
+end
 loaded_vehicle_wagon_car.pictures =
 {
 	layers =
@@ -179,15 +181,12 @@ loaded_vehicle_wagon_car.pictures =
 	}
 }
 
-local loaded_vehicle_wagon_tarp = util.table.deepcopy(data.raw["cargo-wagon"]["cargo-wagon"])
+local loaded_vehicle_wagon_tarp = util.table.deepcopy(vehicle_wagon)
 
 loaded_vehicle_wagon_tarp.name = "loaded-vehicle-wagon-tarp"
-loaded_vehicle_wagon_tarp.icon = "__VehicleWagon2__/graphics/vehicle-wagon-icon.png"
-loaded_vehicle_wagon_tarp.icon_size = 32
-loaded_vehicle_wagon_tarp.inventory_size = 0
-loaded_vehicle_wagon_tarp.minable = {mining_time = 1, result = "vehicle-wagon"}
-loaded_vehicle_wagon_tarp.horizontal_doors = nil
-loaded_vehicle_wagon_tarp.vertical_doors = nil
+if useWeights then
+  loaded_vehicle_wagon_tarp.weight = vehicle_wagon.weight * 2  -- arbitrary factor for unknown vehicles
+end
 loaded_vehicle_wagon_tarp.pictures =
 {
 	layers =
@@ -244,15 +243,11 @@ loaded_vehicle_wagon_tarp.pictures =
 data:extend({vehicle_wagon, loaded_vehicle_wagon_tank, loaded_vehicle_wagon_car, loaded_vehicle_wagon_tarp})
 
 if data.raw["car"]["dumper-truck"] then
-	local loaded_vehicle_wagon_truck = util.table.deepcopy(data.raw["cargo-wagon"]["cargo-wagon"])
-
+	local loaded_vehicle_wagon_truck = util.table.deepcopy(vehicle_wagon)
 	loaded_vehicle_wagon_truck.name = "loaded-vehicle-wagon-truck"
-	loaded_vehicle_wagon_truck.icon = "__VehicleWagon2__/graphics/vehicle-wagon-icon.png"
-	loaded_vehicle_wagon_truck.icon_size = 32
-	loaded_vehicle_wagon_truck.inventory_size = 0
-	loaded_vehicle_wagon_truck.minable = {mining_time = 1, result = "vehicle-wagon"}
-	loaded_vehicle_wagon_truck.horizontal_doors = nil
-	loaded_vehicle_wagon_truck.vertical_doors = nil
+  if useWeights then
+    loaded_vehicle_wagon_truck.weight = vehicle_wagon.weight + (data.raw["car"]["dumper-truck"].weight * weightFactor)
+  end
 	loaded_vehicle_wagon_truck.pictures =
 	{
 		layers =
@@ -311,15 +306,11 @@ end
 
 
 if mods["Aircraft"] then
-	local loaded_vehicle_wagon_cargo_plane = util.table.deepcopy(data.raw["cargo-wagon"]["cargo-wagon"])
-
+	local loaded_vehicle_wagon_cargo_plane = util.table.deepcopy(vehicle_wagon)
 	loaded_vehicle_wagon_cargo_plane.name = "loaded-vehicle-wagon-cargoplane"
-	loaded_vehicle_wagon_cargo_plane.icon = "__VehicleWagon2__/graphics/vehicle-wagon-icon.png"
-	loaded_vehicle_wagon_cargo_plane.icon_size = 32
-	loaded_vehicle_wagon_cargo_plane.inventory_size = 0
-	loaded_vehicle_wagon_cargo_plane.minable = {mining_time = 1, result = "vehicle-wagon"}
-	loaded_vehicle_wagon_cargo_plane.horizontal_doors = nil
-	loaded_vehicle_wagon_cargo_plane.vertical_doors = nil
+  if useWeights then
+    loaded_vehicle_wagon_cargo_plane.weight = vehicle_wagon.weight + (data.raw["car"]["cargo-plane"].weight * weightFactor)
+  end
 	loaded_vehicle_wagon_cargo_plane.pictures =
 	{
 		layers =
@@ -341,15 +332,11 @@ if mods["Aircraft"] then
 		}
 	}
 
-	local loaded_vehicle_wagon_jet = util.table.deepcopy(data.raw["cargo-wagon"]["cargo-wagon"])
-
+	local loaded_vehicle_wagon_jet = util.table.deepcopy(vehicle_wagon)
 	loaded_vehicle_wagon_jet.name = "loaded-vehicle-wagon-jet"
-	loaded_vehicle_wagon_jet.icon = "__VehicleWagon2__/graphics/vehicle-wagon-icon.png"
-	loaded_vehicle_wagon_jet.icon_size = 32
-	loaded_vehicle_wagon_jet.inventory_size = 0
-	loaded_vehicle_wagon_jet.minable = {mining_time = 1, result = "vehicle-wagon"}
-	loaded_vehicle_wagon_jet.horizontal_doors = nil
-	loaded_vehicle_wagon_jet.vertical_doors = nil
+	if useWeights then
+    loaded_vehicle_wagon_jet.weight = vehicle_wagon.weight + (data.raw["car"]["jet"].weight * weightFactor)
+  end
 	loaded_vehicle_wagon_jet.pictures =
 	{
 		layers =
@@ -371,15 +358,11 @@ if mods["Aircraft"] then
 		}
 	}
 
-	local loaded_vehicle_wagon_gunship = util.table.deepcopy(data.raw["cargo-wagon"]["cargo-wagon"])
-
+	local loaded_vehicle_wagon_gunship = util.table.deepcopy(vehicle_wagon)
 	loaded_vehicle_wagon_gunship.name = "loaded-vehicle-wagon-gunship"
-	loaded_vehicle_wagon_gunship.icon = "__VehicleWagon2__/graphics/vehicle-wagon-icon.png"
-	loaded_vehicle_wagon_gunship.icon_size = 32
-	loaded_vehicle_wagon_gunship.inventory_size = 0
-	loaded_vehicle_wagon_gunship.minable = {mining_time = 1, result = "vehicle-wagon"}
-	loaded_vehicle_wagon_gunship.horizontal_doors = nil
-	loaded_vehicle_wagon_gunship.vertical_doors = nil
+	if useWeights then
+    loaded_vehicle_wagon_gunship.weight = vehicle_wagon.weight + (data.raw["car"]["gunship"].weight * weightFactor)
+  end
 	loaded_vehicle_wagon_gunship.pictures =
 	{
 		layers =

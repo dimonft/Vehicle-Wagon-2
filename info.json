@@ -1,6 +1,6 @@
 {
 	"name": "VehicleWagon2",
-	"version": "1.2.202",
+	"version": "1.2.204",
 	"factorio_version": "0.17",
 	"title": "Vehicle Wagon 2",
 	"author": "Artanis_Mattias",
@@ -21,7 +21,8 @@
 		"? aai-vehicles-warden",
 		"? vwtransporter_A16",
 		"? SchallTransportGroup",
-		"? Aircraft"
+		"? Aircraft",
+        "? TrainOverhaul"
 	],
 	"description": "Возьмите с собой полностью заряженный и готовый к бою транспорт и отправьте его в путешествие по железной дороге."
 }
