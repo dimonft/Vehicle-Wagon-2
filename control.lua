@@ -62,7 +62,7 @@ function InitializeTypeMapping()
 
 end
 
-function migrateWagonData(id)
+function MigrateWagonData(id)
   local migrated = false
   if global.wagon_data[id].items then
     -- First migrate grid
@@ -129,7 +129,7 @@ function ScrubDataTables()
       game.print("Purged loaded wagon data for unit or player "..id)
     else
       -- Wagon valid, Migrate data if needed
-      if migrateWagonData(id) then
+      if MigrateWagonData(id) then
         game.print("Migrated loaded wagon data for unit or player "..id)
       end
     end
@@ -723,46 +723,37 @@ script.on_event({defines.events.on_pre_player_mined_item, defines.events.on_robo
     -- Delete the data associated with the mined wagon unless robots are unloading it
     if not keepData then
       global.wagon_data[unit_number] = nil
+      -- Delete any requests for unloading this particular wagon
+      for i, p in pairs(game.players) do
+        local pi = p.index
+        local player_data = global.wagon_data[pi]
+        if player_data and (not player_data.wagon or not player_data.wagon.valid or player_data.wagon.unit_number == unit_number) then
+          global.wagon_data[pi] = nil
+          p.clear_gui_arrow()
+        end
+      end
+    end
+    
+  elseif entity.name == "vehicle-wagon" then
+    -- Delete any requests for loading this particular wagon
+    for i, p in pairs(game.players) do
+      local pi = p.index
+      local player_data = global.wagon_data[pi]
+      if player_data and (not player_data.wagon or not player_data.wagon.valid or player_data.wagon.unit_number == entity.unit_number) then
+        global.wagon_data[pi] = nil
+        global.vehicle_data[pi] = nil
+        p.clear_gui_arrow()
+      end
     end
   end
 end)
-
-
---== ON_MARKED_FOR_DECONSTRUCTION ==--
--- When player marks loaded wagon for deconstruction, check if there is space for the robot to unload the vehicle.
--- script.on_event(defines.events.on_marked_for_deconstruction, function(event)
-  -- local entity = event.entity
-  -- if isLoadedWagon(entity) then
-    -- local unit_number = entity.unit_number
-    -- local wagon_data = global.wagon_data[unit_number]
-    -- if wagon_data then
-      -- -- Check if there is space
-      -- local unload_position = entity.surface.find_non_colliding_position(wagon_data.name, entity.position, 5, 1)
-      -- if not unload_position then
-        -- -- No space to unload nearby
-        -- -- Display error message
-        -- if event.player then
-          -- player.print("Deconstruction cancelled: no space for robot to unload "..wagon_data.name.." from wagon.")
-        -- else
-          -- game.print("Deconstruction cancelled: no space for robot to unload "..wagon_data.name.." from wagon.")
-        -- end
-        -- -- Try to remove deconstruction order
-        -- for _,force in pairs(game.forces) do
-          -- if entity.to_be_deconstructed(force) then
-            -- entity.cancel_deconstruction(force)
-          -- end
-        -- end
-      -- end
-    -- end
-  -- end
--- end)
 
 
 --== ON_BUILT_ENTITY ==--
 --== SCRIPT_RAISED_BUILT ==--
 -- When a loaded-wagon ghost is created, replace it with unloaded wagon ghost
 script.on_event({defines.events.on_built_entity, defines.events.script_raised_built}, function(event)
-  local entity = event.created_entity or event.created_entity
+  local entity = event.created_entity or event.entity
   if entity.name == "entity-ghost" then
     if global.loadedWagonMap[entity.ghost_name] then
       local inner_name = global.loadedWagonMap[entity.ghost_name]
