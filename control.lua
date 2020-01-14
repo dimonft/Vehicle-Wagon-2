@@ -667,8 +667,6 @@ script.on_event({defines.events.on_pre_player_mined_item, defines.events.on_robo
           player.surface.create_entity({name = "flying-text", position = text_position, text = {"item-inserted", 1, game.entity_prototypes[wagon_data.name].localised_name}})
           insertItems(player, wagon_data.items, event.player_index, true, true)
         else
-          -- Robot can't carry vehicle, give it contents instead
-          game.print("NOTICE: Loaded Vehicle Wagon could not be unloaded by robot.  Vehicle lost.")
           -- First check for inventory contents
           local inventory = event.robot.get_inventory(defines.inventory.robot_cargo)
           local stack_size = 1 + event.robot.force.worker_robots_storage_bonus
@@ -716,13 +714,6 @@ script.on_event({defines.events.on_pre_player_mined_item, defines.events.on_robo
             replaceCarriage(entity, "vehicle-wagon", false, false)
           else
             keepData = true
-            --for _,force in pairs(game.forces) do
-            --  if entity.to_be_deconstructed(force) then
-            --    entity.cancel_deconstruction(force)
-            --    entity.order_deconstruction(force)
-            --    break
-            --  end
-            --end
           end
         end
       end
@@ -765,6 +756,34 @@ end)
     -- end
   -- end
 -- end)
+
+
+--== ON_BUILT_ENTITY ==--
+--== SCRIPT_RAISED_BUILT ==--
+-- When a loaded-wagon ghost is created, replace it with unloaded wagon ghost
+script.on_event({defines.events.on_built_entity, defines.events.script_raised_built}, function(event)
+  local entity = event.created_entity or event.created_entity
+  if entity.name == "entity-ghost" then
+    if global.loadedWagonMap[entity.ghost_name] then
+      local inner_name = global.loadedWagonMap[entity.ghost_name]
+      local position = entity.position
+      local orientation = entity.orientation
+      local surface = entity.surface
+      local force = entity.force
+      
+      entity.destroy()
+      surface.create_entity{
+          name = "entity-ghost",
+          inner_name = inner_name,
+          position = position,
+          orientation = orientation,
+          force = force,
+          create_build_effect_smoke = false,
+          raise_built = false,
+          snap_to_train_stop = false}
+    end
+  end
+end)
 
 
 --== ON_ENTITY_DIED ==--
