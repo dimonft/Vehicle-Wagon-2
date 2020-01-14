@@ -25,7 +25,7 @@ data:extend({
     name = "vehicle-wagon-vehicle-weight-factor",
     order = "ac",
     setting_type = "startup",
-    default_value = 0.2,
+    default_value = 0.3,
     min_value = 0.01,
     max_value = 1.0
   },
@@ -34,7 +34,7 @@ data:extend({
     name = "vehicle-wagon-empty-weight-factor",
     order = "ab",
     setting_type = "startup",
-    default_value = 0.6,
+    default_value = 0.5,
     min_value = 0.1,
     max_value = 2.0
   }
