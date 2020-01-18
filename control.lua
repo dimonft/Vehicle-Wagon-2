@@ -189,6 +189,7 @@ function process_tick(event)
 					global.wagon_data[loaded_wagon.unit_number].name = vehicle.name
 				end
 				global.wagon_data[loaded_wagon.unit_number].health = vehicle.health
+        global.wagon_data[loaded_wagon.unit_number].color = vehicle.color
 				global.wagon_data[loaded_wagon.unit_number].items = getItemsIn(vehicle)
 				global.wagon_data[loaded_wagon.unit_number].filters = getFilters(vehicle)
 				-- Deal with vehicles that use burners:
@@ -233,6 +234,9 @@ function process_tick(event)
 					return player.print({"generic-error"})
 				end
 				vehicle.health = global.wagon_data[loaded_wagon.unit_number].health
+        if global.wagon_data[loaded_wagon.unit_number].color then 
+          vehicle.color = global.wagon_data[loaded_wagon.unit_number].color
+        end
 				setFilters(vehicle, global.wagon_data[loaded_wagon.unit_number].filters)
 				insertItems(vehicle, global.wagon_data[loaded_wagon.unit_number].items, player_index)
 				-- Restore burner
@@ -292,7 +296,7 @@ function isSpecialCase(name)
 		return "nope"
 	elseif string.contains(name, "heli") or string.contains(name, "rotor") then
 		return "nope"
-	elseif name == "cargo-plane" then
+	elseif string.contains(name, "plane") then  -- General check makes it compatible with Better Cargo Planes mod.
 		return "tarp"
 	elseif name == "vwtransportercargo" then
 		return "tarp"
@@ -427,6 +431,10 @@ script.on_event(defines.events.on_player_used_capsule, function(event)
 		if global.wagon_data[index] and global.wagon_data[index].wagon and not global.wagon_data[index].status then
 			local wagon = global.wagon_data[index].wagon
 			local unload_position = player.surface.find_non_colliding_position(global.wagon_data[wagon.unit_number].name, position, 5, 1)
+			if not unload_position then
+				player.print({"position-error"})
+				return player.insert{name = "winch", count = 1}
+			end
 			if Position.distance(wagon.position, unload_position) > 9 then
 				player.print({"too-far-away"})
 				return player.insert{name = "winch", count = 1}
@@ -453,7 +461,10 @@ script.on_event(defines.events.on_pre_player_mined_item, function(event)
 		end
 		local vehicle = player.surface.create_entity({name = global.wagon_data[entity.unit_number].name, position = unload_position, force = player.force})
 		vehicle.health = global.wagon_data[entity.unit_number].health
-		setFilters(vehicle, global.wagon_data[entity.unit_number].filters)
+    if global.wagon_data[loaded_wagon.unit_number].color then 
+      vehicle.color = global.wagon_data[loaded_wagon.unit_number].color
+    end
+    setFilters(vehicle, global.wagon_data[entity.unit_number].filters)
 		insertItems(vehicle, global.wagon_data[entity.unit_number].items, event.player_index)
 		-- Restore burner
 		if vehicle.burner and global.wagon_data[entity.unit_number].burner then
