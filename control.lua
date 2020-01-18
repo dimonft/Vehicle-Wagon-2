@@ -198,6 +198,9 @@ function process_tick(event)
 						remaining_burning_fuel = vehicle.burner.remaining_burning_fuel,
 						currently_burning = vehicle.burner.currently_burning
 					}
+					if vehicle.burner.burnt_result_inventory.valid then
+						global.wagon_data[loaded_wagon.unit_number].burner.burnt_result_inventory = vehicle.burner.burnt_result_inventory.get_contents()
+					end
 				end
 				vehicle.destroy()
 				global.wagon_data[player_index] = nil
@@ -238,6 +241,11 @@ function process_tick(event)
 					vehicle.burner.currently_burning = global.wagon_data[loaded_wagon.unit_number].burner.currently_burning
 					vehicle.burner.heat = global.wagon_data[loaded_wagon.unit_number].burner.heat
 					vehicle.burner.remaining_burning_fuel = global.wagon_data[loaded_wagon.unit_number].burner.remaining_burning_fuel
+					if global.wagon_data[loaded_wagon.unit_number].burner.burnt_result_inventory then
+						for name, count in pairs(global.wagon_data[loaded_wagon.unit_number].burner.burnt_result_inventory) do
+							vehicle.burner.burnt_result_inventory.insert{name = name, count = count}
+						end
+					end
 				end
 				script.raise_event(defines.events.script_raised_built, {entity = vehicle, player_index = player_index})
 				global.wagon_data[loaded_wagon.unit_number] = nil
