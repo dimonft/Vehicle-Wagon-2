@@ -1,44 +1,50 @@
-require "stdlib/string"
-require "stdlib/area/position"
+String = require('__stdlib__/stdlib/utils/string')
+Position = require('__stdlib__/stdlib/area/position')
 
 
 replaceCarriage = require("__Robot256Lib__/script/carriage_replacement").replaceCarriage
 blueprintLib = require("__Robot256Lib__/script/blueprint_replacement")
 saveRestoreLib = require("__Robot256Lib__/script/save_restore")
 
-script.on_init(function() On_Init() end)
-script.on_configuration_changed(function() On_Init() end)
-script.on_load(function() On_Load() end)
+require("script.loadVehicleWagon")
+require("script.unloadVehicleWagon")
 
 
 -- Go through all the available prototypes and assign them to a valid loaded wagon or "nope"
 function InitializeTypeMapping()
+  
+  -- Some sprites show up backwards from how they ought to, so we flip the wagons relative to the vehicles.
+  global.loadedWagonFlip = {}
+  
   global.vehicleMap = {}
   for k,_ in pairs(game.get_filtered_entity_prototypes({{filter="type", type="car"}})) do
     
-    if string.contains(k,"nixie") then
+    if String.contains(k,"nixie") then
       global.vehicleMap[k] = nil
-    elseif string.contains(k,"heli") or string.contains(k,"rotor") then
+    elseif String.contains(k,"heli") or String.contains(k,"rotor") then
       global.vehicleMap[k] = nil
     elseif k == "uplink-station" then
       global.vehicleMap[k] = nil
     elseif k == "vwtransportercargo" then
       global.vehicleMap[k] = nil
-    elseif string.contains(k,"airborne") then
+    elseif String.contains(k,"airborne") then
       global.vehicleMap[k] = nil
-    elseif string.contains(k,"cargo%-plane") then
+    elseif String.contains(k,"cargo%-plane") then
       global.vehicleMap[k] = "loaded-vehicle-wagon-cargoplane"
+      global.loadedWagonFlip["loaded-vehicle-wagon-cargoplane"] = true
     elseif k == "jet" then
       global.vehicleMap[k] = "loaded-vehicle-wagon-jet"
+      global.loadedWagonFlip["loaded-vehicle-wagon-jet"] = true
     elseif k == "gunship" then
       global.vehicleMap[k] = "loaded-vehicle-wagon-gunship"
+      global.loadedWagonFlip["loaded-vehicle-wagon-gunship"] = true
     elseif k == "dumper-truck" then
       global.vehicleMap[k] = "loaded-vehicle-wagon-truck"
-    elseif string.contains(k,"ht%-RA") then
+    elseif String.contains(k,"ht%-RA") then
       global.vehicleMap[k] = "loaded-vehicle-wagon-tank"
-    elseif string.contains(k,"tank") then
+    elseif String.contains(k,"tank") then
       global.vehicleMap[k] = "loaded-vehicle-wagon-tank"
-    elseif string.contains(k,"car") then
+    elseif String.contains(k,"car") then
       global.vehicleMap[k] = "loaded-vehicle-wagon-car"
     else
       global.vehicleMap[k] = "loaded-vehicle-wagon-tarp"
@@ -48,7 +54,6 @@ function InitializeTypeMapping()
   
   global.loadedWagonMap = {}
   global.loadedWagonList = {}
-  global.loadedWagonFlip = {}
   for _,v in pairs(global.vehicleMap) do
     if not global.loadedWagonMap[v] then
       global.loadedWagonMap[v] = "vehicle-wagon"
@@ -56,10 +61,6 @@ function InitializeTypeMapping()
     end
   end
   
-  global.loadedWagonFlip["loaded-vehicle-wagon-gunship"] = true
-  global.loadedWagonFlip["loaded-vehicle-wagon-jet"] = true
-  global.loadedWagonFlip["loaded-vehicle-wagon-cargoplane"] = true
-
 end
 
 function MigrateWagonData(id)
@@ -75,6 +76,7 @@ function MigrateWagonData(id)
       end
     end
     -- Then migrate items
+    -- TODO: Have Migration code figure out what inventories to use
     for k,v in pairs(global.wagon_data[id].items) do
       -- anything besides fuel, ammo, trunk, and grid are names of items
       if type(v) == "number" then
@@ -155,26 +157,36 @@ end
 --== ON_INIT EVENT ==--
 -- Initialize global data tables
 function On_Init()
-  global.vehicle_data = global.vehicle_data or {}
+
+  global.vehicle_data = nil
+
   global.wagon_data = global.wagon_data or {}
   global.tutorials = global.tutorials or {}
   for i, player in pairs(game.players) do
     global.tutorials[player.index] = {}
   end
   
+  global.action_queue = global.action_queue or {}
+  global.player_selection = global.player_selection or {}
+  
   InitializeTypeMapping()
   
-  ScrubDataTables()
+  --ScrubDataTables()
   
 end
+script.on_init(function() On_Init() end)
+script.on_configuration_changed(function() On_Init() end)
+
 
 --== ON_LOAD EVENT ==--
 -- Enable on_tick event according to global variable state
 function On_Load()
-  if global.found then
+  if global.action_queue and table_size(global.action_queue) > 0 then
     script.on_event(defines.events.on_tick, process_tick)
   end
 end
+script.on_load(function() On_Load() end)
+
 
 -- Deal with the new 0.16 driver/passenger bit
 function get_driver_or_passenger(entity)
@@ -189,210 +201,22 @@ function get_driver_or_passenger(entity)
 end
 
 
--------------------------
--- Unload Wagon (either manually or from mining)
-function unloadWagon(loaded_wagon, player)
-  
-  -- Get data associated with the vehicle stored on this wagon
-  local wagon_data = global.wagon_data[loaded_wagon.unit_number]
-  local player_index = nil
-  if player then
-    player_index = player.index
-  end
-  local surface = loaded_wagon.surface
-  
-  -- Store wagon details for replacement
-  local wagon_position = loaded_wagon.position
-  
-  -- Ask game for a valid unloading position near the wagon
-  local unload_position = nil
-  if global.wagon_data[player_index] then
-    unload_position = global.wagon_data[player_index].unload_position
-  end
-  if not unload_position then
-    unload_position = surface.find_non_colliding_position(wagon_data.name, wagon_position, 5, 1)
-  end
-  if not unload_position then
-    if player then
-      player.print({"position-error"})
-    else
-      game.print({"position-error"})
-    end
-    return
-  end
-  
-  local force = loaded_wagon.force
-  if player then
-    force = player.force
-  end
-  
-  local direction = math.floor(loaded_wagon.orientation*8 + 0.5)
-  if global.loadedWagonFlip[loaded_wagon.name] then
-    direction = math.fmod(direction + 4, 8)
-  end
-  
-  -- Create the vehicle
-  local vehicle = surface.create_entity{
-                      name = wagon_data.name, 
-                      position = unload_position, 
-                      force = force,
-                      direction = direction
-                    }
-  if not vehicle then
-    if player then
-      player.print({"generic-error"})
-    else
-      game.print({"generic-error"})
-    end
-    return vehicle
-  end
-  
-  -- Restore vehicle parameters from global data
-  vehicle.health = wagon_data.health
-  if wagon_data.color then 
-    vehicle.color = wagon_data.color
-  end
-  
-  -- Restore inventory filters
-  if wagon_data.filters then
-    restoreFilters(vehicle.get_inventory(defines.inventory.car_ammo), wagon_data.filters.ammo)
-    restoreFilters(vehicle.get_inventory(defines.inventory.car_trunk), wagon_data.filters.trunk)
-  end
-  
-  -- Restore inventory contents
-  saveRestoreLib.restoreInventory(vehicle.get_inventory(defines.inventory.car_ammo), wagon_data.items.ammo)
-  saveRestoreLib.restoreInventory(vehicle.get_inventory(defines.inventory.car_trunk), wagon_data.items.trunk)
-  saveRestoreLib.restoreInventory(vehicle, wagon_data.items.general) -- migrated items inserted directly to car entity
-  if vehicle.grid and vehicle.grid.valid then
-    saveRestoreLib.restoreGrid(vehicle.grid, wagon_data.items.grid, player_index)
-  end
-  
-  -- Restore burner
-  saveRestoreLib.restoreBurner(vehicle.burner, wagon_data.burner)
-  
-  -- Raise event for scripts
-  script.raise_event(defines.events.script_raised_built, {entity = vehicle, player_index = player_index})
-  
-  -- Finished creating vehicle, clear loaded wagon data
-  global.wagon_data[loaded_wagon.unit_number] = nil
-  
-  -- Play sounds associated with creating the vehicle
-  surface.play_sound({path = "latch-off", position = unload_position, volume_modifier = 0.7})
-  
-  -- Replace loaded wagon with unloaded wagon
-  local wagon = replaceCarriage(loaded_wagon, "vehicle-wagon", false, false)
-  
-  -- Check that unloaded wagon was created correctly
-  if wagon and wagon.valid then
-    -- Play sound associated with creating the unloaded wagon
-    surface.play_sound({path = "utility/build_medium", position = unload_position, volume_modifier = 0.7})
-  else
-    if player then
-      player.print({"generic-error"})
-    else
-      game.print({"generic-error"})
-    end
-  end
-  
-  return vehicle
-end
-
--------------------------
--- Load Wagon
-function loadWagon(player)
-  local player_index = player.index
-  local player_data = global.wagon_data[player_index]
-  
-  local wagon = player_data.wagon
-  local vehicle = player_data.vehicle
-  local surface = wagon.surface
-  
-  -- Save parameters of empty wagon
-  local position = wagon.position
-  
-  -- Find direction for wagon (either as-is or rotate 180)
-  local flip = (math.abs(vehicle.orientation - wagon.orientation) > 0.25)
-  if global.loadedWagonFlip[player_data.name] then
-    flip = not flip
-  end
-  
-  -- Replace the unloaded wagon with loaded one
-  local loaded_wagon = replaceCarriage(wagon, player_data.name, false, false, flip)
-  
-  -- Check that loaded wagon was created correctly
-  if not loaded_wagon or not loaded_wagon.valid then
-    -- Unable to create the loaded wagon, don't delete vehicle
-    player.print({"generic-error"})
-    return
-  end
-  
-  -- Play sound associated with creating loaded wagon
-  surface.play_sound({path = "utility/build_medium", position = position, volume_modifier = 0.7})
-  
-  -- Store data on vehicle in global table
-  global.wagon_data[loaded_wagon.unit_number] = {}
-  
-  -- Store vehicle entity name (either normal or AAI)
-  if remote.interfaces["aai-programmable-vehicles"] then
-    -- Make sure we need the 'expensive' gsub call before bothering:
-    -- AAI vehicles end up with a composite; ex. for a vehicle-miner, the actual object that gets
-    -- loaded is a 'vehicle-miner-_-solid', which when unloaded doesn't work unless we record
-    -- into the base object here.
-    -- NOTE: Unfortunately unloaded vehicles still end up with a new unit ID, as AAI doesn't expose
-    -- an interface to set/restore the vehicles unit ID.
-    global.wagon_data[loaded_wagon.unit_number].name = string.gsub(vehicle.name, "%-_%-.+","")
-  else
-    global.wagon_data[loaded_wagon.unit_number].name = vehicle.name
-  end
-  
-  -- Store vehicle parameters
-  global.wagon_data[loaded_wagon.unit_number].health = vehicle.health
-  global.wagon_data[loaded_wagon.unit_number].color = vehicle.color
-  
-  -- Store inventory contents
-  global.wagon_data[loaded_wagon.unit_number].items = {}
-  global.wagon_data[loaded_wagon.unit_number].items.ammo = saveRestoreLib.saveInventory(vehicle.get_inventory(defines.inventory.car_ammo))
-  global.wagon_data[loaded_wagon.unit_number].items.trunk = saveRestoreLib.saveInventory(vehicle.get_inventory(defines.inventory.car_trunk))
-  global.wagon_data[loaded_wagon.unit_number].items.grid = saveRestoreLib.saveGrid(vehicle.grid)
-  
-  -- Store inventory filters
-  global.wagon_data[loaded_wagon.unit_number].filters = {}
-  global.wagon_data[loaded_wagon.unit_number].filters.ammo = saveRestoreLib.saveFilters(vehicle.get_inventory(defines.inventory.car_ammo))
-  global.wagon_data[loaded_wagon.unit_number].filters.trunk = saveRestoreLib.saveFilters(vehicle.get_inventory(defines.inventory.car_trunk))
-  
-  -- Store vehicle burner
-  global.wagon_data[loaded_wagon.unit_number].burner = saveRestoreLib.saveBurner(vehicle.burner)
-  
-  -- Destroy vehicle
-  vehicle.destroy()
-  
-end
 
 --== ON_TICK EVENT ==--
 -- Executes queued load/unload actions after the correct time has elapsed.
 function process_tick(event)
-  global.found = false  -- Flag stays false when no player_data remains in queue
   local current_tick = event.tick
   
   -- Loop through players to see if any of them requested load/unload
   --   (would be better to have a separate global queue)
-  for i, player in pairs(game.players) do
-  
-    local player_index = player.index
-    local player_data = global.wagon_data[player_index]
-    
-    if player_data then
-    
-      global.found = true  -- Set flag true, since player_data still exists in queue
-      
+  for i, action in pairs(global.action_queue) do
+    if action.player_index and game.players[action.player_index] and action.status then
+      local player = game.players[action.player_index]
       ------- LOADING OPERATION --------
-      if player_data.status == "load" and player_data.tick == current_tick then
-        -- Clear capsule sequence display
-        player.clear_gui_arrow()
-        
+      if action.status == "load" and action.tick == current_tick then
         -- Check that the wagon and vehicle indicated by the player are a valid target for loading
-        local wagon = player_data.wagon
-        local vehicle = player_data.vehicle
+        local wagon = action.wagon
+        local vehicle = action.vehicle
         if not vehicle or not wagon or not vehicle.valid or not wagon.valid then
           player.print({"generic-error"})
         elseif wagon.get_driver() or get_driver_or_passenger(vehicle) then
@@ -401,425 +225,445 @@ function process_tick(event)
           player.print({"train-in-motion-error"})
         else
           -- Execute the loading for this player if possible.
-          loadWagon(player)
+          loadVehicleWagon(action)
         end
-        
-        -- Whether or not loading succeeds, clear this player request
-        global.wagon_data[player_index] = nil
+        -- Clear from queue after completion
+        global.action_queue[i] = nil
         
       ------- UNLOADING OPERATION --------
-      elseif global.wagon_data[player_index].status == "unload" and global.wagon_data[player_index].tick == current_tick then
-        -- Clear capsule sequence display
-        player.clear_gui_arrow()
-        
+      elseif action.status == "unload" and action.tick == current_tick then
         -- Check that the wagon indicated by the player is a valid target for unloading
-        local wagon_data = global.wagon_data[player_index]
-        if wagon_data then
-          local loaded_wagon = wagon_data.wagon
-          if not loaded_wagon or not loaded_wagon.valid then
-            player.print({"generic-error"})
-          elseif loaded_wagon.get_driver() then
-            player.print({"passenger-error"})
-          elseif loaded_wagon.train.speed ~= 0 then
-            player.print({"train-in-motion-error"})
-          else
-            -- Execute unloading if possible.  Vehicle object returned if successful
-            unloadWagon(loaded_wagon, player)
-          end
+        local loaded_wagon = action.wagon
+        if not loaded_wagon or not loaded_wagon.valid then
+          player.print({"generic-error"})
+        elseif loaded_wagon.get_driver() then
+          player.print({"passenger-error"})
+        elseif loaded_wagon.train.speed ~= 0 then
+          player.print({"train-in-motion-error"})
         else
-          player.print({"generic-error-"})
+          -- Execute unloading if possible.  Vehicle object returned if successful
+          unloadVehicleWagon(action)
         end
-        -- Whether or not unloading succeeds, clear this player request data
-        global.wagon_data[player_index] = nil
-        
+        -- Clear from queue after completion
+        global.action_queue[i] = nil
       end
+    else
+      -- Clear from queue if entry is invalid
+      global.action_queue[i] = nil
     end
   end
   
-  -- Unsubscribe from on_tick if no player_data remains in queue
-  if not global.found then
+  -- Unsubscribe from on_tick if no actions remains in queue
+  if table_size(global.action_queue) == 0 then
     script.on_event(defines.events.on_tick, nil)
   end
 end
 
 
--- Starts loading process if capsule use is correct
-function queueLoadWagon(wagon, vehicle, player_index, name)
-  local player = game.players[player_index]
-  player.surface.play_sound({path = "winch-sound", position = player.position})
-  global.wagon_data[player_index] = {}
-  global.wagon_data[player_index].status = "load"
-  global.wagon_data[player_index].wagon = wagon
-  global.wagon_data[player_index].vehicle = vehicle
-  global.wagon_data[player_index].name = name
-  global.wagon_data[player_index].tick = game.tick + 120
-  script.on_event(defines.events.on_tick, process_tick)
-end
-
--- Starts unloading process if capsule use is correct
-function queueUnloadWagon(loaded_wagon, player_index)
-  local player = game.players[player_index]
-  player.surface.play_sound({path = "winch-sound", position = player.position})
-  global.wagon_data[player_index].status = "unload"
-  global.wagon_data[player_index].tick = game.tick + 120
-  script.on_event(defines.events.on_tick, process_tick)
-end
-
-
--- Handles when player clicks on loaded wagon with winch capsule
-function handleLoadedWagon(loaded_wagon, player_index)
-  local player = game.players[player_index]
-  global.tutorials[player_index] = global.tutorials[player_index] or {}
-  global.tutorials[player_index][2] = global.tutorials[player_index][2] or 0
-  if loaded_wagon.get_driver() then
-    player.print({"passenger-error"})
-  elseif loaded_wagon.train.speed ~= 0 then
-    player.print({"train-in-motion-error"})
-  elseif not global.wagon_data[loaded_wagon.unit_number] then
-    game.print("ERROR: Missing global data for unit "..loaded_wagon.unit_number)  
-    -- Loaded wagon data or vehicle entity is invalid
-    -- Replace wagon with unloaded version and delete data
-    replaceCarriage(loaded_wagon, "vehicle-wagon", false, false)
-  elseif not game.entity_prototypes[global.wagon_data[loaded_wagon.unit_number].name] then
-    game.print("ERROR: Missing prototype \""..global.wagon_data[loaded_wagon.unit_number].name.."\" for unit "..loaded_wagon.unit_number)  
-    -- Loaded wagon data or vehicle entity is invalid
-    -- Replace wagon with unloaded version and delete data
-    global.wagon_data[loaded_wagon.unit_number] = nil
-    replaceCarriage(loaded_wagon, "vehicle-wagon", false, false)
-  else
-    player.play_sound({path = "latch-on"})
-    player.set_gui_arrow({type = "entity", entity = loaded_wagon})
-    if global.tutorials[player_index][2] < 5 then
-      global.tutorials[player_index][2] = global.tutorials[player_index][2] + 1
-      player.print({"select-unload-vehicle-location"})
-    end
-    global.wagon_data[player_index] = {}
-    global.wagon_data[player_index].wagon = loaded_wagon
+function clearSelection(player_index)
+  global.player_selection[player_index] = nil
+  if game.players[player_index] then
+    game.players[player_index].clear_gui_arrow()
   end
 end
 
--- Handles when player clicks on empty wagon with winch capsule
-function handleWagon(wagon, player_index)
-  local player = game.players[player_index]
-  if wagon.get_driver() then
-    player.print({"passenger-error"})
-  elseif wagon.train.speed ~= 0 then
-    player.print({"train-in-motion-error"})
-  elseif global.vehicle_data[player_index] then
-    local vehicle = global.vehicle_data[player_index]
-    if not vehicle.valid then
-      global.vehicle_data[player_index] = nil
-      player.clear_gui_arrow()
-      player.print({"generic-error"})
-    elseif get_driver_or_passenger(vehicle) then
-      global.vehicle_data[player_index] = nil
-      player.clear_gui_arrow()
-      player.print({"passenger-error"})
-    elseif Position.distance(wagon.position, vehicle.position) > 9 then
-      player.print({"too-far-away"})
-    else
-      local loadedName = global.vehicleMap[vehicle.name]
-      if not loadedName then
-        global.vehicle_data[player_index] = nil
-        player.clear_gui_arrow()
-        player.print({"unknown-vehicle-error"})
-      else
-        queueLoadWagon(wagon, vehicle, player_index, loadedName)
+function clearWagon(unit_number)
+  global.wagon_data[unit_number] = nil
+  global.action_queue[unit_number] = nil
+  for player_index,selection in pairs(global.player_selection) do
+    if selection.wagon then
+      if not selection.wagon.valid or selection.wagon.unit_number == unit_number then
+        clearSelection(player_index)
       end
-    end
-  else
-    player.print({"no-vehicle-selected"})
-  end
-end
-
-
--- Handles when player clicks on vehicle with winch capsule
-function handleVehicle(vehicle, player_index)
-  local player = game.players[player_index]
-  global.tutorials[player_index] = global.tutorials[player_index] or {}
-  global.tutorials[player_index][1] = global.tutorials[player_index][1] or 0
-  if get_driver_or_passenger(vehicle) then
-    player.print({"passenger-error"})
-  else
-    global.vehicle_data[player_index] = vehicle
-    player.set_gui_arrow({type = "entity", entity = vehicle})
-    player.play_sound({path = "latch-on"})
-    if global.tutorials[player_index][1] < 5 then
-      global.tutorials[player_index][1] = global.tutorials[player_index][1] + 1
-      player.print({"vehicle-selected"})
     end
   end
 end
 
 --== ON_PLAYER_USED_CAPSULE ==--
 -- Queues load/unload data when player clicks with the winch.
-script.on_event(defines.events.on_player_used_capsule, function(event)
+function OnPlayerUsedCapsule(event)
   local capsule = event.item
   if capsule.name == "winch" then
     local index = event.player_index
     local player = game.players[index]
     local surface = player.surface
     local position = event.position
-    local vehicle = surface.find_entities_filtered{type = "car", position = position, force = player.force}
-    local wagon = surface.find_entities_filtered{name = "vehicle-wagon", position = position, force = player.force}
+    local vehicle = surface.find_entities_filtered{type = "car", position = position}
+    local wagon = surface.find_entities_filtered{name = "vehicle-wagon", position = position, radius = 1, force = player.force}
     local loaded_wagon = surface.find_entities_filtered{name = global.loadedWagonList, position = position, force = player.force}
     
     vehicle = vehicle[1]
     wagon = wagon[1]
     loaded_wagon = loaded_wagon[1]
     if loaded_wagon and loaded_wagon.valid then
-      handleLoadedWagon(loaded_wagon, index)
-    elseif wagon and wagon.valid then
-      handleWagon(wagon, index)
+    -- Log tutorial steps?
+      global.tutorials[index] = global.tutorials[index] or {}
+      global.tutorials[index][2] = global.tutorials[index][2] or 0
+      
+      local unit_number = loaded_wagon.unit_number
+      
+      if loaded_wagon.get_driver() then
+        player.print({"passenger-error"})  -- Can't unload while passenger in wagon
+      elseif loaded_wagon.train.speed ~= 0 then
+        player.print({"train-in-motion-error"})  -- Can't unload while train is moving
+      elseif not global.wagon_data[unit_number] then
+        -- Loaded wagon data or vehicle entity is invalid
+        -- Replace wagon with unloaded version and delete data
+        game.print("ERROR: Missing global data for unit "..unit_number)  
+        clearWagon(unit_number)
+        replaceCarriage(loaded_wagon, "vehicle-wagon", false, false)
+      elseif not game.entity_prototypes[global.wagon_data[unit_number].name] then
+        game.print("ERROR: Missing prototype \""..global.wagon_data[unit_number].name.."\" for unit "..unit_number)  
+        -- Loaded wagon data or vehicle entity is invalid
+        -- Replace wagon with unloaded version and delete data
+        clearWagon(unit_number)
+        replaceCarriage(loaded_wagon, "vehicle-wagon", false, false)
+      else
+        -- Select vehicle as unloading source
+        player.play_sound({path = "latch-on"})
+        player.set_gui_arrow({type = "entity", entity = loaded_wagon})
+        -- Tutorial message to select unloading 
+        if global.tutorials[index][2] < 5 then
+          global.tutorials[index][2] = global.tutorials[index][2] + 1
+          player.print({"select-unload-vehicle-location"})
+        end
+        -- Record selection
+        global.player_selection[index] = {wagon=loaded_wagon}
+      end
+      
     elseif vehicle and vehicle.valid then
-      handleVehicle(vehicle, index)
-    elseif global.wagon_data[index] and global.wagon_data[index].wagon and not global.wagon_data[index].status then
-      local wagon = global.wagon_data[index].wagon
+      -- Clicked on a vehicle
+      global.tutorials[index] = global.tutorials[index] or {}
+      global.tutorials[index][1] = global.tutorials[index][1] or 0
+      
+      if get_driver_or_passenger(vehicle) then
+        player.print({"passenger-error"})
+      else
+        -- Store vehicle selection
+        global.player_selection[index] = {vehicle=vehicle}
+        player.set_gui_arrow({type = "entity", entity = vehicle})
+        player.play_sound({path = "latch-on"})
+        -- Tutorial message to select an empty wagon
+        if global.tutorials[index][1] < 5 then
+          global.tutorials[index][1] = global.tutorials[index][1] + 1
+          player.print({"vehicle-selected"})
+        end
+      end
+      
+    elseif wagon and wagon.valid then
+      -- Clicked on an empty wagon
+      if wagon.train.speed ~= 0 then
+        player.print({"train-in-motion-error"})  -- Can't load while train is moving
+      elseif (global.player_selection[index] and 
+              global.player_selection[index].vehicle) then
+        -- Clicked on empty wagon after clicking on a vehicle
+        local vehicle = global.player_selection[index].vehicle
+        if not vehicle.valid then
+          -- Selected vehicle no longer exists
+          clearSelection(index)
+          player.print({"generic-error"})
+        elseif get_driver_or_passenger(vehicle) then
+          -- Selected vehicle has an occupant
+          clearSelection(index)
+          player.print({"passenger-error"})
+        elseif Position.distance(Position.new(wagon.position), Position.new(vehicle.position)) > 9 then
+          player.print({"too-far-away"})
+        else
+          local loaded_name = global.vehicleMap[vehicle.name]
+          if not loaded_name then
+            player.print({"unknown-vehicle-error"})
+          else
+            player.surface.play_sound({path = "winch-sound", position = player.position})
+            global.action_queue[wagon.unit_number] = {player_index=index,
+                                                status = "load",
+                                                wagon = wagon,
+                                                vehicle = vehicle,
+                                                name = loaded_name,
+                                                tick = game.tick + 120}
+            clearSelection(index)
+            script.on_event(defines.events.on_tick, process_tick)
+          end
+        end
+      else
+        -- Clicked on an empty wagon without first clicking on a vehicle
+        player.print({"no-vehicle-selected"})
+      end
+      
+    elseif (global.player_selection[index] and 
+            global.player_selection[index].wagon) then
+      -- Clicked on the ground after clicking on a loaded wagon
+      local wagon = global.player_selection[index].wagon
       local unload_position = player.surface.find_non_colliding_position(global.wagon_data[wagon.unit_number].name, position, 5, 1)
       if not unload_position then
-        player.print({"position-error"})
-      elseif Position.distance(wagon.position, unload_position) > 9 then
-        player.print({"too-far-away"})
+        player.print({"position-error"})  -- Game could not find open position to unload
+      elseif Position.distance(Position.new(wagon.position), Position.new(unload_position)) > 9 then
+        player.print({"too-far-away"})  -- Player clicked too far away
       else
-        global.wagon_data[index].unload_position = unload_position
-        queueUnloadWagon(wagon, index)
+        player.surface.play_sound({path = "winch-sound", position = player.position})
+        global.action_queue[wagon.unit_number] = {player_index=index,
+                                                  status="unload",
+                                                  wagon=wagon,
+                                                  unload_position = unload_position,
+                                                  tick = game.tick + 120}
+        clearSelection(index)
+        script.on_event(defines.events.on_tick, process_tick)
       end
     end
     player.insert{name = "winch", count = 1}
   end
-end)
-
-
--- Table showing which entities can be unloaded
-function isLoadedWagon(entity)
-  if global.loadedWagonMap[entity.name] then
-    return true
-  else
-    return false
-  end
 end
+script.on_event(defines.events.on_player_used_capsule, OnPlayerUsedCapsule)
 
 
-function insertIntoRobot(inventory, items, stack_size)
-  -- get first item in list
-  local inserted = 0
-  for name,count in pairs(items) do
-    if name and count and count > 0 then
-      inserted = saveRestoreLib.insertItem(inventory, name, count, stack_size)
-      if inserted > 0 then
-        -- remove that many from list
-        items[name] = items[name] - inserted
-        -- clear item if empty
-        if items[name] <= 0 then
-          items[name] = nil
-        end
-        if table_size(items) == 0 then
-          items = nil
-        end
-        game.print("Gave robot "..name..":"..tostring(inserted))
-        break
-      else
-        -- item type no longer exists in list or game
-        items[name] = nil
-      end
+--== ON_PLAYER_CURSOR_STACK_CHANGED EVENT ==--
+-- When player stops holding winch, clear selections
+function OnPlayerCursorStackChanged(event)
+  local index = event.player_index
+  local player = game.players[index]
+  local stack = player.cursor_stack
+  if not (stack and stack.valid and stack.valid_for_read and stack.name == "winch") then
+    if global.player_selection[index] then
+      player.play_sound({path = "latch-off"})
+      clearSelection(index)
     end
   end
-  return inserted
 end
+script.on_event(defines.events.on_player_cursor_stack_changed, OnPlayerCursorStackChanged)
+
 
 --== ON_PRE_PLAYER_MINED_ITEM ==--
---== ON_ROBOT_PRE_MINED ==--
 -- When player mines a loaded wagon, try to unload the vehicle first!
-script.on_event({defines.events.on_pre_player_mined_item, defines.events.on_robot_pre_mined}, function(event)
+function OnPrePlayerMinedItem(event)
   local entity = event.entity
-  if isLoadedWagon(entity) then
-    local keepData = false
-    
-    -- Player or robot is mining a loaded wagon
+  if global.loadedWagonMap[entity.name] then
+    -- Player is mining a loaded wagon
     -- Attempt to unload the wagon nearby
     local unit_number = entity.unit_number
     local player_index = event.player_index
     
-    local player = nil
-    if player_index then
-      player = game.players[player_index]
-    end
+    local player = game.players[player_index]
+    local surface = player.surface
     local wagon_data = global.wagon_data[unit_number]
     if not wagon_data then
       -- No data on this loaded wagon
-      if player then
-        player.print({"generic-error"})
-      else
-        game.print({"generic-error"})
-      end
+      player.print({"generic-error"})
     else
       -- We can try to unload this wagon
-      local vehicle = unloadWagon(entity, player)
+      local vehicle = unloadVehicleWagon({player_index=player_index,
+                                          status="unload",
+                                          wagon=entity})
       
       if not vehicle then
         -- Vehicle could not be unloaded
-        if player then
-          -- Insert vehicle and contents into player's inventory
-          player.print({"position-error"})
-          local text_position = player.position
-          text_position.y = text_position.y + 1
-          player.insert{name = wagon_data.name, count = 1}
-          player.surface.create_entity({name = "flying-text", position = text_position, text = {"item-inserted", 1, game.entity_prototypes[wagon_data.name].localised_name}})
-          insertItems(player, wagon_data.items, event.player_index, true, true)
-        else
-          -- First check for inventory contents
-          local inventory = event.robot.get_inventory(defines.inventory.robot_cargo)
-          local stack_size = 1 + event.robot.force.worker_robots_storage_bonus
-          local inserted = 0
-          if wagon_data.items.general then
-            inserted = insertIntoRobot(inventory, wagon_data.items.general, stack_size)
-          end
-          if inserted == 0 and wagon_data.items.trunk then
-            inserted = insertIntoRobot(inventory, wagon_data.items.trunk, stack_size)
-          end
-          if inserted == 0 and wagon_data.items.ammo then
-            inserted = insertIntoRobot(inventory, wagon_data.items.ammo, stack_size)
-          end
-          if inserted == 0 and wagon_data.burner.inventory then
-            inserted = insertIntoRobot(inventory, wagon_data.burner.inventory, stack_size)
-          end
-          if inserted == 0 and wagon_data.items.grid then
-            k,equip = next(wagon_data.items.grid)
-            if equip then
-              if equip.burner and equip.burner.inventory then
-                inserted = insertIntoRobot(inventory, equip.burner.inventory, stack_size)
-              end
-              if inserted == 0 and equip.burner and equip.burner.burnt_result_inventory then
-                inserted = insertIntoRobot(inventory, equip.burner.burnt_result_inventory, stack_size)
-              end
-              if inserted == 0 and game.item_prototypes[equip.item.name] then
-                inserted = inventory.insert({name=equip.item.name})
-                if inserted > 0 then
-                  game.print("Gave robot "..equip.item.name..":1")
-                  wagon_data.items.grid[k] = nil
-                  if table_size(wagon_data.items.grid) == 0 then
-                    wagon_data.items.grid = nil
-                  end
-                end
-              end
+        -- Insert vehicle and contents into player's inventory
+        player.print({"position-error"})
+        local text_position = player.position
+        text_position.y = text_position.y + 1
+        player.insert{name = wagon_data.name, count = 1}
+        surface.create_entity({name = "flying-text", position = text_position, text = {"item-inserted", 1, game.entity_prototypes[wagon_data.name].localised_name}})
+        playerPosition = player.position
+        playerInventory = player.get_main_inventory()
+        
+        -- Give player the equipment contents
+        if wagon_data.items.grid then
+          local equip_stacks, fuel_stacks = saveRestoreLib.saveGridStacks(wagon_data.items.grid)
+          for _,stack in pairs(equip_stacks) do
+            local remainder = saveRestoreLib.insertStack(playerInventory, stack)
+            if remainder then
+              saveRestoreLib.spillStack(remainder, surface, playerPosition)
             end
           end
-          if inserted == 0 then
-            if game.item_prototypes[wagon_data.name] then
-              inventory.insert({name=wagon_data.name})
-              game.print("Gave robot "..wagon_data.name..":1")
-            else
-              game.print("Unknown entity "..wagon_data.name)
+          for _,stack in pairs(fuel_stacks) do
+            local remainder = saveRestoreLib.insertStack(playerInventory, stack)
+            if remainder then
+              saveRestoreLib.spillStack(remainder, surface, playerPosition)
             end
-            replaceCarriage(entity, "vehicle-wagon", false, false)
-          else
-            keepData = true
           end
         end
+        
+        -- Give player the ammo inventory
+        if wagon_data.items.ammo then
+          for _,stack in pairs(wagon_data.items.ammo) do
+            local remainder = saveRestoreLib.insertStack(playerInventory, stack)
+            if remainder then
+              saveRestoreLib.spillStack(remainder, surface, playerPosition)
+            end
+          end
+        end
+        
+        -- Give player the cargo inventory
+        if wagon_data.items.trunk then
+          for _,stack in pairs(wagon_data.items.trunk) do
+            local remainder = saveRestoreLib.insertStack(playerInventory, stack)
+            if remainder then
+              saveRestoreLib.spillStack(remainder, surface, playerPosition)
+            end
+          end
+        end
+    
       end
       
     end
     
-    -- Delete the data associated with the mined wagon unless robots are unloading it
-    if not keepData then
-      global.wagon_data[unit_number] = nil
-      -- Delete any requests for unloading this particular wagon
-      for i, p in pairs(game.players) do
-        local pi = p.index
-        local player_data = global.wagon_data[pi]
-        if player_data and (not player_data.wagon or not player_data.wagon.valid or player_data.wagon.unit_number == unit_number) then
-          global.wagon_data[pi] = nil
-          p.clear_gui_arrow()
+    -- Delete the data associated with the mined wagon
+    -- Delete any requests for unloading this particular wagon
+    clearWagon(unit_number)
+    
+  elseif entity.name == "vehicle-wagon" then
+    -- Delete any requests for loading this particular wagon
+    clearWagon(entity.unit_number)
+  end
+end
+script.on_event(defines.events.on_pre_player_mined_item, OnPrePlayerMinedItem)
+
+
+--== ON_ROBOT_PRE_MINED ==--
+-- When robot tries to mine a loaded wagon, try to unload the vehicle first!
+-- If vehicle cannot be unloaded, send its contents away in the robot piece by piece.
+function OnRobotPreMined(event)
+  local entity = event.entity
+  if global.loadedWagonMap[entity.name] then
+      
+    -- Player or robot is mining a loaded wagon
+    -- Attempt to unload the wagon nearby
+    local unit_number = entity.unit_number
+    local robot = event.robot
+  
+    local wagon_data = global.wagon_data[unit_number]
+    if not wagon_data then
+      -- No data on this loaded wagon
+      game.print({"generic-error"})
+    else
+      -- We can try to unload this wagon
+      local vehicle = unloadVehicleWagon({status="unload",
+                                          wagon=entity})
+      
+      if not vehicle then
+        -- Vehicle could not be unloaded
+        -- First check for inventory contents
+        local robotInventory = event.robot.get_inventory(defines.inventory.robot_cargo)
+        local robotSize = 1 + event.robot.force.worker_robots_storage_bonus
+        if wagon_data.grid then
+          wagon_data.equip_stacks, wagon_data.fuel_stacks = saveRestoreLib.saveGridStacks(wagon_data.grid)
+        end
+        if robotInventory.is_empty() and wagon_data.items.trunk then
+          for index,stack in pairs(wagon_data.items.trunk) do
+            wagon_data.items.trunk[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
+            if not robotInventory.is_empty() then break end
+          end
+        end
+        if robotInventory.is_empty() and wagon_data.items.ammo then
+          for index,stack in pairs(wagon_data.items.ammo) do
+            wagon_data.items.ammo[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
+            if not robotInventory.is_empty() then break end
+          end
+        end
+        if robotInventory.is_empty() and wagon_data.burner.inventory then
+          for index,stack in pairs(wagon_data.burner.inventory) do
+            wagon_data.burner.inventory[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
+            if not robotInventory.is_empty() then break end
+          end
+        end
+        if robotInventory.is_empty() and wagon_data.items.fuel_stacks then
+          for index,stack in pairs(wagon_data.items.fuel_stacks) do
+            local count = stack.count
+            wagon_data.items.fuel_stacks[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
+            if not robotInventory.is_empty() then
+              if stack then
+                count = count - stack.count
+              end
+              saveRestoreLib.removeFromGrid(wagon_data.items.grid, {name=stack.name, count=count})
+              break
+            end
+          end
+        end
+        if robotInventory.is_empty() and wagon_data.items.equip_stacks then
+          for index,stack in pairs(wagon_data.items.equip_stacks) do
+            local count = stack.count
+            wagon_data.items.equip_stacks[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
+            if not robotInventory.is_empty() then
+              if stack then
+                count = count - stack.count
+              end
+              saveRestoreLib.removeFromGrid(wagon_data.items.grid, {name=stack.name, count=count})
+              break
+            end
+          end
+        end
+        
+        if robotInventory.is_empty() then
+          if saveRestoreLib.insertStack(robotInventory, {name=wagon_data.name,count=1}, robotSize) == nil then
+            game.print("Gave robot "..wagon_data.name..":1")
+          else
+            game.print("Unknown vehicle entity "..wagon_data.name)
+          end
+          replaceCarriage(entity, "vehicle-wagon", false, false)
+          -- Delete wagon data and any associated requests
+          clearWagon(unit_number)
         end
       end
+      
     end
     
   elseif entity.name == "vehicle-wagon" then
     -- Delete any requests for loading this particular wagon
-    for i, p in pairs(game.players) do
-      local pi = p.index
-      local player_data = global.wagon_data[pi]
-      if player_data and (not player_data.wagon or not player_data.wagon.valid or player_data.wagon.unit_number == entity.unit_number) then
-        global.wagon_data[pi] = nil
-        global.vehicle_data[pi] = nil
-        p.clear_gui_arrow()
-      end
-    end
+    clearWagon(entity.unit_number)
   end
-end)
+end
+script.on_event(defines.events.on_robot_pre_mined, OnRobotPreMined)
+
+
 
 
 --== ON_BUILT_ENTITY ==--
 --== SCRIPT_RAISED_BUILT ==--
 -- When a loaded-wagon ghost is created, replace it with unloaded wagon ghost
-script.on_event({defines.events.on_built_entity, defines.events.script_raised_built}, function(event)
+function OnBuiltEntity(event)
   local entity = event.created_entity or event.entity
   if entity.name == "entity-ghost" then
     if global.loadedWagonMap[entity.ghost_name] then
-      local inner_name = global.loadedWagonMap[entity.ghost_name]
-      local position = entity.position
-      local orientation = entity.orientation
-      local surface = entity.surface
-      local force = entity.force
-      
-      entity.destroy()
-      surface.create_entity{
+      local newGhost = {
           name = "entity-ghost",
-          inner_name = inner_name,
-          position = position,
-          orientation = orientation,
-          force = force,
+          inner_name = global.loadedWagonMap[entity.ghost_name],
+          position = entity.position,
+          orientation = entity.orientation,
+          force = entity.force,
           create_build_effect_smoke = false,
           raise_built = false,
           snap_to_train_stop = false}
+      
+      entity.destroy()
+      surface.create_entity(newGhost)
     end
   end
-end)
+end
+script.on_event({defines.events.on_built_entity, defines.events.script_raised_built}, OnBuiltEntity)
 
 
 --== ON_ENTITY_DIED ==--
 --== SCRIPT_RAISED_DESTROY ==--
 -- When a loaded wagon dies or is destroyed by a different mod, delete its vehicle data
-script.on_event({defines.events.on_entity_died, defines.events.script_raised_destroy}, function(event)
+function OnEntityDied(event)
   local entity = event.entity
-  if isLoadedWagon(entity) then
+  if global.loadedWagonMap[entity.name] then
     -- Loaded wagon died, its vehicle is unrecoverable
     -- Clear data for this wagon
     global.wagon_data[entity.unit_number] = nil
   end
-end)
-
-
---== ON_PLAYER_CURSOR_STACK_CHANGED EVENT ==--
--- When player stops holding winch, abort any in-progress load/unload operations
-script.on_event(defines.events.on_player_cursor_stack_changed, function(event)
-  local player = game.players[event.player_index]
-  local index = event.player_index
-  local stack = player.cursor_stack
-  if not stack or not stack.valid or not stack.valid_for_read or not (stack.name == "winch") then
-    if not global.found then
-      player.clear_gui_arrow()
-    end
-    if ((global.vehicle_data[index] and global.vehicle_data[index].valid) or (global.wagon_data[index] and global.wagon_data[index].wagon)) and not global.found then
-      player.play_sound({path = "latch-off"})
-    end
-    global.vehicle_data[index] = nil
-    if global.wagon_data[index] and global.wagon_data[index].wagon and not global.wagon_data[index].status then
-      global.wagon_data[index] = nil
-    end
-  end
-end)
+end
+script.on_event({defines.events.on_entity_died, defines.events.script_raised_destroy}, OnEntityDied)
 
 
 --== ON_PLAYER_DRIVING_CHANGED_STATE EVENT ==--
 -- Eject player from unloaded wagon
 -- Can't ride on an empty flatcar, but you can in a loaded one
-script.on_event(defines.events.on_player_driving_changed_state, function(event)
+function OnPlayerDrivingChangedState(event)
   local player = game.players[event.player_index]
   if player.vehicle and player.vehicle.name == "vehicle-wagon" then
     player.driving = false
   end
-end)
+end
+script.on_event(defines.events.on_player_driving_changed_state, OnPlayerDrivingChangedState)
 
 
 ------------------------- CURSOR AND BLUEPRINT HANDLING FOR 0.17.x ---------------------------------------
@@ -827,15 +671,16 @@ end)
 --== ON_PLAYER_PIPETTE ==--
 -- Fires when player presses 'Q'.  We need to sneakily grab the correct item from inventory if it exists,
 --  or sneakily give the correct item in cheat mode.
-script.on_event(defines.events.on_player_pipette, function(event) mapPipette(event,global.loadedWagonMap) end)
+script.on_event(defines.events.on_player_pipette, 
+                function(event) mapPipette(event, global.loadedWagonMap) end)
 
 --== ON_PLAYER_CONFIGURED_BLUEPRINT EVENT ==--
 -- ID 70, fires when you select a blueprint to place
 --== ON_PLAYER_SETUP_BLUEPRINT EVENT ==--
 -- ID 68, fires when you select an area to make a blueprint or copy
 -- Force Blueprints to only store empty vehicle wagons
-script.on_event({defines.events.on_player_setup_blueprint,
-                 defines.events.on_player_configured_blueprint}, function(event) mapBlueprint(event,global.loadedWagonMap) end)
+script.on_event({defines.events.on_player_setup_blueprint, defines.events.on_player_configured_blueprint}, 
+                function(event) mapBlueprint(event, global.loadedWagonMap) end)
 
 ------------------------------------------
 -- Debug (print text to player console)
@@ -871,25 +716,25 @@ end
 
 -- Debug command
 function cmd_debug(params)
-  toogle = params.parameter
-  if not toogle then
+  toggle = params.parameter
+  if not toggle then
     if global.debug then
-      toogle = "disable"
+      toggle = "disable"
     else
-      toogle = "enable"
+      toggle = "enable"
     end
   end
-  if toogle == "disable" then
+  if toggle == "disable" then
     global.debug = false
     print_game("Debug mode disabled")
-  elseif toogle == "enable" then
+  elseif toggle == "enable" then
     global.debug = true
     print_game("Debug mode enabled")
-  elseif toogle == "dump" then
+  elseif toggle == "dump" then
     for v, data in pairs(global) do
       print_game(v, ": ", data)
     end
-  elseif toogle == "dumplog" then
+  elseif toggle == "dumplog" then
     for v, data in pairs(global) do
       print_file(v, ": ", data)
     end
