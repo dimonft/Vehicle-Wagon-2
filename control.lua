@@ -62,7 +62,7 @@ function InitializeTypeMapping()
   end
   
 end
-
+--[[
 function MigrateWagonData(id)
   local migrated = false
   if global.wagon_data[id].items then
@@ -152,7 +152,7 @@ function ScrubDataTables()
     end
   end
 end
-
+]]--
 
 --== ON_INIT EVENT ==--
 -- Initialize global data tables
@@ -443,8 +443,8 @@ function OnPrePlayerMinedItem(event)
     
     local player = game.players[player_index]
     local surface = player.surface
-    local wagon_data = global.wagon_data[unit_number]
-    if not wagon_data then
+    local wagonData = global.wagon_data[unit_number]
+    if not wagonData then
       -- No data on this loaded wagon
       player.print({"generic-error"})
     else
@@ -459,48 +459,36 @@ function OnPrePlayerMinedItem(event)
         player.print({"position-error"})
         local text_position = player.position
         text_position.y = text_position.y + 1
-        player.insert{name = wagon_data.name, count = 1}
-        surface.create_entity({name = "flying-text", position = text_position, text = {"item-inserted", 1, game.entity_prototypes[wagon_data.name].localised_name}})
+        local r2 = saveRestoreLib.restoreInventoryStacks(playerInventory, {{name = wagonData.name, count = 1}})
+        saveRestoreLib.spillStacks(r2, surface, playerPosition)
+        
+        surface.create_entity({name = "flying-text", position = text_position, text = {"item-inserted", 1, game.entity_prototypes[wagonData.name].localised_name}})
         playerPosition = player.position
         playerInventory = player.get_main_inventory()
         
-        -- Give player the equipment contents
-        if wagon_data.items.grid then
-          local equip_stacks, fuel_stacks = saveRestoreLib.saveGridStacks(wagon_data.items.grid)
-          for _,stack in pairs(equip_stacks) do
-            local remainder = saveRestoreLib.insertStack(playerInventory, stack)
-            if remainder then
-              saveRestoreLib.spillStack(remainder, surface, playerPosition)
-            end
-          end
-          for _,stack in pairs(fuel_stacks) do
-            local remainder = saveRestoreLib.insertStack(playerInventory, stack)
-            if remainder then
-              saveRestoreLib.spillStack(remainder, surface, playerPosition)
-            end
-          end
+        -- Give player the equipment contents, spill excess
+        if wagonData.items.grid then
+          local equip_stacks, fuel_stacks = saveRestoreLib.saveGridStacks(wagonData.items.grid)
+          local r2 = saveRestoreLib.restoreInventoryStacks(playerInventory, equip_stacks)
+          saveRestoreLib.spillStacks(r2, surface, playerPosition)
+          local r2 = saveRestoreLib.restoreInventoryStacks(playerInventory, fuel_stacks)
+          saveRestoreLib.spillStacks(r2, surface, playerPosition)
         end
         
-        -- Give player the ammo inventory
-        if wagon_data.items.ammo then
-          for _,stack in pairs(wagon_data.items.ammo) do
-            local remainder = saveRestoreLib.insertStack(playerInventory, stack)
-            if remainder then
-              saveRestoreLib.spillStack(remainder, surface, playerPosition)
-            end
-          end
+        -- Give player the ammo inventory, spill excess
+        local r2 = saveRestoreLib.restoreInventoryStacks(playerInventory, wagonData.items.ammo)
+        saveRestoreLib.spillStacks(r2, surface, playerPosition)
+        -- Give player the cargo inventory, spill excess
+        local r2 = saveRestoreLib.restoreInventoryStacks(playerInventory, wagonData.items.trunk)
+        saveRestoreLib.spillStacks(r2, surface, playerPosition)
+        -- Give player the burner contents, spill excess
+        if wagonData.burner then
+          local r2 = saveRestoreLib.restoreInventoryStacks(playerInventory, wagonData.burner.inventory)
+          saveRestoreLib.spillStacks(r2, surface, playerPosition)
+          local r2 = saveRestoreLib.restoreInventoryStacks(playerInventory, wagonData.burner.burnt_results_inventory)
+          saveRestoreLib.spillStacks(r2, surface, playerPosition)
         end
         
-        -- Give player the cargo inventory
-        if wagon_data.items.trunk then
-          for _,stack in pairs(wagon_data.items.trunk) do
-            local remainder = saveRestoreLib.insertStack(playerInventory, stack)
-            if remainder then
-              saveRestoreLib.spillStack(remainder, surface, playerPosition)
-            end
-          end
-        end
-    
       end
       
     end
@@ -529,8 +517,8 @@ function OnRobotPreMined(event)
     local unit_number = entity.unit_number
     local robot = event.robot
   
-    local wagon_data = global.wagon_data[unit_number]
-    if not wagon_data then
+    local wagonData = global.wagon_data[unit_number]
+    if not wagonData then
       -- No data on this loaded wagon
       game.print({"generic-error"})
     else
@@ -543,59 +531,86 @@ function OnRobotPreMined(event)
         -- First check for inventory contents
         local robotInventory = event.robot.get_inventory(defines.inventory.robot_cargo)
         local robotSize = 1 + event.robot.force.worker_robots_storage_bonus
-        if wagon_data.grid then
-          wagon_data.equip_stacks, wagon_data.fuel_stacks = saveRestoreLib.saveGridStacks(wagon_data.grid)
-        end
-        if robotInventory.is_empty() and wagon_data.items.trunk then
-          for index,stack in pairs(wagon_data.items.trunk) do
-            wagon_data.items.trunk[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
-            if not robotInventory.is_empty() then break end
-          end
-        end
-        if robotInventory.is_empty() and wagon_data.items.ammo then
-          for index,stack in pairs(wagon_data.items.ammo) do
-            wagon_data.items.ammo[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
-            if not robotInventory.is_empty() then break end
-          end
-        end
-        if robotInventory.is_empty() and wagon_data.burner.inventory then
-          for index,stack in pairs(wagon_data.burner.inventory) do
-            wagon_data.burner.inventory[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
-            if not robotInventory.is_empty() then break end
-          end
-        end
-        if robotInventory.is_empty() and wagon_data.items.fuel_stacks then
-          for index,stack in pairs(wagon_data.items.fuel_stacks) do
-            local count = stack.count
-            wagon_data.items.fuel_stacks[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
+        local robotEmpty = robotInventory.is_empty()
+        
+        if robotEmpty and wagonData.items.trunk then
+          for index,stack in pairs(wagonData.items.trunk) do
+            wagonData.items.trunk[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
             if not robotInventory.is_empty() then
-              if stack then
-                count = count - stack.count
-              end
-              saveRestoreLib.removeFromGrid(wagon_data.items.grid, {name=stack.name, count=count})
-              break
-            end
-          end
-        end
-        if robotInventory.is_empty() and wagon_data.items.equip_stacks then
-          for index,stack in pairs(wagon_data.items.equip_stacks) do
-            local count = stack.count
-            wagon_data.items.equip_stacks[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
-            if not robotInventory.is_empty() then
-              if stack then
-                count = count - stack.count
-              end
-              saveRestoreLib.removeFromGrid(wagon_data.items.grid, {name=stack.name, count=count})
+              robotEmpty = false
               break
             end
           end
         end
         
-        if robotInventory.is_empty() then
-          if saveRestoreLib.insertStack(robotInventory, {name=wagon_data.name,count=1}, robotSize) == nil then
-            game.print("Gave robot "..wagon_data.name..":1")
+        if robotEmpty and wagonData.items.ammo then
+          for index,stack in pairs(wagonData.items.ammo) do
+            wagonData.items.ammo[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
+            if not robotInventory.is_empty() then
+              robotEmpty = false
+              break
+            end
+          end
+        end
+        
+        if robotEmpty and wagonData.burner then
+          if robotEmpty and wagonData.burner.inventory then
+            for index,stack in pairs(wagonData.burner.inventory) do
+              wagonData.burner.inventory[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
+              if not robotInventory.is_empty() then
+                robotEmpty = false
+                break
+              end
+            end
+          end
+          if robotEmpty and wagonData.burner.inventory then
+            for index,stack in pairs(wagonData.burner.inventory) do
+              wagonData.burner.inventory[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
+              if not robotInventory.is_empty() then
+                robotEmpty = false
+                break
+              end
+            end
+          end
+        end
+
+        if robotEmpty and wagonData.grid and not wagonData.equip_stacks and not wagonData.fuel_stacks then
+          wagonData.equip_stacks, wagonData.fuel_stacks = saveRestoreLib.saveGridStacks(wagonData.grid)
+        end
+        if robotEmpty and wagonData.fuel_stacks then
+          for index,stack in pairs(wagonData.fuel_stacks) do
+            local count = stack.count
+            wagonData.fuel_stacks[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
+            if not robotInventory.is_empty() then
+              if stack then
+                count = count - stack.count
+              end
+              saveRestoreLib.removeFromGrid(wagonData.items.grid, {name=stack.name, count=count})
+              robotEmpty = false
+              break
+            end
+          end
+        end
+        if robotEmpty and wagonData.equip_stacks then
+          for index,stack in pairs(wagonData.equip_stacks) do
+            local count = stack.count
+            wagonData.equip_stacks[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
+            if not robotInventory.is_empty() then
+              if stack then
+                count = count - stack.count
+              end
+              saveRestoreLib.removeStackFromSavedGrid(wagonData.items.grid, {name=stack.name, count=count})
+              robotEmpty = false
+              break
+            end
+          end
+        end
+        
+        if robotEmpty then
+          if saveRestoreLib.insertStack(robotInventory, {name=wagonData.name,count=1}, robotSize) == nil then
+            game.print("Gave robot "..wagonData.name..":1")
           else
-            game.print("Unknown vehicle entity "..wagon_data.name)
+            game.print("Unknown vehicle entity "..wagonData.name)
           end
           replaceCarriage(entity, "vehicle-wagon", false, false)
           -- Delete wagon data and any associated requests
@@ -645,10 +660,10 @@ script.on_event({defines.events.on_built_entity, defines.events.script_raised_bu
 -- When a loaded wagon dies or is destroyed by a different mod, delete its vehicle data
 function OnEntityDied(event)
   local entity = event.entity
-  if global.loadedWagonMap[entity.name] then
+  if global.loadedWagonMap[entity.name] or entity.name == "vehicle-wagon" then
     -- Loaded wagon died, its vehicle is unrecoverable
     -- Clear data for this wagon
-    global.wagon_data[entity.unit_number] = nil
+    clearWagon(entity.unit_number)
   end
 end
 script.on_event({defines.events.on_entity_died, defines.events.script_raised_destroy}, OnEntityDied)

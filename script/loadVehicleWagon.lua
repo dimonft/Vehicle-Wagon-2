@@ -32,7 +32,8 @@ function loadVehicleWagon(action)
   
   -- Store data on vehicle in global table
   local unit_number = loaded_wagon.unit_number
-  global.wagon_data[unit_number] = {}
+  local saveData = {}
+  
   
   -- Store vehicle entity name (either normal or AAI)
   if remote.interfaces["aai-programmable-vehicles"] then
@@ -42,28 +43,28 @@ function loadVehicleWagon(action)
     -- into the base object here.
     -- NOTE: Unfortunately unloaded vehicles still end up with a new unit ID, as AAI doesn't expose
     -- an interface to set/restore the vehicles unit ID.
-    global.wagon_data[unit_number].name = string.gsub(vehicle.name, "%-_%-.+","")
+    saveData.name = string.gsub(vehicle.name, "%-_%-.+","")
   else
-    global.wagon_data[unit_number].name = vehicle.name
+    saveData.name = vehicle.name
   end
   
   -- Store vehicle parameters
-  global.wagon_data[unit_number].health = vehicle.health
-  global.wagon_data[unit_number].color = vehicle.color
+  saveData.health = vehicle.health
+  saveData.color = vehicle.color
   
   -- Store inventory contents
-  global.wagon_data[unit_number].items = {
-              ammo = saveRestoreLib.saveInventoryStacks(vehicle.get_inventory(defines.inventory.car_ammo)),
-              trunk = saveRestoreLib.saveInventoryStacks(vehicle.get_inventory(defines.inventory.car_trunk)),
-              grid = saveRestoreLib.saveGrid(vehicle.grid) }
+  saveData.items = {ammo = saveRestoreLib.saveInventoryStacks(vehicle.get_inventory(defines.inventory.car_ammo)),
+                    trunk = saveRestoreLib.saveInventoryStacks(vehicle.get_inventory(defines.inventory.car_trunk)),
+                    grid = saveRestoreLib.saveGrid(vehicle.grid) }
   
   -- Store inventory filters
-  global.wagon_data[unit_number].filters = {
-              ammo = saveRestoreLib.saveFilters(vehicle.get_inventory(defines.inventory.car_ammo)),
-              trunk = saveRestoreLib.saveFilters(vehicle.get_inventory(defines.inventory.car_trunk)) }
+  saveData.filters = {ammo = saveRestoreLib.saveFilters(vehicle.get_inventory(defines.inventory.car_ammo)),
+                      trunk = saveRestoreLib.saveFilters(vehicle.get_inventory(defines.inventory.car_trunk)) }
   
   -- Store vehicle burner
-  global.wagon_data[unit_number].burner = saveRestoreLib.saveBurner(vehicle.burner)
+  saveData.burner = saveRestoreLib.saveBurner(vehicle.burner)
+  
+  global.wagon_data[unit_number] = saveData
   
   -- Destroy vehicle
   vehicle.destroy()

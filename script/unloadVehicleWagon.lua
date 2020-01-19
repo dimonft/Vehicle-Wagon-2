@@ -92,51 +92,38 @@ function unloadVehicleWagon(action)
   end
   
   -- Restore burner
-  local remainder = saveRestoreLib.restoreBurner(vehicle.burner, wagon_data.burner)
-  if remainder then
-    for _,stack in remainder do
-      table.insert(wagon_data.items.trunk, remainder)
-    end
-  end
+  local r1 = saveRestoreLib.restoreBurner(vehicle.burner, wagon_data.burner)
   
   -- Restore inventory filters
   if wagon_data.filters then
-    restoreFilters(vehicle.get_inventory(defines.inventory.car_ammo), wagon_data.filters.ammo)
-    restoreFilters(vehicle.get_inventory(defines.inventory.car_trunk), wagon_data.filters.trunk)
+    saveRestoreLib.restoreFilters(vehicle.get_inventory(defines.inventory.car_ammo), wagon_data.filters.ammo)
+    saveRestoreLib.restoreFilters(vehicle.get_inventory(defines.inventory.car_trunk), wagon_data.filters.trunk)
   end
   
   -- Restore equipment grid
   if vehicle.grid and vehicle.grid.valid then
-    remainder = saveRestoreLib.restoreGrid(vehicle.grid, wagon_data.items.grid, player_index)
-    if remainder then
-      for _,stack in remainder do
-        table.insert(wagon_data.items.trunk, remainder)
-      end
-    end
+    local r2 = saveRestoreLib.restoreGrid(vehicle.grid, wagon_data.items.grid, player_index)
+    r1 = saveRestoreLib.mergeStackLists(r1, r2)
   end
   
   -- Restore ammo inventory
   ammoInventory = vehicle.get_inventory(defines.inventory.car_ammo)
   if wagon_data.items.ammo then
-    for _,stack in pairs(wagon_data.items.ammo) do
-      remainder = saveRestoreLib.insertStack(ammoInventory, stack)
-      if remainder then
-        -- Add to trunk inventory, try to save it there
-        table.insert(wagon_data.items.trunk, remainder)
-      end
-    end
+    local r2 = saveRestoreLib.restoreInventoryStacks(ammoInventory, wagon_data.items.ammo)
+    r1 = saveRestoreLib.mergeStackLists(r1, r2)
   end
   
   -- Restore the cargo inventory
   trunkInventory = vehicle.get_inventory(defines.inventory.car_trunk)
   if wagon_data.items.trunk then
-    for _,stack in pairs(wagon_data.items.trunk) do
-      remainder = saveRestoreLib.insertStack(trunkInventory, stack)
-      if remainder then
-        -- Nowhere to put this, spill it on the ground
-        saveRestoreLib.spillStack(remainder, surface, unload_position)
-      end
-    end
+    local r2 = saveRestoreLib.restoreInventoryStacks(trunkInventory, wagon_data.items.trunk)
+    r1 = saveRestoreLib.mergeStackLists(r1, r2)
+  end
+  
+  -- Try to insert remainders into trunk, spill whatever doesn't fit
+  if r1 then
+    local r2 = saveRestoreLib.restoreInventoryStacks(trunkInventory, r1)
+    saveRestoreLib.spillStacks(r2)
   end
   
   -- Raise event for scripts
