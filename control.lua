@@ -556,6 +556,7 @@ function OnRobotPreMined(event)
         
         if robotEmpty and wagonData.items.trunk then
           for index,stack in pairs(wagonData.items.trunk) do
+            if not stack.count then stack.count = 1 end
             game.print("Giving robot cargo stack: "..stack.name.." : "..stack.count)
             wagonData.items.trunk[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
             if not robotInventory.is_empty() then
@@ -567,6 +568,7 @@ function OnRobotPreMined(event)
         
         if robotEmpty and wagonData.items.ammo then
           for index,stack in pairs(wagonData.items.ammo) do
+            if not stack.count then stack.count = 1 end
             game.print("Giving robot ammo stack: "..stack.name.." : "..stack.count)
             wagonData.items.ammo[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
             if not robotInventory.is_empty() then
@@ -579,6 +581,7 @@ function OnRobotPreMined(event)
         if robotEmpty and wagonData.burner then
           if robotEmpty and wagonData.burner.inventory then
             for index,stack in pairs(wagonData.burner.inventory) do
+              if not stack.count then stack.count = 1 end
               game.print("Giving robot burner fuel stack: "..stack.name.." : "..stack.count)
               wagonData.burner.inventory[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
               if not robotInventory.is_empty() then
@@ -590,6 +593,7 @@ function OnRobotPreMined(event)
           if robotEmpty and wagonData.burner.inventory then
             for index,stack in pairs(wagonData.burner.inventory) do
               game.print("Giving robot burner burnt stack: "..stack.name.." : "..stack.count)
+              if not stack.count then stack.count = 1 end
               wagonData.burner.inventory[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
               if not robotInventory.is_empty() then
                 robotEmpty = false
@@ -604,6 +608,7 @@ function OnRobotPreMined(event)
         end
         if robotEmpty and wagonData.items.fuel_stacks then
           for index,stack in pairs(wagonData.items.fuel_stacks) do
+            if not stack.count then stack.count = 1 end
             local count = stack.count
             game.print("Giving robot equipment fuel stack: "..stack.name.." : "..stack.count)
             wagonData.items.fuel_stacks[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
@@ -619,6 +624,7 @@ function OnRobotPreMined(event)
         end
         if robotEmpty and wagonData.items.equip_stacks then
           for index,stack in pairs(wagonData.items.equip_stacks) do
+            if not stack.count then stack.count = 1 end
             local count = stack.count
             game.print("Giving robot equipment stack: "..stack.name.." : "..stack.count)
             wagonData.items.equip_stacks[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
@@ -635,7 +641,7 @@ function OnRobotPreMined(event)
         
         if robotEmpty then
           if saveRestoreLib.insertStack(robotInventory, {name=wagonData.name,count=1}, robotSize) == nil then
-            game.print("Gave robot "..wagonData.name..":1")
+            game.print("Gave robot "..wagonData.name.." : 1")
           else
             game.print("Unknown vehicle entity "..wagonData.name)
           end
