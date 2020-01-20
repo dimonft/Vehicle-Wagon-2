@@ -47,11 +47,6 @@ function unloadVehicleWagon(action)
   
   -- If we still can't find a position, give up
   if not unload_position then
-    if player then
-      player.print({"vw3-position-error"})
-    else
-      game.print({"vw3-position-error"})
-    end
     return
   end
   
@@ -101,29 +96,23 @@ function unloadVehicleWagon(action)
   end
   
   -- Restore equipment grid
-  if vehicle.grid and vehicle.grid.valid then
-    local r2 = saveRestoreLib.restoreGrid(vehicle.grid, wagon_data.items.grid, player_index)
-    r1 = saveRestoreLib.mergeStackLists(r1, r2)
-  end
+  local r2 = saveRestoreLib.restoreGrid(vehicle.grid, wagon_data.items.grid, player_index)
+  r1 = saveRestoreLib.mergeStackLists(r1, r2)
   
   -- Restore ammo inventory
   ammoInventory = vehicle.get_inventory(defines.inventory.car_ammo)
-  if wagon_data.items.ammo then
-    local r2 = saveRestoreLib.restoreInventoryStacks(ammoInventory, wagon_data.items.ammo)
-    r1 = saveRestoreLib.mergeStackLists(r1, r2)
-  end
+  local r2 = saveRestoreLib.insertInventoryStacks(ammoInventory, wagon_data.items.ammo)
+  r1 = saveRestoreLib.mergeStackLists(r1, r2)
   
   -- Restore the cargo inventory
   trunkInventory = vehicle.get_inventory(defines.inventory.car_trunk)
-  if wagon_data.items.trunk then
-    local r2 = saveRestoreLib.restoreInventoryStacks(trunkInventory, wagon_data.items.trunk)
-    r1 = saveRestoreLib.mergeStackLists(r1, r2)
-  end
+  local r2 = saveRestoreLib.insertInventoryStacks(trunkInventory, wagon_data.items.trunk)
+  r1 = saveRestoreLib.mergeStackLists(r1, r2)
   
   -- Try to insert remainders into trunk, spill whatever doesn't fit
   if r1 then
-    local r2 = saveRestoreLib.restoreInventoryStacks(trunkInventory, r1)
-    saveRestoreLib.spillStacks(r2)
+    local r2 = saveRestoreLib.insertInventoryStacks(trunkInventory, r1)
+    saveRestoreLib.spillStacks(r2, surface, unload_position)
   end
   
   -- Raise event for scripts

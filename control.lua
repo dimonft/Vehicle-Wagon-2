@@ -20,34 +20,36 @@ function InitializeTypeMapping()
   for k,_ in pairs(game.get_filtered_entity_prototypes({{filter="type", type="car"}})) do
     
     if String.contains(k,"nixie") then
-      global.vehicleMap[k] = nil
-    elseif String.contains(k,"heli") or String.contains(k,"rotor") then
-      global.vehicleMap[k] = nil
+      global.vehicleMap[k] = nil  -- non vehicle entity
     elseif k == "uplink-station" then
-      global.vehicleMap[k] = nil
+      global.vehicleMap[k] = nil  -- non vehicle entity
+    elseif String.contains(k,"heli") or String.contains(k,"rotor") then
+      global.vehicleMap[k] = nil  -- helicopter & heli parts incompatible
     elseif k == "vwtransportercargo" then
-      global.vehicleMap[k] = nil
+      global.vehicleMap[k] = nil  -- non vehicle or incompatible?
     elseif String.contains(k,"airborne") then
-      global.vehicleMap[k] = nil
+      global.vehicleMap[k] = nil  -- can't load flying planes
+    elseif String.contains(k,"Schall%-tank%-SH") then
+      global.vehicleMap[k] = nil  -- Super Heavy tank doesn't fit on train
     elseif String.contains(k,"cargo%-plane") then
-      global.vehicleMap[k] = "loaded-vehicle-wagon-cargoplane"
-      global.loadedWagonFlip["loaded-vehicle-wagon-cargoplane"] = true
+      global.vehicleMap[k] = "loaded-vehicle-wagon-cargoplane"  -- Cargo plane, Better cargo plane, Even better cargo plane
+      global.loadedWagonFlip["loaded-vehicle-wagon-cargoplane"] = true  -- Cargo plane wagon sprite is flipped
     elseif k == "jet" then
       global.vehicleMap[k] = "loaded-vehicle-wagon-jet"
-      global.loadedWagonFlip["loaded-vehicle-wagon-jet"] = true
+      global.loadedWagonFlip["loaded-vehicle-wagon-jet"] = true  -- Jet wagon sprite is flipped
     elseif k == "gunship" then
       global.vehicleMap[k] = "loaded-vehicle-wagon-gunship"
-      global.loadedWagonFlip["loaded-vehicle-wagon-gunship"] = true
+      global.loadedWagonFlip["loaded-vehicle-wagon-gunship"] = true  -- Gunship wagon sprite is flipped
     elseif k == "dumper-truck" then
-      global.vehicleMap[k] = "loaded-vehicle-wagon-truck"
-    elseif String.contains(k,"ht%-RA") then
-      global.vehicleMap[k] = "loaded-vehicle-wagon-tank"
+      global.vehicleMap[k] = "loaded-vehicle-wagon-truck"  -- Specific to dump truck mod
+    elseif String.contains(k,"Schall%-ht%-RA") then
+      global.vehicleMap[k] = "loaded-vehicle-wagon-tank"  -- Schall's Rocket Artillery look like tanks
     elseif String.contains(k,"tank") then
-      global.vehicleMap[k] = "loaded-vehicle-wagon-tank"
-    elseif String.contains(k,"car") then
-      global.vehicleMap[k] = "loaded-vehicle-wagon-car"
+      global.vehicleMap[k] = "loaded-vehicle-wagon-tank"  -- Generic tank
+    elseif String.contains(k,"car") and not String.contains(k,"cargo") then
+      global.vehicleMap[k] = "loaded-vehicle-wagon-car"  -- Generic car (that is not cargo)
     else
-      global.vehicleMap[k] = "loaded-vehicle-wagon-tarp"
+      global.vehicleMap[k] = "loaded-vehicle-wagon-tarp"  -- Default for everything else
     end
 
   end
@@ -157,8 +159,6 @@ end
 --== ON_INIT EVENT ==--
 -- Initialize global data tables
 function On_Init()
-
-  global.vehicle_data = nil
 
   global.wagon_data = global.wagon_data or {}
   global.tutorials = global.tutorials or {}
@@ -338,6 +338,8 @@ function OnPlayerUsedCapsule(event)
       
       if get_driver_or_passenger(vehicle) then
         player.print({"passenger-error"})
+      elseif not global.vehicleMap[vehicle.name] then
+        player.print({"unknown-vehicle-error"})
       else
         -- Store vehicle selection
         global.player_selection[index] = {vehicle=vehicle}
@@ -372,6 +374,7 @@ function OnPlayerUsedCapsule(event)
           local loaded_name = global.vehicleMap[vehicle.name]
           if not loaded_name then
             player.print({"unknown-vehicle-error"})
+            clearSelection(index)
           else
             player.surface.play_sound({path = "winch-sound", position = player.position})
             global.action_queue[wagon.unit_number] = {player_index=index,
@@ -445,8 +448,15 @@ function OnPrePlayerMinedItem(event)
     local surface = player.surface
     local wagonData = global.wagon_data[unit_number]
     if not wagonData then
-      -- No data on this loaded wagon
-      player.print({"generic-error"})
+      -- Loaded wagon data or vehicle entity is invalid
+      -- Replace wagon with unloaded version and delete data
+      game.print("ERROR: Missing global data for unit "..unit_number)  
+      replaceCarriage(entity, "vehicle-wagon", false, false)
+    elseif not game.entity_prototypes[wagonData.name] then
+      -- Loaded wagon data or vehicle entity is invalid
+      -- Replace wagon with unloaded version and delete data
+      game.print("ERROR: Missing prototype \""..global.wagon_data[unit_number].name.."\" for unit "..unit_number)  
+      replaceCarriage(entity, "vehicle-wagon", false, false)
     else
       -- We can try to unload this wagon
       local vehicle = unloadVehicleWagon({player_index=player_index,
@@ -455,37 +465,39 @@ function OnPrePlayerMinedItem(event)
       
       if not vehicle then
         -- Vehicle could not be unloaded
+        player.print({"vw3-position-error"})
+    
         -- Insert vehicle and contents into player's inventory
-        player.print({"position-error"})
         local text_position = player.position
         text_position.y = text_position.y + 1
-        local r2 = saveRestoreLib.restoreInventoryStacks(playerInventory, {{name = wagonData.name, count = 1}})
-        saveRestoreLib.spillStacks(r2, surface, playerPosition)
-        
+        player.print({"position-error"})
         surface.create_entity({name = "flying-text", position = text_position, text = {"item-inserted", 1, game.entity_prototypes[wagonData.name].localised_name}})
-        playerPosition = player.position
-        playerInventory = player.get_main_inventory()
+        local playerPosition = player.position
+        local playerInventory = player.get_main_inventory()
+        
+        local r2 = saveRestoreLib.insertInventoryStacks(playerInventory, {{name = wagonData.name, count = 1}})
+        saveRestoreLib.spillStacks(r2, surface, playerPosition)
         
         -- Give player the equipment contents, spill excess
         if wagonData.items.grid then
           local equip_stacks, fuel_stacks = saveRestoreLib.saveGridStacks(wagonData.items.grid)
-          local r2 = saveRestoreLib.restoreInventoryStacks(playerInventory, equip_stacks)
+          local r2 = saveRestoreLib.insertInventoryStacks(playerInventory, equip_stacks)
           saveRestoreLib.spillStacks(r2, surface, playerPosition)
-          local r2 = saveRestoreLib.restoreInventoryStacks(playerInventory, fuel_stacks)
+          local r2 = saveRestoreLib.insertInventoryStacks(playerInventory, fuel_stacks)
           saveRestoreLib.spillStacks(r2, surface, playerPosition)
         end
         
         -- Give player the ammo inventory, spill excess
-        local r2 = saveRestoreLib.restoreInventoryStacks(playerInventory, wagonData.items.ammo)
+        local r2 = saveRestoreLib.insertInventoryStacks(playerInventory, wagonData.items.ammo)
         saveRestoreLib.spillStacks(r2, surface, playerPosition)
         -- Give player the cargo inventory, spill excess
-        local r2 = saveRestoreLib.restoreInventoryStacks(playerInventory, wagonData.items.trunk)
+        local r2 = saveRestoreLib.insertInventoryStacks(playerInventory, wagonData.items.trunk)
         saveRestoreLib.spillStacks(r2, surface, playerPosition)
         -- Give player the burner contents, spill excess
         if wagonData.burner then
-          local r2 = saveRestoreLib.restoreInventoryStacks(playerInventory, wagonData.burner.inventory)
+          local r2 = saveRestoreLib.insertInventoryStacks(playerInventory, wagonData.burner.inventory)
           saveRestoreLib.spillStacks(r2, surface, playerPosition)
-          local r2 = saveRestoreLib.restoreInventoryStacks(playerInventory, wagonData.burner.burnt_results_inventory)
+          local r2 = saveRestoreLib.insertInventoryStacks(playerInventory, wagonData.burner.burnt_results_inventory)
           saveRestoreLib.spillStacks(r2, surface, playerPosition)
         end
         
@@ -519,8 +531,17 @@ function OnRobotPreMined(event)
   
     local wagonData = global.wagon_data[unit_number]
     if not wagonData then
-      -- No data on this loaded wagon
-      game.print({"generic-error"})
+      -- Loaded wagon data or vehicle entity is invalid
+      -- Replace wagon with unloaded version and delete data
+      game.print("ERROR: Missing global data for unit "..unit_number)  
+      clearWagon(unit_number)
+      replaceCarriage(entity, "vehicle-wagon", false, false)
+    elseif not game.entity_prototypes[wagonData.name] then
+      game.print("ERROR: Missing prototype \""..global.wagon_data[unit_number].name.."\" for unit "..unit_number)  
+      -- Loaded wagon data or vehicle entity is invalid
+      -- Replace wagon with unloaded version and delete data
+      clearWagon(unit_number)
+      replaceCarriage(entity, "vehicle-wagon", false, false)
     else
       -- We can try to unload this wagon
       local vehicle = unloadVehicleWagon({status="unload",
@@ -535,6 +556,7 @@ function OnRobotPreMined(event)
         
         if robotEmpty and wagonData.items.trunk then
           for index,stack in pairs(wagonData.items.trunk) do
+            game.print("Giving robot cargo stack: "..stack.name.." : "..stack.count)
             wagonData.items.trunk[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
             if not robotInventory.is_empty() then
               robotEmpty = false
@@ -545,6 +567,7 @@ function OnRobotPreMined(event)
         
         if robotEmpty and wagonData.items.ammo then
           for index,stack in pairs(wagonData.items.ammo) do
+            game.print("Giving robot ammo stack: "..stack.name.." : "..stack.count)
             wagonData.items.ammo[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
             if not robotInventory.is_empty() then
               robotEmpty = false
@@ -556,6 +579,7 @@ function OnRobotPreMined(event)
         if robotEmpty and wagonData.burner then
           if robotEmpty and wagonData.burner.inventory then
             for index,stack in pairs(wagonData.burner.inventory) do
+              game.print("Giving robot burner fuel stack: "..stack.name.." : "..stack.count)
               wagonData.burner.inventory[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
               if not robotInventory.is_empty() then
                 robotEmpty = false
@@ -565,6 +589,7 @@ function OnRobotPreMined(event)
           end
           if robotEmpty and wagonData.burner.inventory then
             for index,stack in pairs(wagonData.burner.inventory) do
+              game.print("Giving robot burner burnt stack: "..stack.name.." : "..stack.count)
               wagonData.burner.inventory[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
               if not robotInventory.is_empty() then
                 robotEmpty = false
@@ -574,30 +599,32 @@ function OnRobotPreMined(event)
           end
         end
 
-        if robotEmpty and wagonData.grid and not wagonData.equip_stacks and not wagonData.fuel_stacks then
-          wagonData.equip_stacks, wagonData.fuel_stacks = saveRestoreLib.saveGridStacks(wagonData.grid)
+        if robotEmpty and wagonData.items.grid and not wagonData.items.equip_stacks and not wagonData.items.fuel_stacks then
+          wagonData.items.equip_stacks, wagonData.items.fuel_stacks = saveRestoreLib.saveGridStacks(wagonData.items.grid)
         end
-        if robotEmpty and wagonData.fuel_stacks then
-          for index,stack in pairs(wagonData.fuel_stacks) do
+        if robotEmpty and wagonData.items.fuel_stacks then
+          for index,stack in pairs(wagonData.items.fuel_stacks) do
             local count = stack.count
-            wagonData.fuel_stacks[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
+            game.print("Giving robot equipment fuel stack: "..stack.name.." : "..stack.count)
+            wagonData.items.fuel_stacks[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
             if not robotInventory.is_empty() then
-              if stack then
-                count = count - stack.count
+              if wagonData.items.fuel_stacks[index] then
+                count = count - wagonData.items.fuel_stacks[index].count
               end
-              saveRestoreLib.removeFromGrid(wagonData.items.grid, {name=stack.name, count=count})
+              saveRestoreLib.removeStackFromSavedGrid(wagonData.items.grid, {name=stack.name, count=count})
               robotEmpty = false
               break
             end
           end
         end
-        if robotEmpty and wagonData.equip_stacks then
-          for index,stack in pairs(wagonData.equip_stacks) do
+        if robotEmpty and wagonData.items.equip_stacks then
+          for index,stack in pairs(wagonData.items.equip_stacks) do
             local count = stack.count
-            wagonData.equip_stacks[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
+            game.print("Giving robot equipment stack: "..stack.name.." : "..stack.count)
+            wagonData.items.equip_stacks[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
             if not robotInventory.is_empty() then
-              if stack then
-                count = count - stack.count
+              if wagonData.items.equip_stacks[index] then
+                count = count - wagonData.items.equip_stacks[index].count
               end
               saveRestoreLib.removeStackFromSavedGrid(wagonData.items.grid, {name=stack.name, count=count})
               robotEmpty = false
@@ -626,6 +653,10 @@ function OnRobotPreMined(event)
   end
 end
 script.on_event(defines.events.on_robot_pre_mined, OnRobotPreMined)
+
+
+--== ON_MARKED_FOR_DECONSTRUCTION ==--
+-- When a wagon is marked for deconstruction, cancel any pending actions
 
 
 
@@ -706,7 +737,7 @@ function debug(...)
 end
 
 function print_game(...)
-  text = ""
+  local text = ""
   for _, v in ipairs{...} do
     if type(v) == "table" then
       text = text..serpent.block(v)
@@ -718,7 +749,7 @@ function print_game(...)
 end
 
 function print_file(...)
-  text = ""
+  local text = ""
   for _, v in ipairs{...} do
     if type(v) == "table" then
       text = text..serpent.block(v)
@@ -731,7 +762,7 @@ end
 
 -- Debug command
 function cmd_debug(params)
-  toggle = params.parameter
+  local toggle = params.parameter
   if not toggle then
     if global.debug then
       toggle = "disable"
