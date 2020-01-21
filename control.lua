@@ -521,7 +521,7 @@ function OnPrePlayerMinedItem(event)
   elseif entity.name == "item-on-ground" then
     -- Change item-on-ground to unloaded wagon before player picks it up
     if entity.stack.valid_for_read and global.loadedWagonMap[entity.stack.name] then
-      entity.stack.set_stack({name="vehicle-wagon",count=entity.stack.count})
+      entity.stack.set_stack({name="vehicle-wagon", count=entity.stack.count})
     end
   end
   
@@ -673,7 +673,7 @@ function OnRobotPreMined(event)
   elseif entity.name == "item-on-ground" then
     -- Change item-on-ground to unloaded wagon before robot picks it up
     if entity.stack.valid_for_read and global.loadedWagonMap[entity.stack.name] then
-      entity.stack.set_stack({name="vehicle-wagon",count=entity.stack.count})
+      entity.stack.set_stack({name="vehicle-wagon", count=entity.stack.count})
     end
   end
   
@@ -686,9 +686,10 @@ script.on_event(defines.events.on_robot_pre_mined, OnRobotPreMined)
 function OnPickedUpItem(event)
   if global.loadedWagonMap[event.item_stack.name] then
     game.players[event.player_index].remove_item(event.item_stack)
-    game.players[event.player_index].insert({name="vehicle-wagon",count=event.item_stack.count})
+    game.players[event.player_index].insert({name="vehicle-wagon", count=event.item_stack.count})
   end
 end
+script.on_event(defines.events.on_picked_up_item, OnPickedUpItem)
 
 
 --== ON_MARKED_FOR_DECONSTRUCTION ==--
