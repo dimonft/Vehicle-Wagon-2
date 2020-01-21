@@ -308,7 +308,7 @@ script.on_event(defines.events.on_player_driving_changed_state, OnPlayerDrivingC
 -- Fires when player presses 'Q'.  We need to sneakily grab the correct item from inventory if it exists,
 --  or sneakily give the correct item in cheat mode.
 script.on_event(defines.events.on_player_pipette, 
-                function(event) mapPipette(event, global.loadedWagonMap) end)
+                function(event) blueprintLib.mapPipette(event, global.loadedWagonMap) end)
 
 --== ON_PLAYER_CONFIGURED_BLUEPRINT EVENT ==--
 -- ID 70, fires when you select a blueprint to place
@@ -316,7 +316,7 @@ script.on_event(defines.events.on_player_pipette,
 -- ID 68, fires when you select an area to make a blueprint or copy
 -- Force Blueprints to only store empty vehicle wagons
 script.on_event({defines.events.on_player_setup_blueprint, defines.events.on_player_configured_blueprint}, 
-                function(event) mapBlueprint(event, global.loadedWagonMap) end)
+                function(event) blueprintLib.mapBlueprint(event, global.loadedWagonMap) end)
 
 ------------------------------------------
 -- Debug (print text to player console)
