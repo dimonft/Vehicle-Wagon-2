@@ -268,7 +268,6 @@ function clearSelection(player_index)
 end
 
 function clearWagon(unit_number)
-  global.wagon_data[unit_number] = nil
   global.action_queue[unit_number] = nil
   for player_index,selection in pairs(global.player_selection) do
     if selection.wagon then
@@ -277,6 +276,11 @@ function clearWagon(unit_number)
       end
     end
   end
+end
+
+function deleteWagon(unit_number)
+  global.wagon_data[unit_number] = nil
+  clearWagon(unit_number)
 end
 
 --== ON_PLAYER_USED_CAPSULE ==--
@@ -310,13 +314,13 @@ function OnPlayerUsedCapsule(event)
         -- Loaded wagon data or vehicle entity is invalid
         -- Replace wagon with unloaded version and delete data
         game.print("ERROR: Missing global data for unit "..unit_number)  
-        clearWagon(unit_number)
+        deleteWagon(unit_number)
         replaceCarriage(loaded_wagon, "vehicle-wagon", false, false)
       elseif not game.entity_prototypes[global.wagon_data[unit_number].name] then
         game.print("ERROR: Missing prototype \""..global.wagon_data[unit_number].name.."\" for unit "..unit_number)  
         -- Loaded wagon data or vehicle entity is invalid
         -- Replace wagon with unloaded version and delete data
-        clearWagon(unit_number)
+        deleteWagon(unit_number)
         replaceCarriage(loaded_wagon, "vehicle-wagon", false, false)
       else
         -- Select vehicle as unloading source
@@ -461,7 +465,8 @@ function OnPrePlayerMinedItem(event)
       -- We can try to unload this wagon
       local vehicle = unloadVehicleWagon({player_index=player_index,
                                           status="unload",
-                                          wagon=entity})
+                                          wagon=entity,
+                                          replace_wagon=false})
       
       if not vehicle then
         -- Vehicle could not be unloaded
@@ -507,12 +512,19 @@ function OnPrePlayerMinedItem(event)
     
     -- Delete the data associated with the mined wagon
     -- Delete any requests for unloading this particular wagon
-    clearWagon(unit_number)
+    deleteWagon(unit_number)
     
   elseif entity.name == "vehicle-wagon" then
     -- Delete any requests for loading this particular wagon
     clearWagon(entity.unit_number)
+    
+  elseif entity.name == "item-on-ground" then
+    -- Change item-on-ground to unloaded wagon before player picks it up
+    if entity.stack.valid_for_read and global.loadedWagonMap[entity.stack.name] then
+      entity.stack.set_stack({name="vehicle-wagon",count=entity.stack.count})
+    end
   end
+  
 end
 script.on_event(defines.events.on_pre_player_mined_item, OnPrePlayerMinedItem)
 
@@ -534,18 +546,19 @@ function OnRobotPreMined(event)
       -- Loaded wagon data or vehicle entity is invalid
       -- Replace wagon with unloaded version and delete data
       game.print("ERROR: Missing global data for unit "..unit_number)  
-      clearWagon(unit_number)
+      deleteWagon(unit_number)
       replaceCarriage(entity, "vehicle-wagon", false, false)
     elseif not game.entity_prototypes[wagonData.name] then
       game.print("ERROR: Missing prototype \""..global.wagon_data[unit_number].name.."\" for unit "..unit_number)  
       -- Loaded wagon data or vehicle entity is invalid
       -- Replace wagon with unloaded version and delete data
-      clearWagon(unit_number)
+      deleteWagon(unit_number)
       replaceCarriage(entity, "vehicle-wagon", false, false)
     else
       -- We can try to unload this wagon
       local vehicle = unloadVehicleWagon({status="unload",
-                                          wagon=entity})
+                                          wagon=entity,
+                                          replace_wagon=false})
       
       if not vehicle then
         -- Vehicle could not be unloaded
@@ -647,7 +660,7 @@ function OnRobotPreMined(event)
           end
           replaceCarriage(entity, "vehicle-wagon", false, false)
           -- Delete wagon data and any associated requests
-          clearWagon(unit_number)
+          deleteWagon(unit_number)
         end
       end
       
@@ -656,15 +669,38 @@ function OnRobotPreMined(event)
   elseif entity.name == "vehicle-wagon" then
     -- Delete any requests for loading this particular wagon
     clearWagon(entity.unit_number)
+    
+  elseif entity.name == "item-on-ground" then
+    -- Change item-on-ground to unloaded wagon before robot picks it up
+    if entity.stack.valid_for_read and global.loadedWagonMap[entity.stack.name] then
+      entity.stack.set_stack({name="vehicle-wagon",count=entity.stack.count})
+    end
   end
+  
 end
 script.on_event(defines.events.on_robot_pre_mined, OnRobotPreMined)
 
 
+--== ON_PICKED_UP_ITEM ==--
+-- When player picks up an item, change loaded wagons to empty wagons.  
+function OnPickedUpItem(event)
+  if global.loadedWagonMap[event.item_stack.name] then
+    game.players[event.player_index].remove_item(event.item_stack)
+    game.players[event.player_index].insert({name="vehicle-wagon",count=event.item_stack.count})
+  end
+end
+
+
 --== ON_MARKED_FOR_DECONSTRUCTION ==--
--- When a wagon is marked for deconstruction, cancel any pending actions
-
-
+-- When a wagon is marked for deconstruction, cancel any pending actions to load or unload
+local number = 1
+function OnMarkedForDeconstruction(event)
+  -- Delete any player selections or load/unload actions associated with this wagon
+  if event.entity.name == "vehicle-wagon" or global.loadedWagonMap[event.entity.name] then
+    clearWagon(event.entity.unit_number)
+  end
+end
+script.on_event(defines.events.on_marked_for_deconstruction, OnMarkedForDeconstruction)
 
 
 --== ON_BUILT_ENTITY ==--
@@ -689,7 +725,8 @@ function OnBuiltEntity(event)
     end
   end
 end
-script.on_event({defines.events.on_built_entity, defines.events.script_raised_built}, OnBuiltEntity)
+script.on_event(defines.events.on_built_entity, OnBuiltEntity)
+script.on_event(defines.events.script_raised_built, OnBuiltEntity)
 
 
 --== ON_ENTITY_DIED ==--
@@ -699,11 +736,12 @@ function OnEntityDied(event)
   local entity = event.entity
   if global.loadedWagonMap[entity.name] or entity.name == "vehicle-wagon" then
     -- Loaded wagon died, its vehicle is unrecoverable
-    -- Clear data for this wagon
-    clearWagon(entity.unit_number)
+    -- Also clear selection data for this wagon
+    deleteWagon(entity.unit_number)
   end
 end
-script.on_event({defines.events.on_entity_died, defines.events.script_raised_destroy}, OnEntityDied)
+script.on_event(defines.events.on_entity_died, OnEntityDied)
+script.on_event(defines.events.script_raised_destroy, OnEntityDied)
 
 
 --== ON_PLAYER_DRIVING_CHANGED_STATE EVENT ==--

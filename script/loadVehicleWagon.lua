@@ -23,6 +23,7 @@ function loadVehicleWagon(action)
   -- Check that loaded wagon was created correctly
   if not loaded_wagon or not loaded_wagon.valid then
     -- Unable to create the loaded wagon, don't delete vehicle
+    -- replaceCarriage will drop the wagon on the ground for player to pick up
     player.print({"generic-error"})
     return
   end

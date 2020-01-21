@@ -7,6 +7,10 @@ function unloadVehicleWagon(action)
   local unload_position = action.unload_position
   local loaded_wagon = action.wagon
   local player = nil
+  local replace_wagon = action.replace_wagon
+  if replace_wagon == nil then
+    replace_wagon = true
+  end
   
   -- Make sure player exists
   if player_index then
@@ -118,24 +122,26 @@ function unloadVehicleWagon(action)
   -- Raise event for scripts
   script.raise_event(defines.events.script_raised_built, {entity = vehicle, player_index = player_index})
   
+  -- Play sound associated with creating the vehicle
+  surface.play_sound({path = "utility/build_medium", position = unload_position, volume_modifier = 0.7})
+  
   -- Finished creating vehicle, clear loaded wagon data
   global.wagon_data[loaded_wagon.unit_number] = nil
   
   -- Play sounds associated with creating the vehicle
   surface.play_sound({path = "latch-off", position = unload_position, volume_modifier = 0.7})
   
-  -- Replace loaded wagon with unloaded wagon
-  local wagon = replaceCarriage(loaded_wagon, "vehicle-wagon", false, false)
-  
-  -- Check that unloaded wagon was created correctly
-  if wagon and wagon.valid then
-    -- Play sound associated with creating the unloaded wagon
-    surface.play_sound({path = "utility/build_medium", position = unload_position, volume_modifier = 0.7})
-  else
-    if player then
-      player.print({"generic-error"})
-    else
-      game.print({"generic-error"})
+  if replace_wagon then
+    -- Replace loaded wagon with unloaded wagon
+    local wagon = replaceCarriage(loaded_wagon, "vehicle-wagon", false, false)
+    
+    -- Check that unloaded wagon was created correctly
+    if not(wagon and wagon.valid) then
+      if player then
+        player.print({"generic-error"})
+      else
+        game.print({"generic-error"})
+      end
     end
   end
   
