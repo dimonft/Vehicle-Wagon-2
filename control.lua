@@ -178,6 +178,9 @@ function clearSelection(player_index)
 end
 
 function clearWagon(unit_number)
+  if global.action_queue[unit_number] and global.action_queue[unit_number].beam then
+    global.action_queue[unit_number].beam.destroy()
+  end
   global.action_queue[unit_number] = nil
   for player_index,selection in pairs(global.player_selection) do
     if selection.wagon then
