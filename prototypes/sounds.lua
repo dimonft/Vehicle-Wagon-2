@@ -1,3 +1,14 @@
+--[[ Copyright (c) 2020 robot256 (MIT License)
+ * Project: Vehicle Wagon 2 rewrite
+ * File: sounds.lua
+ * Description:  Add sound prototypes.
+ *   Sounds added:
+ *    - Winch operating
+ *    - Latch On
+ *    - Latch Off
+--]]
+
+
 data:extend({
 	{
 		type = "sound",

@@ -1,3 +1,11 @@
+--[[ Copyright (c) 2020 robot256 (MIT License)
+ * Project: Vehicle Wagon 2 rewrite
+ * File: loadVehicleWagon.lua
+ * Description:  Function to execute the given Loading Action.
+ *    1. Replace empty Vehicle Wagon with the requested Loaded Vehicle Wagon.
+ *    2. Store the Vehicle inventories, grid, and settings in the global.wagon_data table.
+ --]]
+
 
 -------------------------
 -- Load Wagon
@@ -24,7 +32,7 @@ function loadVehicleWagon(action)
   if not loaded_wagon or not loaded_wagon.valid then
     -- Unable to create the loaded wagon, don't delete vehicle
     -- replaceCarriage will drop the wagon on the ground for player to pick up
-    player.print({"generic-error"})
+    player.print({"vehicle-wagon2.loaded-wagon-error"})
     return
   end
   

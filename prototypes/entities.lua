@@ -1,3 +1,17 @@
+--[[ Copyright (c) 2020 robot256 (MIT License)
+ * Project: Vehicle Wagon 2 rewrite
+ * File: entities.lua
+ * Description:  Add entity prototypes.  Adjust wagon weights based on startup settings vehicle prototypes.
+ *   Entities added:
+ *    - Vehicle Wagon (empty)
+ *    - Loaded Vehicle Wagon (Car)
+ *    - Loaded Vehicle Wagon (Tank)
+ *    - Loaded Vehicle Wagon (Tarp)
+ *    - Loaded Vehicle Wagon (Truck)
+ *    - Loaded Vehicle Wagon (Cargo Plane)
+ *    - Loaded Vehicle Wagon (Gunship)
+ *    - Loaded Vehicle Wagon (Jet)
+--]]
 
 
 local useWeights = settings.startup["vehicle-wagon-use-custom-weights"].value

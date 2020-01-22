@@ -1,3 +1,18 @@
+--[[ Copyright (c) 2020 robot256 (MIT License)
+ * Project: Vehicle Wagon 2 rewrite
+ * File: OnRobotPreMined.lua
+ * Description:  Event handler for when a robot mines an entity:
+ *   - When robot attempts to mine a Loaded Vehicle Wagon:
+ *       1. If mod setting "Allow Robot Unloading" is True, attempt to unload the vehicle.
+ *       2. If that fails or is disallowed, give the robot a piece the vehicle's contents.
+ *       3. When the vehicle's contents is empty, give the robot the vehicle and replace the wagon with an empty Vehicle Wagon.
+ *       4. Cancel any existing unloading requests for this wagon.
+ *   - When robot mines a Vehicle Wagon (empty):
+ *       1. Cancel any existing loading requests for this wagon.
+ *   - When robot mines an ItemOnGround entity:
+ *       1. Replace any Loaded Vehicle Wagon items with Vehicle Wagon items.
+--]]
+
 
 --== ON_ROBOT_PRE_MINED ==--
 -- When robot tries to mine a loaded wagon, try to unload the vehicle first!
@@ -15,21 +30,22 @@ local function OnRobotPreMined(event)
     if not wagonData then
       -- Loaded wagon data or vehicle entity is invalid
       -- Replace wagon with unloaded version and delete data
-      game.print("ERROR: Missing global data for unit "..unit_number)  
+      game.print({"vehicle-wagon2.data-error", unit_number})  
       deleteWagon(unit_number)
       replaceCarriage(entity, "vehicle-wagon", false, false)
     elseif not game.entity_prototypes[wagonData.name] then
-      game.print("ERROR: Missing prototype \""..global.wagon_data[unit_number].name.."\" for unit "..unit_number)  
+      game.print({"vehicle-wagon2.vehicle-prototype-error", unit_number, global.wagon_data[unit_number].name})  
       -- Loaded wagon data or vehicle entity is invalid
       -- Replace wagon with unloaded version and delete data
       deleteWagon(unit_number)
       replaceCarriage(entity, "vehicle-wagon", false, false)
     else
       -- We can try to unload this wagon
-      local vehicle = unloadVehicleWagon({status="unload",
-                                          wagon=entity,
-                                          replace_wagon=false})
-      
+      local allow_robot_unloading = settings.global["vehicle-wagon-allow-robot-unloading"].value
+      local vehicle = nil
+      if allow_robot_unloading then
+        vehicle = unloadVehicleWagon({status="unload", wagon=entity, replace_wagon=true})
+      end
       if not vehicle then
         -- Vehicle could not be unloaded
         -- First check for inventory contents
@@ -40,7 +56,7 @@ local function OnRobotPreMined(event)
         if robotEmpty and wagonData.items.trunk then
           for index,stack in pairs(wagonData.items.trunk) do
             if not stack.count then stack.count = 1 end
-            game.print("Giving robot cargo stack: "..stack.name.." : "..stack.count)
+            --game.print("Giving robot cargo stack: "..stack.name.." : "..stack.count)
             wagonData.items.trunk[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
             if not robotInventory.is_empty() then
               robotEmpty = false
@@ -52,7 +68,7 @@ local function OnRobotPreMined(event)
         if robotEmpty and wagonData.items.ammo then
           for index,stack in pairs(wagonData.items.ammo) do
             if not stack.count then stack.count = 1 end
-            game.print("Giving robot ammo stack: "..stack.name.." : "..stack.count)
+            --game.print("Giving robot ammo stack: "..stack.name.." : "..stack.count)
             wagonData.items.ammo[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
             if not robotInventory.is_empty() then
               robotEmpty = false
@@ -65,7 +81,7 @@ local function OnRobotPreMined(event)
           if robotEmpty and wagonData.burner.inventory then
             for index,stack in pairs(wagonData.burner.inventory) do
               if not stack.count then stack.count = 1 end
-              game.print("Giving robot burner fuel stack: "..stack.name.." : "..stack.count)
+              --game.print("Giving robot burner fuel stack: "..stack.name.." : "..stack.count)
               wagonData.burner.inventory[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
               if not robotInventory.is_empty() then
                 robotEmpty = false
@@ -75,7 +91,7 @@ local function OnRobotPreMined(event)
           end
           if robotEmpty and wagonData.burner.inventory then
             for index,stack in pairs(wagonData.burner.inventory) do
-              game.print("Giving robot burner burnt stack: "..stack.name.." : "..stack.count)
+              --game.print("Giving robot burner burnt stack: "..stack.name.." : "..stack.count)
               if not stack.count then stack.count = 1 end
               wagonData.burner.inventory[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
               if not robotInventory.is_empty() then
@@ -93,7 +109,7 @@ local function OnRobotPreMined(event)
           for index,stack in pairs(wagonData.items.fuel_stacks) do
             if not stack.count then stack.count = 1 end
             local count = stack.count
-            game.print("Giving robot equipment fuel stack: "..stack.name.." : "..stack.count)
+            --game.print("Giving robot equipment fuel stack: "..stack.name.." : "..stack.count)
             wagonData.items.fuel_stacks[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
             if not robotInventory.is_empty() then
               if wagonData.items.fuel_stacks[index] then
@@ -109,7 +125,7 @@ local function OnRobotPreMined(event)
           for index,stack in pairs(wagonData.items.equip_stacks) do
             if not stack.count then stack.count = 1 end
             local count = stack.count
-            game.print("Giving robot equipment stack: "..stack.name.." : "..stack.count)
+            --game.print("Giving robot equipment stack: "..stack.name.." : "..stack.count)
             wagonData.items.equip_stacks[index] = saveRestoreLib.insertStack(robotInventory, stack, robotSize)
             if not robotInventory.is_empty() then
               if wagonData.items.equip_stacks[index] then
@@ -123,10 +139,16 @@ local function OnRobotPreMined(event)
         end
         
         if robotEmpty then
-          if saveRestoreLib.insertStack(robotInventory, {name=wagonData.name,count=1}, robotSize) == nil then
-            game.print("Gave robot "..wagonData.name.." : 1")
+          local itemName = wagonData.name
+          local proto = game.entity_prototypes[wagonData.name]
+          if proto and proto.mineable_properties and proto.mineable_properties.products then
+            -- Assume this entity gives only one item when you mine it, and that that is the vehicle
+            itemName = proto.mineable_properties.products[1].name
+          end
+          if saveRestoreLib.insertStack(robotInventory, {name=itemName, count=1}, robotSize) == nil then
+            --game.print("Gave robot "..wagonData.name.." : 1")
           else
-            game.print("Unknown vehicle entity "..wagonData.name)
+            game.print({"vehicle-wagon2.vehicle-prototype-error", unit_number, global.wagon_data[unit_number].name})  
           end
           replaceCarriage(entity, "vehicle-wagon", false, false)
           -- Delete wagon data and any associated requests

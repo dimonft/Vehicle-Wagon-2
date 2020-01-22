@@ -4,3 +4,4 @@
 example.png
 publish_exclude.txt
 reference_images
+Thumbs.db

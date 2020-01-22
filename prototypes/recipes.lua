@@ -1,3 +1,13 @@
+--[[ Copyright (c) 2020 robot256 (MIT License)
+ * Project: Vehicle Wagon 2 rewrite
+ * File: recipes.lua
+ * Description:  Add recipe prototypes.
+ *   Recipes added:
+ *    - Vehicle Wagon (empty)
+ *    - Winch (capsule)
+--]]
+
+
 data:extend({
 	{
 		type = "recipe",

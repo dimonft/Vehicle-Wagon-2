@@ -1,4 +1,17 @@
-
+--[[ Copyright (c) 2020 robot256 (MIT License)
+ * Project: Vehicle Wagon 2 rewrite
+ * File: OnPrePlayerMinedItem.lua
+ * Description:  Event handler for when a player mines an entity:
+ *   - When player attempts to mine a Loaded Vehicle Wagon:
+ *       1. Attempt to unload the vehicle, 
+ *       2. If that fails, give the player the vehicle and its contents
+ *       3. If that is incomplete, spill the remaining contents on the ground.
+ *       4. Cancel any existing unloading requests for this wagon.
+ *   - When the player attempts to mine a Vehicle Wagon (empty):
+ *       1. Cancel any existing loading requests for this wagon.
+ *   - When the player attempts to mine an ItemOnGround entity:
+ *       1. Replace any Loaded Vehicle Wagon items with Vehicle Wagon items.
+--]]
 
 --== ON_PRE_PLAYER_MINED_ITEM ==--
 -- When player mines a loaded wagon, try to unload the vehicle first
@@ -17,12 +30,12 @@ local function OnPrePlayerMinedItem(event)
     if not wagonData then
       -- Loaded wagon data or vehicle entity is invalid
       -- Replace wagon with unloaded version and delete data
-      game.print("ERROR: Missing global data for unit "..unit_number)  
+      game.print({"vehicle-wagon2.data-error", unit_number})  
       replaceCarriage(entity, "vehicle-wagon", false, false)
     elseif not game.entity_prototypes[wagonData.name] then
       -- Loaded wagon data or vehicle entity is invalid
       -- Replace wagon with unloaded version and delete data
-      game.print("ERROR: Missing prototype \""..global.wagon_data[unit_number].name.."\" for unit "..unit_number)  
+      game.print({"vehicle-wagon2.vehicle-prototype-error", unit_number, global.wagon_data[unit_number].name})  
       replaceCarriage(entity, "vehicle-wagon", false, false)
     else
       -- We can try to unload this wagon
@@ -33,17 +46,21 @@ local function OnPrePlayerMinedItem(event)
       
       if not vehicle then
         -- Vehicle could not be unloaded
-        player.print({"vw3-position-error"})
-    
+        
         -- Insert vehicle and contents into player's inventory
-        local text_position = player.position
-        text_position.y = text_position.y + 1
-        player.print({"position-error"})
-        surface.create_entity({name = "flying-text", position = text_position, text = {"item-inserted", 1, game.entity_prototypes[wagonData.name].localised_name}})
         local playerPosition = player.position
         local playerInventory = player.get_main_inventory()
         
-        local r2 = saveRestoreLib.insertInventoryStacks(playerInventory, {{name = wagonData.name, count = 1}})
+        local itemName = wagonData.name
+        local proto = game.entity_prototypes[wagonData.name]
+        if proto and proto.mineable_properties and proto.mineable_properties.products then
+          -- Assume this entity gives only one item when you mine it, and that that is the vehicle
+          itemName = proto.mineable_properties.products[1].name
+        end
+        local text_position = {x=playerPosition.x, y=playerPosition.y+1}
+        surface.create_entity({name = "flying-text", position = text_position, text = {"vehicle-wagon2.item-inserted", 1, {"entity-name."..wagonData.name}}})
+        
+        local r2 = saveRestoreLib.insertInventoryStacks(playerInventory, {{name=itemName, count=1}})
         saveRestoreLib.spillStacks(r2, surface, playerPosition)
         
         -- Give player the equipment contents, spill excess

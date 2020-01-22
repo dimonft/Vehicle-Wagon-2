@@ -1,4 +1,17 @@
-
+--[[ Copyright (c) 2020 robot256 (MIT License)
+ * Project: Vehicle Wagon 2 rewrite
+ * File: unloadVehicleWagon.lua
+ * Description:  Function to execute the given Unloading Action.
+ *    1. Validate saved data.
+ *    2. Find a valid unloading position near the position given.
+ *    3. Attempt to create the Vehicle entity.
+ *    4. If successful, restore all the saved inventory, grid, and settings to the new Vehicle.
+ *       Spill any items that don't fit.  Return reference to the new Vehicle.
+ *    5. If unsuccessful, return nil.
+ *    1. Replace Loaded Vehicle Wagon with Vehicle Wagon.
+ --]]
+ 
+ 
 -------------------------
 -- Unload Wagon (either manually or from mining)
 function unloadVehicleWagon(action)
@@ -21,9 +34,9 @@ function unloadVehicleWagon(action)
   local loaded_unit_number = nil
   if not(loaded_wagon and loaded_wagon.valid) then
     if player then
-      player.print({"vw3-wagon-error"})
+      player.print({"vehicle-wagon2.wagon-invalid-error"})
     else
-      game.print({"vw3-wagon-error"})
+      game.print({"vehicle-wagon2.wagon-invalid-error"})
     end
     return
   end
@@ -33,9 +46,9 @@ function unloadVehicleWagon(action)
   local wagon_data = global.wagon_data[loaded_unit_number]
   if not wagon_data then
     if player then
-      player.print({"vw3-data-error"})
+      player.print({"vehicle-wagon2.data-error", loaded_unit_number})
     else
-      game.print({"vw3-data-error"})
+      game.print({"vehicle-wagon2.data-error", loaded_unit_number})
     end
     return
   end
@@ -76,11 +89,6 @@ function unloadVehicleWagon(action)
   
   -- If vehicle not created, give up
   if not vehicle then
-    if player then
-      player.print({"vw3-vehicle-error"})
-    else
-      game.print({"vw3-vehicle-error"})
-    end
     return
   end
   
@@ -138,9 +146,9 @@ function unloadVehicleWagon(action)
     -- Check that unloaded wagon was created correctly
     if not(wagon and wagon.valid) then
       if player then
-        player.print({"generic-error"})
+        player.print({"vehicle-wagon2.empty-wagon-error"})
       else
-        game.print({"generic-error"})
+        game.print({"vehicle-wagon2.empty-wagon-error"})
       end
     end
   end

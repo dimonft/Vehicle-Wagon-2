@@ -1,8 +1,27 @@
+--[[ Copyright (c) 2020 robot256 (MIT License)
+ * Project: Vehicle Wagon 2 rewrite
+ * File: items.lua
+ * Description:  Add item prototypes.
+ *   Items added:
+ *    - Vehicle Wagon (empty)
+ *    - Loaded Vehicle Wagon (Car)
+ *    - Loaded Vehicle Wagon (Tank)
+ *    - Loaded Vehicle Wagon (Tarp)
+ *    - Winch (capsule)
+ *    - Loaded Vehicle Wagon (Truck)
+ *    - Loaded Vehicle Wagon (Cargo Plane)
+ *    - Loaded Vehicle Wagon (Gunship)
+ *    - Loaded Vehicle Wagon (Jet)
+--]]
+
+
+-- Compatibility with Schall's Transport Group mod
 local subgroup_vehrail = "transport"
 
 if mods["SchallTransportGroup"] then
 	subgroup_vehrail = "vehicles-railway"
 end
+
 
 data:extend({
 	{

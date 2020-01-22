@@ -1,3 +1,12 @@
+--[[ Copyright (c) 2020 robot256 (MIT License)
+ * Project: Vehicle Wagon 2 rewrite
+ * File: technologies.lua
+ * Description:  Add technology prototypes.
+ *   Technologies added:
+ *    - Vehicle Wagons
+--]]
+
+
 data:extend({
 	{
 		type = "technology",
