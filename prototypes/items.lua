@@ -74,16 +74,17 @@ data:extend({
 		icon_size = 64,
 		subgroup = "transport",
 		order = "a[train-system]-w[winch]",
-		stack_size = 2,
-		capsule_action =
+		stack_size = 1,
+    capsule_action =
 		{
 			type = "throw",
+      uses_stack = false,
 			attack_parameters =
 			{
 				type = "projectile",
 				ammo_category = "melee",
 				cooldown = 15,
-				range = 9,
+				range = 10,
 				ammo_type =
 				{
 					category = "melee",

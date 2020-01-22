@@ -155,7 +155,7 @@ local function OnPlayerUsedCapsule(event)
         script.on_event(defines.events.on_tick, process_tick)
       end
     end
-    player.insert{name = "winch", count = 1}
+    
   end
 end
 
