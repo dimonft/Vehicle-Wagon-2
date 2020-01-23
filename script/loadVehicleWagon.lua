@@ -62,13 +62,17 @@ function loadVehicleWagon(action)
   saveData.color = vehicle.color
   
   -- Store inventory contents
-  saveData.items = {ammo = saveRestoreLib.saveInventoryStacks(vehicle.get_inventory(defines.inventory.car_ammo)),
-                    trunk = saveRestoreLib.saveInventoryStacks(vehicle.get_inventory(defines.inventory.car_trunk)),
-                    grid = saveRestoreLib.saveGrid(vehicle.grid) }
+  saveData.items = {
+                     ammo = saveRestoreLib.saveInventoryStacks(vehicle.get_inventory(defines.inventory.car_ammo)),
+                     trunk = saveRestoreLib.saveInventoryStacks(vehicle.get_inventory(defines.inventory.car_trunk))
+                   }
   
   -- Store inventory filters
   saveData.filters = {ammo = saveRestoreLib.saveFilters(vehicle.get_inventory(defines.inventory.car_ammo)),
                       trunk = saveRestoreLib.saveFilters(vehicle.get_inventory(defines.inventory.car_trunk)) }
+  
+  -- Store grid contents
+  saveData.grid = grid = saveRestoreLib.saveGrid(vehicle.grid)
   
   -- Store vehicle burner
   saveData.burner = saveRestoreLib.saveBurner(vehicle.burner)

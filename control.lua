@@ -32,95 +32,23 @@ saveRestoreLib = require("__Robot256Lib__/script/save_restore")
 
 require("script.loadVehicleWagon")
 require("script.unloadVehicleWagon")
-
-
--- Go through all the available prototypes and assign them to a valid loaded wagon or "nope"
-function InitializeTypeMapping()
-  
-  -- Some sprites show up backwards from how they ought to, so we flip the wagons relative to the vehicles.
-  global.loadedWagonFlip = {}
-  
-  global.vehicleMap = {}
-  for k,_ in pairs(game.get_filtered_entity_prototypes({{filter="type", type="car"}})) do
-    
-    if String.contains(k,"nixie") then
-      global.vehicleMap[k] = nil  -- non vehicle entity
-    elseif k == "uplink-station" then
-      global.vehicleMap[k] = nil  -- non vehicle entity
-    elseif String.contains(k,"heli") or String.contains(k,"rotor") then
-      global.vehicleMap[k] = nil  -- helicopter & heli parts incompatible
-    elseif k == "vwtransportercargo" then
-      global.vehicleMap[k] = nil  -- non vehicle or incompatible?
-    elseif String.contains(k,"airborne") then
-      global.vehicleMap[k] = nil  -- can't load flying planes
-    elseif String.contains(k,"Schall%-tank%-SH") then
-      global.vehicleMap[k] = nil  -- Super Heavy tank doesn't fit on train
-    elseif String.contains(k,"cargo%-plane") then
-      global.vehicleMap[k] = "loaded-vehicle-wagon-cargoplane"  -- Cargo plane, Better cargo plane, Even better cargo plane
-      global.loadedWagonFlip["loaded-vehicle-wagon-cargoplane"] = true  -- Cargo plane wagon sprite is flipped
-    elseif k == "jet" then
-      global.vehicleMap[k] = "loaded-vehicle-wagon-jet"
-      global.loadedWagonFlip["loaded-vehicle-wagon-jet"] = true  -- Jet wagon sprite is flipped
-    elseif k == "gunship" then
-      global.vehicleMap[k] = "loaded-vehicle-wagon-gunship"
-      global.loadedWagonFlip["loaded-vehicle-wagon-gunship"] = true  -- Gunship wagon sprite is flipped
-    elseif k == "dumper-truck" then
-      global.vehicleMap[k] = "loaded-vehicle-wagon-truck"  -- Specific to dump truck mod
-    elseif String.contains(k,"Schall%-ht%-RA") then
-      global.vehicleMap[k] = "loaded-vehicle-wagon-tank"  -- Schall's Rocket Artillery look like tanks
-    elseif String.contains(k,"tank") then
-      global.vehicleMap[k] = "loaded-vehicle-wagon-tank"  -- Generic tank
-    elseif String.contains(k,"car") and not String.contains(k,"cargo") then
-      global.vehicleMap[k] = "loaded-vehicle-wagon-car"  -- Generic car (that is not cargo)
-    else
-      global.vehicleMap[k] = "loaded-vehicle-wagon-tarp"  -- Default for everything else
-    end
-
-  end
-  
-  global.loadedWagonMap = {}
-  global.loadedWagonList = {}
-  for _,v in pairs(global.vehicleMap) do
-    if not global.loadedWagonMap[v] then
-      global.loadedWagonMap[v] = "vehicle-wagon"
-      table.insert(global.loadedWagonList, v)
-    end
-  end
-  
-end
-
+require("script.initialize")
 
 --== ON_INIT ==--
 --== ON_CONFIGURATION_CHANGED ==--
 -- Initialize global data tables
-function On_Init()
-
-  global.wagon_data = global.wagon_data or {}
-  global.tutorials = global.tutorials or {}
-  for i, player in pairs(game.players) do
-    global.tutorials[player.index] = {}
-  end
-  
-  global.action_queue = global.action_queue or {}
-  global.player_selection = global.player_selection or {}
-  
-  InitializeTypeMapping()
-  
-  --ScrubDataTables()
-  
-end
-script.on_init(function() On_Init() end)
-script.on_configuration_changed(function() On_Init() end)
+script.on_init(OnInit)
+script.on_configuration_changed(OnConfigurationChanged)
 
 
 --== ON_LOAD ==--
 -- Enable on_tick event according to global variable state
-function On_Load()
+function OnLoad()
   if global.action_queue and table_size(global.action_queue) > 0 then
     script.on_event(defines.events.on_tick, process_tick)
   end
 end
-script.on_load(function() On_Load() end)
+script.on_load(OnLoad)
 
 
 -- Deal with the new 0.16 driver/passenger bit

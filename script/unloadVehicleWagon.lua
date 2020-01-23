@@ -108,13 +108,17 @@ function unloadVehicleWagon(action)
   end
   
   -- Restore equipment grid
-  local r2 = saveRestoreLib.restoreGrid(vehicle.grid, wagon_data.items.grid, player_index)
+  local r2 = saveRestoreLib.restoreGrid(vehicle.grid, wagon_data.grid, player_index)
   r1 = saveRestoreLib.mergeStackLists(r1, r2)
   
-  -- Restore ammo inventory
-  ammoInventory = vehicle.get_inventory(defines.inventory.car_ammo)
-  local r2 = saveRestoreLib.insertInventoryStacks(ammoInventory, wagon_data.items.ammo)
-  r1 = saveRestoreLib.mergeStackLists(r1, r2)
+  -- Restore ammo inventory if this car has guns
+  if vehicle.selected_gun_index then
+    ammoInventory = vehicle.get_inventory(defines.inventory.car_ammo)
+    local r2 = saveRestoreLib.insertInventoryStacks(ammoInventory, wagon_data.items.ammo)
+    r1 = saveRestoreLib.mergeStackLists(r1, r2)
+  else
+    r1 = saveRestoreLib.mergeStackLists(r1, wagon_data.items.ammo)
+  end
   
   -- Restore the cargo inventory
   trunkInventory = vehicle.get_inventory(defines.inventory.car_trunk)
