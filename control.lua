@@ -155,10 +155,8 @@ function clearWagon(unit_number)
   
   -- Clear player selections of this wagon
   for player_index,selection in pairs(global.player_selection) do
-    if selection.wagon then
-      if not selection.wagon.valid or selection.wagon.unit_number == unit_number then
-        clearSelection(player_index)
-      end
+    if selection.wagon and (not selection.wagon.valid or selection.wagon.unit_number == unit_number) then
+      clearSelection(player_index)
     end
   end
 end
@@ -168,6 +166,28 @@ function deleteWagon(unit_number)
   clearWagon(unit_number)
 end
 
+function clearVehicle(vehicle)
+  -- Clear selection and halt pending actions that involve this vehicle
+  for unit_number,action in pairs(global.action_queue) do
+    if action.vehicle == vehicle then
+      -- Clear beam if any
+      if action.beam then
+        action.beam.destroy()
+      end
+      local player = game.players[global.action_queue[unit_number].player_index]
+      if player then
+        player.print({"vehicle-wagon2.vehicle-invalid-error"})
+      end
+      global.action_queue[unit_number] = nil
+    end
+  end
+  -- Clear player selections of this vehicle
+  for player_index,selection in pairs(global.player_selection) do
+    if selection.vehicle and (not selection.vehicle.valid or selection.vehicle == vehicle) then
+      clearSelection(player_index)
+    end
+  end
+end
 
 --== ON_PLAYER_USED_CAPSULE ==--
 -- Queues load/unload data when player clicks with the winch.
@@ -219,6 +239,8 @@ function OnMarkedForDeconstruction(event)
   -- Delete any player selections or load/unload actions associated with this wagon
   if event.entity.name == "vehicle-wagon" or global.loadedWagonMap[event.entity.name] then
     clearWagon(event.entity.unit_number)
+  elseif event.entity.type == "car" then
+    clearVehicle(entity)
   end
 end
 script.on_event(defines.events.on_marked_for_deconstruction, OnMarkedForDeconstruction)
@@ -268,6 +290,8 @@ function OnEntityDied(event)
     deleteWagon(entity.unit_number)
   elseif entity.name == "vehicle-wagon" then
     clearWagon(entity.unit_number)
+  elseif event.entity.type == "car" then
+    clearVehicle(entity)
   end
 end
 script.on_event(defines.events.on_entity_died, OnEntityDied)

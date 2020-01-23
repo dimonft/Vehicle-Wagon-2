@@ -57,9 +57,14 @@ function unloadVehicleWagon(action)
   local surface = loaded_wagon.surface
   local wagon_position = loaded_wagon.position
   
+  -- Ask game to verify the requested unload position
+  if unload_position then
+    unload_position = surface.find_non_colliding_position(wagon_data.name, unload_position, 5, 0.5)
+  end
+  
   -- Ask game for a valid unloading position near the wagon
   if not unload_position then
-    unload_position = surface.find_non_colliding_position(wagon_data.name, wagon_position, 5, 1)
+    unload_position = surface.find_non_colliding_position(wagon_data.name, wagon_position, 5, 0.5)
   end
   
   -- If we still can't find a position, give up

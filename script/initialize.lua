@@ -17,9 +17,9 @@
 local function makeGlobalMaps()
   
   -- Some sprites show up backwards from how they ought to, so we flip the wagons relative to the vehicles.
-  global.loadedWagonFlip = {}
+  global.loadedWagonFlip = {}  --: loaded-wagon-name --> boolean
   
-  global.vehicleMap = {}
+  global.vehicleMap = {}  --: vehicle-name --> loaded-wagon-name
   for k,_ in pairs(game.get_filtered_entity_prototypes({{filter="type", type="car"}})) do
     
     if String.contains(k,"nixie") then
@@ -57,8 +57,8 @@ local function makeGlobalMaps()
 
   end
   
-  global.loadedWagonMap = {}
-  global.loadedWagonList = {}
+  global.loadedWagonMap = {}  --: loaded-wagon-name --> "vehicle-wagon"
+  global.loadedWagonList = {} --: list of loaded-wagon-name
   for _,v in pairs(global.vehicleMap) do
     if not global.loadedWagonMap[v] then
       global.loadedWagonMap[v] = "vehicle-wagon"
@@ -241,16 +241,18 @@ local function Migrate_1_x_x()
             -- Migrate inventory contents.  Separate fuel and ammo items so they get inserted correctly.
             -- (Doesn't matter if there are too many or the wrong types. Remainders will be put in trunk when unloaded.)
             newData.items = {ammo={}, trunk={}}
-            for item,count in pairs(data.items) do
-              if game.item_prototypes[item] and game.item_prototypes[item].fuel_category then
-                -- Put fuel items in the burner fuel inventory
-                table.insert(newData.burner.inventory, {name=item, count=count})
-              elseif game.item_prototypes[item] and game.item_prototypes[item].get_ammo_type() then
-                -- Put ammo in the ammo inventory
-                table.insert(newData.items.ammo, {name=item, count=count})
-              else
-                -- Anything else goes in trunk
-                table.insert(newData.items.trunk, {name=item, count=count})
+            for item_name,count in pairs(data.items) do
+              if game.item_prototypes[item_name] and type(count)=="number" then
+                if game.item_prototypes[item_name].fuel_category then
+                  -- Put fuel items in the burner fuel inventory
+                  table.insert(newData.burner.inventory, {name=item_name, count=count})
+                elseif game.item_prototypes[item_name].get_ammo_type() then
+                  -- Put ammo in the ammo inventory
+                  table.insert(newData.items.ammo, {name=item_name, count=count})
+                else
+                  -- Anything else goes in trunk
+                  table.insert(newData.items.trunk, {name=item_name, count=count})
+                end
               end
             end
             

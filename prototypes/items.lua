@@ -24,6 +24,54 @@ end
 
 
 data:extend({
+		type = "capsule",
+		name = "winch",
+		icon = "__VehicleWagon2__/graphics/winch-icon.png",
+		icon_size = 64,
+		subgroup = "transport",
+		order = "a[train-system]-w[winch]",
+		stack_size = 1,
+    capsule_action =
+		{
+			type = "throw",
+      uses_stack = false,
+			attack_parameters =
+			{
+				type = "projectile",
+				ammo_category = "melee",
+				cooldown = 15,
+				range = 9,
+				ammo_type =
+				{
+					category = "melee",
+					target_type = "entity",
+					action =
+					{
+						type = "direct",
+						action_delivery =
+						{
+							type = "instant",
+							target_effects =
+							{
+								{
+									type = "play-sound",
+									sound =
+									{
+										{
+											filename = "__VehicleWagon2__/sound/latchOn.ogg",
+											volume = 0
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	})
+
+data:extend({
 	{
 		type = "item",
 		name = "vehicle-wagon",
@@ -66,57 +114,10 @@ data:extend({
 		order = "a[train-system]-z[vehicle-wagon]",
 		place_result = "loaded-vehicle-wagon-tarp",
 		stack_size = 1
-	},
-	{
-		type = "capsule",
-		name = "winch",
-		icon = "__VehicleWagon2__/graphics/winch-icon.png",
-		icon_size = 64,
-		subgroup = "transport",
-		order = "a[train-system]-w[winch]",
-		stack_size = 1,
-    capsule_action =
-		{
-			type = "throw",
-      uses_stack = false,
-			attack_parameters =
-			{
-				type = "projectile",
-				ammo_category = "melee",
-				cooldown = 15,
-				range = 10,
-				ammo_type =
-				{
-					category = "melee",
-					target_type = "entity",
-					action =
-					{
-						type = "direct",
-						action_delivery =
-						{
-							type = "instant",
-							target_effects =
-							{
-								{
-									type = "play-sound",
-									sound =
-									{
-										{
-											filename = "__VehicleWagon2__/sound/latchOn.ogg",
-											volume = 0
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
 	}
 })
 
-if data.raw["car"]["dumper-truck"] then
+if mods["bigtruck"] then
 	data:extend({
 		{
 			type = "item",

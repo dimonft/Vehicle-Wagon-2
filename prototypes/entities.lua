@@ -256,7 +256,7 @@ loaded_vehicle_wagon_tarp.pictures =
 
 data:extend({vehicle_wagon, loaded_vehicle_wagon_tank, loaded_vehicle_wagon_car, loaded_vehicle_wagon_tarp})
 
-if data.raw["car"]["dumper-truck"] then
+if mods["bigtruck"] then
 	local loaded_vehicle_wagon_truck = util.table.deepcopy(vehicle_wagon)
 	loaded_vehicle_wagon_truck.name = "loaded-vehicle-wagon-truck"
   if useWeights then
