@@ -72,7 +72,7 @@ function loadVehicleWagon(action)
                       trunk = saveRestoreLib.saveFilters(vehicle.get_inventory(defines.inventory.car_trunk)) }
   
   -- Store grid contents
-  saveData.grid = grid = saveRestoreLib.saveGrid(vehicle.grid)
+  saveData.grid = saveRestoreLib.saveGrid(vehicle.grid)
   
   -- Store vehicle burner
   saveData.burner = saveRestoreLib.saveBurner(vehicle.burner)
