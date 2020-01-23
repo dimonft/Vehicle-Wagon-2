@@ -24,6 +24,7 @@ end
 
 
 data:extend({
+  {
 		type = "capsule",
 		name = "winch",
 		icon = "__VehicleWagon2__/graphics/winch-icon.png",
@@ -69,7 +70,8 @@ data:extend({
 				}
 			}
 		}
-	})
+	}
+})
 
 data:extend({
 	{

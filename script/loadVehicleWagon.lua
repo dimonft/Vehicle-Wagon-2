@@ -43,21 +43,8 @@ function loadVehicleWagon(action)
   local unit_number = loaded_wagon.unit_number
   local saveData = {}
   
-  
-  -- Store vehicle entity name (either normal or AAI)
-  if remote.interfaces["aai-programmable-vehicles"] then
-    -- Make sure we need the 'expensive' gsub call before bothering:
-    -- AAI vehicles end up with a composite; ex. for a vehicle-miner, the actual object that gets
-    -- loaded is a 'vehicle-miner-_-solid', which when unloaded doesn't work unless we record
-    -- into the base object here.
-    -- NOTE: Unfortunately unloaded vehicles still end up with a new unit ID, as AAI doesn't expose
-    -- an interface to set/restore the vehicles unit ID.
-    saveData.name = string.gsub(vehicle.name, "%-_%-.+","")
-  else
-    saveData.name = vehicle.name
-  end
-  
   -- Store vehicle parameters
+  saveData.name = vehicle.name
   saveData.health = vehicle.health
   saveData.color = vehicle.color
   

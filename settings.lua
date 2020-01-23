@@ -1,7 +1,7 @@
 --[[ Copyright (c) 2020 robot256 (MIT License)
  * Project: Vehicle Wagon 2 rewrite
  * File: settings.lua
- * Description: Setting to control Vehicle Wagon operation.
+ * Description: Settings to control Vehicle Wagon prototypes and operation.
 --]]
 
 data:extend({

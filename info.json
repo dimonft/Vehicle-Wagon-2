@@ -10,20 +10,10 @@
 		"base >= 0.17.0",
         "Robot256Lib >= 0.1.1",
         "stdlib",
-		"? trucks",
-		"? aai-programmable-vehicles",
-		"? aai-vehicles-chaingunner",
-		"? aai-vehicles-hauler",
-		"? aai-vehicles-flame-tank",
-		"? aai-vehicles-flame-tumbler",
-		"? aai-vehicles-hauler",
-		"? aai-vehicles-laser-tank",
-		"? aai-vehicles-miner",
-		"? aai-vehicles-warden",
-		"? vwtransporter_A16",
 		"? SchallTransportGroup",
-		"? Aircraft",
-        "? TrainOverhaul"
+        "? TrainOverhaul",
+		"? bigtruck",
+		"? Aircraft"
 	],
 	"description": "Возьмите с собой полностью заряженный и готовый к бою транспорт и отправьте его в путешествие по железной дороге."
 }

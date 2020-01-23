@@ -11,6 +11,8 @@
  *       1. Cancel any existing loading requests for this wagon.
  *   - When the player attempts to mine an ItemOnGround entity:
  *       1. Replace any Loaded Vehicle Wagon items with Vehicle Wagon items.
+ *   - When the player attempts to mine a car:
+ *       1. Cancel existing loading requests for this vehicle. 
 --]]
 
 --== ON_PRE_PLAYER_MINED_ITEM ==--
