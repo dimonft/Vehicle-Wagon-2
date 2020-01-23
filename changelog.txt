@@ -1,3 +1,9 @@
+Version: 1.2.14 [BETA]
+Date: 18. 1. 2020
+  Bugfixes:
+  	- RU: Исправления внесённые из GIT. Спасибо Schallfalke и robot256.
+	- EU: Corrections made from GIT. Thanks to Schallfalke and robot256. 
+---------------------------------------------------------------------------------------------------
 Version: 1.2.13 [BETA]
 Date: 14. 9. 2019
   Bugfixes:
@@ -5,7 +11,7 @@ Date: 14. 9. 2019
 	- EU: Version discrepancies fixed. Now the main version is based in GIT.
   Changes:
     	- RU:
-	- EN:
+		- EN:
   The note:
     	- RU: ЭТО ВЕРСИЯ ЭКСПЕРЕМЕНТАЛЬНАЯ, НЕКОТОРЫЙ ФУНКЦИОНАЛ МОЖЕТ НЕ РАБОТАТЬ ИЗ-ЗА ВОЗМОЖНЫХ ОШИБОК!
     	- EN: THIS IS AN EXPERIMENTAL VERSION, SOME FUNCTIONALS MAY NOT WORK DUE TO POSSIBLE ERRORS!
