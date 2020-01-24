@@ -1,6 +1,11 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.0.0
 Date: 23. 1. 2020
+  Bugfixes:
+    - Fixed that clicking on a non-vehicle, non-vehicle-wagon entity would not unload a vehicle nearby.
+---------------------------------------------------------------------------------------------------
+Version: 2.0.0
+Date: 23. 1. 2020
   Major Features:
     - Construction robots can unload or deconstruct Loaded Wagons without losing the loaded vehicle or any of its contents.
     - Save/Restore logic updated so that vehicles and items are almost never permanently lost.
