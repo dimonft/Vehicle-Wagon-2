@@ -17,7 +17,7 @@ data:extend({
 		{
 			{"iron-gear-wheel", 10},
 			{"iron-stick", 20},
-			{"steel-plate", 20}
+			{"steel-plate", 30}
 		},
 		result = "vehicle-wagon"
 	},
