@@ -2,7 +2,7 @@ Vehicle Wagon 2.1.0
 ===================
 
 Version 2.1.0 was released January 24, 2020, was tested using Factorio v0.18.1, and was authored by robot256 based on the original mod of Supercheese and original graphics from YuokiTani and others.
-Additional contributions from: CrazyMooncat, The_Destroyer, Phasma Felis, Brant Wedel, legendblade, narc, Artanis_Mattias, SD-DDT.
+Additional contributions from: CrazyMooncat, The_Destroyer, Phasma Felis, Brant Wedel, legendblade, narc, Artanis_Mattias, ST-DDT.
 
 This mod allows you to load your fully-laden car or tank onto a flatbed train wagon and take it with you on your rail journeys!
 Just use the Winch to haul your vehicle onto the wagon, and use the same Winch to unload it when you're ready to drive away.
@@ -42,7 +42,7 @@ Direct compatibility with AAI Programmable Vehicles is untested.  Some very outd
 Credits:
 --------
 
-German translation by SD-DDT.
+German translation by ST-DDT.
 
 Polish translation by ???.
 
