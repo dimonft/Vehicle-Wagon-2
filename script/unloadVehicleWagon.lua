@@ -81,8 +81,9 @@ function unloadVehicleWagon(action)
   -- Place vehicle with same direction as the loaded wagon sprite.
   local direction = math.floor(loaded_wagon.orientation*8 + 0.5)
   if global.loadedWagonFlip[loaded_wagon.name] then
-    direction = math.fmod(direction + 4, 8)
+    direction = direction + 4
   end
+  direction = math.fmod(direction, 8)
   
   -- Create the vehicle
   local vehicle = surface.create_entity{

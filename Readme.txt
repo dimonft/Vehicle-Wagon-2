@@ -1,7 +1,7 @@
-Vehicle Wagon 2.0.0
+Vehicle Wagon 2.1.0
 ===================
 
-Version 2.0.0 was released January 23, 2020, was tested using Factorio v0.17.79, and was authored by robot256 based on the original mod of Supercheese and original graphics from YuokiTani and others.
+Version 2.1.0 was released January 24, 2020, was tested using Factorio v0.18.1, and was authored by robot256 based on the original mod of Supercheese and original graphics from YuokiTani and others.
 Additional contributions from: CrazyMooncat, The_Destroyer, Phasma Felis, Brant Wedel, legendblade, narc, Artanis_Mattias, SD-DDT.
 
 This mod allows you to load your fully-laden car or tank onto a flatbed train wagon and take it with you on your rail journeys!
