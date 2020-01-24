@@ -1,33 +1,74 @@
-Version: 1.2.14 [BETA]
+---------------------------------------------------------------------------------------------------
+Version: 2.0.0
+Date: 23. 1. 2020
+  Major Features:
+    - Construction robots can unload or deconstruct Loaded Wagons without losing the loaded vehicle or any of its contents.
+    - Save/Restore logic updated so that vehicles and items are almost never permanently lost.
+    - New graphics by YuokiTani for the Aircraft mod's Cargo Plane, Gunship, and Jet.
+    - Weights of loaded and empty wagons can adjusted to represent the vehicles they contain.
+  Features:
+    - Items with partial ammo, durability, and health will be stored correctly.
+    - Blueprints, books, and planners stored in vehicles will be stored correctly.
+    - Grid-containing items stored in vehicles will be recreated without losing an equipment (but can't be reinserted into that item's grid).
+    - Any items that cannot be added to the fuel or ammo of the unloaded vehicle will be added to the trunk.
+    - Any items that cannot be added to the trunk will be spilled on the ground.
+    - When the player mines a loaded wagon, any items from the loaded vehicle that cannot be inserted into the player's inventory will be spilled on the ground.
+    - Runtime setting controls whether robots must always take vehicles back to logistic storage, or if they may try to unload the vehicle.
+      (The robot might put the vehicle on nearby train tracks, and your car will get run over by a train!)
+    - Startup settings to enable custom wagon weight calculations:
+      Empty Wagon Weight Factor sets the empty Vehicle Wagon weight as a fraction of the standard cargo wagon.  Flatbeds weight less than boxcars, so this is typically less than 1.
+      Vehicle Weight Factor sets the weight added to Loaded Vehicle Wagons as a fraction of the primary vehicle type for that Loaded Wagon sprite.  Vehicle weights are scaled differently than train weights, so this is typically less than 0.5.
+  Ease of Use:
+    - Players can load and unload multiple wagons simultaneously.
+    - Only one winch item is needed to operate the Vehicle Wagons, and it never leaves the cursor.
+    - Laser beam indicates in-progress loading and unloading actions.
+    - Improved status and error messages.
+  Bugfixes:
+    - Fixed that you had to click the winch on the center of a vehicle or wagon, not just in the selection box.
+    - Fixed that wagons would get recoupled incorrectly when loading/unloading.
+    - Fixed crash when unloading a vehicle, or vehicle with contents from, an uninstalled mod.
+    - Fixed that only one player could load/unload on exactly the same tick.
+    - Fixed that robots mining a loaded wagon would cause the loss of the loaded vehicle.
+    - Fixed that global data table was polluted when a loaded wagon was died without unloading.
+    - Fixed crash when vehicle or wagon was mined or destroyed during loading operation.
+    - Fixed crash when attempting to unload a wagon whose stored vehicle data is missing.
+    - Fixed that sometimes winch would not be returned to player.
+    - Fixed that using the "undo" tool after deconstructing a loaded wagon would produce an un-buildable loaded-wagon ghost.
+    - Fixed crash/glitchy behavior when unloading a vehicle whose currently_burning fuel item was uninstalled or modified.
+  Changes:
+    - Internal data structure has been redesigned for better maintainability and to hold all this new information.
+      Existing data will be migrated to the new structure.
+      Do not downgrade from VehicleWagon2 version 2.x to any 1.x version.
+    - Added dependency on StdLib mod, removed stdlib source from this mod.
+  Info:
+    - This release contains a nearly total rewrite of the Vehicle Wagon scripts by robot256.
+    - Many thanks to YuokiTani for providing new graphics for the loaded aircraft!
+---------------------------------------------------------------------------------------------------
+Version: 1.2.14
 Date: 18. 1. 2020
   Bugfixes:
-  	- RU: Исправления внесённые из GIT. Спасибо Schallfalke и robot256.
-	- EU: Corrections made from GIT. Thanks to Schallfalke and robot256. 
+    - RU: Исправления внесённые из GIT. Спасибо Schallfalke и robot256.
+    - EU: Corrections made from GIT. Thanks to Schallfalke and robot256. 
 ---------------------------------------------------------------------------------------------------
-Version: 1.2.13 [BETA]
+Version: 1.2.13
 Date: 14. 9. 2019
   Bugfixes:
-  	- RU: Исправлены расхождения версий. Теперь основная версия базируется в GIT.
-	- EU: Version discrepancies fixed. Now the main version is based in GIT.
-  Changes:
-    	- RU:
-		- EN:
-  The note:
-    	- RU: ЭТО ВЕРСИЯ ЭКСПЕРЕМЕНТАЛЬНАЯ, НЕКОТОРЫЙ ФУНКЦИОНАЛ МОЖЕТ НЕ РАБОТАТЬ ИЗ-ЗА ВОЗМОЖНЫХ ОШИБОК!
-    	- EN: THIS IS AN EXPERIMENTAL VERSION, SOME FUNCTIONALS MAY NOT WORK DUE TO POSSIBLE ERRORS!
+    - RU: Исправлены расхождения версий. Теперь основная версия базируется в GIT.
+    - EU: Version discrepancies fixed. Now the main version is based in GIT.
+  Info:
+    - RU: ЭТО ВЕРСИЯ ЭКСПЕРЕМЕНТАЛЬНАЯ, НЕКОТОРЫЙ ФУНКЦИОНАЛ МОЖЕТ НЕ РАБОТАТЬ ИЗ-ЗА ВОЗМОЖНЫХ ОШИБОК!
+    - EN: THIS IS AN EXPERIMENTAL VERSION, SOME FUNCTIONALS MAY NOT WORK DUE TO POSSIBLE ERRORS!
 ---------------------------------------------------------------------------------------------------
 Version: 1.2.12
 Date: 17. 8. 2019
   Bugfixes:
     - RU: Добавлены описания мода для разных языков.
-		  Теперь при погрузке, количество щитов для танспорта будет сохраняться предварительно убедившись что это необходимо.
-		  Исправлена ошибка, связанная с инвентаризацией сгоревшего топлива.
-	- EU: Added mod descriptions for different languages.
-		  Now, when loading, the number of shields for vehicles will be saved, a check has been added to see if this action is necessary.
-		  Fixed a bug related to the inventory of burned fuel.
-  Changes:
-    -
-  The note:
+      Теперь при погрузке, количество щитов для танспорта будет сохраняться предварительно убедившись что это необходимо.
+      Исправлена ошибка, связанная с инвентаризацией сгоревшего топлива.
+    - EU: Added mod descriptions for different languages.
+      Now, when loading, the number of shields for vehicles will be saved, a check has been added to see if this action is necessary.
+      Fixed a bug related to the inventory of burned fuel.
+  Info:
     - RU: Это исправление было введено в качестве экспериментального, поскольку во время выпуска обновления у меня не было физической возможности проверить производительность этого решения.
     - EN: This fix was introduced as an experimental one, since during the release of the update I didn’t have the physical ability to test the performance of this solution.
 ---------------------------------------------------------------------------------------------------
@@ -35,14 +76,10 @@ Version: 1.2.11
 Date: 3. 4. 2019
   Bugfixes:
     - RU: Исправление дефектов версии 1.2.8 (спасибо robot256)
-	- EN: Correction of defects of version 1.2.8 (Thanks to robot256)
-  Changes:
-    -
+    - EN: Correction of defects of version 1.2.8 (Thanks to robot256)
 ---------------------------------------------------------------------------------------------------
 Version: 1.2.10
 Date: 31. 3. 2019
-  Bugfixes:
-    -
   Changes:
     - Dodano obsługę języka polskiego. | Polish language support added.
 ---------------------------------------------------------------------------------------------------
@@ -50,11 +87,9 @@ Version: 1.2.9
 Date: 31. 3. 2019
   Bugfixes:
     - RU: Исправлено падение игрового клиента.
-Во время копирования транспортного вагона нажатием кнопки «Q» и одновременного удержания автомобиля на платформе транспортного вагона и последующей попытки выгрузить автомобиль из транспортного вагона клиент игры потерпел краш. (Спасибо robot256 за подробное объяснение и предложение способа решения проблемы)
-	  EU: Fixed game client crash.During copying of the transport vagon, pressing the “Q” button and simultaneously holding the car on the platform of the transport vagon and the subsequent attempt to unload the car from the transport vagon, the game client suffered a crash. (Thanks to robot256 for a detailed explanation and suggestion of a way to solve the problem)
-  Changes:
-    -
-  The note:
+      Во время копирования транспортного вагона нажатием кнопки «Q» и одновременного удержания автомобиля на платформе транспортного вагона и последующей попытки выгрузить автомобиль из транспортного вагона клиент игры потерпел краш. (Спасибо robot256 за подробное объяснение и предложение способа решения проблемы)
+    - EU: Fixed game client crash.During copying of the transport vagon, pressing the “Q” button and simultaneously holding the car on the platform of the transport vagon and the subsequent attempt to unload the car from the transport vagon, the game client suffered a crash. (Thanks to robot256 for a detailed explanation and suggestion of a way to solve the problem)
+  Info:
     - RU: Это исправление было введено в качестве экспериментального, поскольку во время выпуска обновления у меня не было физической возможности проверить производительность этого решения.
     - EN: This fix was introduced as an experimental one, since during the release of the update I didn’t have the physical ability to test the performance of this solution.
 ---------------------------------------------------------------------------------------------------
@@ -62,10 +97,8 @@ Version: 1.2.8
 Date: 31. 3. 2019
   Bugfixes:
     - RU: Исправлено падение клиента игры. Во время выгрузки из транспортного вагона в моде "Disco Science" клиент игры вылетал. (Спасибо robot256 за подробное объяснение и предложение способа решения проблемы)
-	  EU: Fixed crash. During the unloading from the vehicle in the mod "Disco Science" the client of the game crashed. (Thanks to robot256 for a detailed explanation and suggestion of a way to solve the problem)
-  Changes:
-    -
-  The note:
+    - EU: Fixed crash. During the unloading from the vehicle in the mod "Disco Science" the client of the game crashed. (Thanks to robot256 for a detailed explanation and suggestion of a way to solve the problem)
+  Info:
     - RU: Это исправление было введено в качестве экспериментального, поскольку во время выпуска обновления у меня не было физической возможности проверить производительность этого решения.
     - EN: This fix was introduced as an experimental one, since during the release of the update I didn’t have the physical ability to test the performance of this solution.
 ---------------------------------------------------------------------------------------------------
@@ -73,16 +106,16 @@ Version: 1.2.7
 Date: 17. 3. 2019
   Bugfixes:
     - RU: Так как Лебёдка больше не работает корректно из-за изменения принципа работы пояса инструментов из версии 0.16, был частично изменён рецепт создания лебёдки. (Теперь у вас 2 лебёдки)
-	  EU: Since the Winch is no longer working correctly due to a change in the principle of operation of the tool belt from version 0.16, the recipe for winch creation has been partially changed. (Now you have 2 winches)
+    - EU: Since the Winch is no longer working correctly due to a change in the principle of operation of the tool belt from version 0.16, the recipe for winch creation has been partially changed. (Now you have 2 winches)
   Changes:
     - Добавлена поддержка Русского языка. | Added support for Russian language.
 ---------------------------------------------------------------------------------------------------
 Version: 1.2.6
 Date: 17. 3. 2019
-  Bugfixes:
-    -
   Changes:
     - В мод введена поддержка версии игры 0.17 | The mod introduced support for the game version 0.17
+  Info:
+    - First release by Artanis_Mattias.
 ---------------------------------------------------------------------------------------------------
 Version: 1.2.5
 Date: 18. 6. 2018
@@ -197,9 +230,7 @@ Date: 25. 8. 2016
     - It is no longer possible to ride in empty vehicle wagons.
     - Added support for the Trucks mod by KatzSmile.
 ---------------------------------------------------------------------------------------------------
-Version: 1.0.0 - First public release
+Version: 1.0.0
 Date: 24. 8. 2016
   Major Features:
     - Initial release, featuring Vehicle Wagons that can carry your fully-laden combat vehicle so you can take it along with you on your rail journey!
-
-              
