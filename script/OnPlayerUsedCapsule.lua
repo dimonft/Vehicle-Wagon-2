@@ -19,11 +19,14 @@ local function OnPlayerUsedCapsule(event)
     local surface = player.surface
     local position = event.position
     local selected_entity = player.selected
+    local clicked_on_empty = true
     
     if selected_entity and selected_entity.valid then
       
       if global.loadedWagonMap[selected_entity.name] then
         local loaded_wagon = selected_entity
+        clicked_on_empty = false
+        
         -- Clicked on a Loaded Wagon
         global.tutorials[index] = global.tutorials[index] or {}
         global.tutorials[index][2] = global.tutorials[index][2] or 0
@@ -64,6 +67,8 @@ local function OnPlayerUsedCapsule(event)
         
       elseif selected_entity.type == "car" then
         local vehicle = selected_entity
+        clicked_on_empty = false
+        
         -- Clicked on a vehicle
         global.tutorials[index] = global.tutorials[index] or {}
         global.tutorials[index][1] = global.tutorials[index][1] or 0
@@ -86,6 +91,8 @@ local function OnPlayerUsedCapsule(event)
         
       elseif selected_entity.name == "vehicle-wagon" then
         local wagon = selected_entity
+        clicked_on_empty = false
+        
         -- Clicked on an empty wagon
         if wagon.train.speed ~= 0 then
           player.print({"vehicle-wagon2.train-in-motion-error"})  -- Can't load while train is moving
@@ -130,9 +137,9 @@ local function OnPlayerUsedCapsule(event)
           player.print({"vehicle-wagon2.no-vehicle-selected"})
         end
       end
-      
-    elseif (global.player_selection[index] and 
-            global.player_selection[index].wagon) then
+    end
+    
+    if clicked_on_empty and (global.player_selection[index] and global.player_selection[index].wagon) then
       -- Clicked on the ground after clicking on a loaded wagon
       local wagon = global.player_selection[index].wagon
       local unload_position = player.surface.find_non_colliding_position(global.wagon_data[wagon.unit_number].name, position, 5, 0.5)
