@@ -22,19 +22,19 @@ local function makeGlobalMaps()
   global.vehicleMap = {}  --: vehicle-name --> loaded-wagon-name
   for k,_ in pairs(game.get_filtered_entity_prototypes({{filter="type", type="car"}})) do
     
-    if String.contains(k,"nixie") then
+    if k and string.find(k,"nixie") ~= nil then
       global.vehicleMap[k] = nil  -- non vehicle entity
     elseif k == "uplink-station" then
       global.vehicleMap[k] = nil  -- non vehicle entity
-    elseif String.contains(k,"heli") or String.contains(k,"rotor") then
+    elseif k and (string.find(k,"heli") ~= nil or string.find(k,"rotor") ~= nil) then
       global.vehicleMap[k] = nil  -- helicopter & heli parts incompatible
     elseif k == "vwtransportercargo" then
       global.vehicleMap[k] = nil  -- non vehicle or incompatible?
-    elseif String.contains(k,"airborne") then
+    elseif k and string.find(k,"airborne") ~= nil then
       global.vehicleMap[k] = nil  -- can't load flying planes
-    elseif String.contains(k,"Schall%-tank%-SH") then
+    elseif k and string.find(k,"Schall%-tank%-SH") ~= nil then
       global.vehicleMap[k] = nil  -- Super Heavy tank doesn't fit on train
-    elseif String.contains(k,"cargo%-plane") then
+    elseif k and string.find(k,"cargo%-plane") ~= nil then
       global.vehicleMap[k] = "loaded-vehicle-wagon-cargoplane"  -- Cargo plane, Better cargo plane, Even better cargo plane
       global.loadedWagonFlip["loaded-vehicle-wagon-cargoplane"] = true  -- Cargo plane wagon sprite is flipped
     elseif k == "jet" then
@@ -45,11 +45,11 @@ local function makeGlobalMaps()
       global.loadedWagonFlip["loaded-vehicle-wagon-gunship"] = true  -- Gunship wagon sprite is flipped
     elseif k == "dumper-truck" then
       global.vehicleMap[k] = "loaded-vehicle-wagon-truck"  -- Specific to dump truck mod
-    elseif String.contains(k,"Schall%-ht%-RA") then
+    elseif k and string.find(k,"Schall%-ht%-RA") ~= nil then
       global.vehicleMap[k] = "loaded-vehicle-wagon-tank"  -- Schall's Rocket Artillery look like tanks
-    elseif String.contains(k,"tank") then
+    elseif k and string.find(k,"tank") ~= nil then
       global.vehicleMap[k] = "loaded-vehicle-wagon-tank"  -- Generic tank
-    elseif String.contains(k,"car") and not String.contains(k,"cargo") then
+    elseif k and string.find(k,"car") ~= nil and string.find(k,"cargo") == nil then
       global.vehicleMap[k] = "loaded-vehicle-wagon-car"  -- Generic car (that is not cargo)
     else
       global.vehicleMap[k] = "loaded-vehicle-wagon-tarp"  -- Default for everything else

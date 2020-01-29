@@ -1,6 +1,6 @@
 {
 	"name": "VehicleWagon2",
-	"version": "2.1.0",
+	"version": "2.1.1",
 	"factorio_version": "0.18",
 	"title": "Vehicle Wagon 2",
 	"author": "robot256",
@@ -9,8 +9,7 @@
 	"dependencies": [
 		"base >= 0.18.0",
         "Robot256Lib >= 0.1.1",
-        "stdlib",
-		"? SchallTransportGroup",
+        "? SchallTransportGroup",
         "? TrainOverhaul",
 		"? bigtruck",
 		"? Aircraft"

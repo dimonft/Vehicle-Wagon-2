@@ -9,6 +9,10 @@
  *    4. If player clicked on none of the above after clicking on a Loaded Vehicle Wagon, queue the Unloading Action.
 --]]
 
+local function distance(a,b)
+  return math.sqrt((a.x - b.x)^2 + (a.y - b.y)^2)
+end
+
 --== ON_PLAYER_USED_CAPSULE ==--
 -- Queues load/unload data when player clicks with the winch.
 local function OnPlayerUsedCapsule(event)
@@ -97,7 +101,7 @@ local function OnPlayerUsedCapsule(event)
               global.player_selection[index].vehicle) then
         -- Clicked on empty wagon after clicking on a vehicle
         local vehicle = global.player_selection[index].vehicle
-        if not vehicle.valid then
+        if not vehicle or not vehicle.valid then
           -- Selected vehicle no longer exists
           clearSelection(index)
           player.print({"vehicle-wagon2.vehicle-invalid-error"})
@@ -108,7 +112,7 @@ local function OnPlayerUsedCapsule(event)
         elseif global.action_queue[wagon.unit_number] then
           -- This wagon already has a pending action
           player.print({"vehicle-wagon2.empty-wagon-busy-error"})
-        elseif Position.distance(Position.new(wagon.position), Position.new(vehicle.position)) > 9 then
+        elseif distance(wagon.position, vehicle.position) > LOADING_DISTANCE then
           player.print({"vehicle-wagon2.too-far-away"})
         else
           local loaded_name = global.vehicleMap[vehicle.name]
@@ -140,7 +144,7 @@ local function OnPlayerUsedCapsule(event)
       local unload_position = player.surface.find_non_colliding_position(global.wagon_data[wagon.unit_number].name, position, 5, 0.5)
       if not unload_position then
         player.print({"vehicle-wagon2.vehicle-not-created-error", {"entity-name."..global.wagon_data[wagon.unit_number].name}})  -- Game could not find open position to unload
-      elseif Position.distance(Position.new(wagon.position), Position.new(unload_position)) > 9 then
+      elseif distance(wagon.position, unload_position) > LOADING_DISTANCE then
         player.print({"vehicle-wagon2.too-far-away"})  -- Player clicked too far away
       elseif global.action_queue[wagon.unit_number] then
         -- This wagon already has a pending action

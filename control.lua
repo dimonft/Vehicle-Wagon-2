@@ -22,9 +22,9 @@
  *   - on_player_setup_blueprint
 --]]
 
+-- Lazy place for a constant
+LOADING_DISTANCE = 9
 
-String = require('__stdlib__/stdlib/utils/string')
-Position = require('__stdlib__/stdlib/area/position')
 
 replaceCarriage = require("__Robot256Lib__/script/carriage_replacement").replaceCarriage
 blueprintLib = require("__Robot256Lib__/script/blueprint_replacement")
@@ -33,6 +33,7 @@ saveRestoreLib = require("__Robot256Lib__/script/save_restore")
 require("script.loadVehicleWagon")
 require("script.unloadVehicleWagon")
 require("script.initialize")
+
 
 --== ON_INIT ==--
 --== ON_CONFIGURATION_CHANGED ==--
