@@ -121,7 +121,7 @@ local function OnPlayerUsedCapsule(event)
             clearSelection(index)
           else
             player.surface.play_sound({path = "winch-sound", position = player.position})
-            local beam = wagon.surface.create_entity({name="laser-beam", position=wagon.position, source_position=vehicle.position, target_position=wagon.position, duration=120})
+            local beam = wagon.surface.create_entity({name="loading-ramp-beam", position=wagon.position, source_position=vehicle.position, target_position=wagon.position, duration=120})
             global.action_queue[wagon.unit_number] = {player_index = index,
                                                 status = "load",
                                                 wagon = wagon,
@@ -151,7 +151,7 @@ local function OnPlayerUsedCapsule(event)
         player.print({"vehicle-wagon2.loaded-wagon-busy-error"})
       else
         player.surface.play_sound({path = "winch-sound", position = player.position})
-        local beam = wagon.surface.create_entity({name="laser-beam", position=wagon.position, source_position=wagon.position, target_position=unload_position, duration=120})
+        local beam = wagon.surface.create_entity({name="loading-ramp-beam", position=wagon.position, source_position=wagon.position, target_position=unload_position, duration=120})
         global.action_queue[wagon.unit_number] = {player_index = index,
                                                   status = "unload",
                                                   wagon = wagon,
