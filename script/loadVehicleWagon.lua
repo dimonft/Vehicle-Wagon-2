@@ -47,6 +47,7 @@ function loadVehicleWagon(action)
   saveData.name = vehicle.name
   saveData.health = vehicle.health
   saveData.color = vehicle.color
+  saveData.last_user = vehicle.last_user
   
   -- Store inventory contents
   saveData.items = {
@@ -67,6 +68,6 @@ function loadVehicleWagon(action)
   global.wagon_data[unit_number] = saveData
   
   -- Destroy vehicle
-  vehicle.destroy()
+  vehicle.destroy({raise_destroy=true})
   
 end

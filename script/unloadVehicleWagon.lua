@@ -90,12 +90,20 @@ function unloadVehicleWagon(action)
                       name = wagon_data.name, 
                       position = unload_position, 
                       force = force,
-                      direction = direction
+                      direction = direction,
+                      raise_built = false
                     }
   
   -- If vehicle not created, give up
   if not vehicle then
     return
+  end
+  
+  -- Set vehicle user to the player who unloaded, or the saved last user if unloaded automatically
+  if player_index then
+    vehicle.last_user = player_index
+  elseif wagon_data.last_user then
+    vehicle.last_user = wagon_data.last_user
   end
   
   -- Restore vehicle parameters from global data
