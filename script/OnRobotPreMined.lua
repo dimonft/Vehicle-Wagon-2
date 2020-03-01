@@ -43,9 +43,13 @@ local function OnRobotPreMined(event)
       -- We can try to unload this wagon
       local allow_robot_unloading = settings.global["vehicle-wagon-allow-robot-unloading"].value
       local vehicle = nil
-      if allow_robot_unloading then
+      -- Check if this is a Creative Mod Instant Deconstruct (tm) operation
+      if not event.robot.inventory or #event.robot.inventory == 0 then
+        vehicle = unloadVehicleWagon({status="unload", wagon=entity, replace_wagon=false})
+      elseif allow_robot_unloading then
         vehicle = unloadVehicleWagon({status="unload", wagon=entity, replace_wagon=true})
       end
+      
       if not vehicle then
         -- Vehicle could not be unloaded
         -- First check for inventory contents

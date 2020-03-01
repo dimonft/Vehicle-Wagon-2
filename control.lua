@@ -254,6 +254,7 @@ function OnBuiltEntity(event)
   local entity = event.created_entity or event.entity
   if entity.name == "entity-ghost" then
     if global.loadedWagonMap[entity.ghost_name] then
+      local surface = entity.surface
       local newGhost = {
           name = "entity-ghost",
           inner_name = global.loadedWagonMap[entity.ghost_name],
