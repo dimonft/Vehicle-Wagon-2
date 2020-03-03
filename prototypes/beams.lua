@@ -62,6 +62,8 @@ function make_ramp_beam(sound)
         frame_count = 16,
         scale = ramp_scale,
         animation_speed = ramp_speed,
+        apply_runtime_tint = true,
+        tint = {r=1, g=1, b=1, a=0.8},
         blend_mode = ramp_blend_mode
       }
     },
@@ -152,15 +154,13 @@ function make_ramp_beam(sound)
       },
       max_sounds_per_type = 4
     }
-    result.name = "loading-ramp-beam"
-  else
-    result.name = "loading-ramp-beam-no-sound"
   end
+  result.name = "loading-ramp-beam"
   return result;
 end
 
 data:extend(
 {
-  make_ramp_beam(true)
+  make_ramp_beam(false)
 }
 )

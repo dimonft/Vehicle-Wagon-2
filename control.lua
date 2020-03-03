@@ -167,7 +167,7 @@ function deleteWagon(unit_number)
   clearWagon(unit_number)
 end
 
-function clearVehicle(vehicle)
+function clearVehicle(vehicle, silent)
   -- Clear selection and halt pending actions that involve this vehicle
   for unit_number,action in pairs(global.action_queue) do
     if action.vehicle == vehicle then
@@ -176,7 +176,7 @@ function clearVehicle(vehicle)
         action.beam.destroy()
       end
       local player = game.players[global.action_queue[unit_number].player_index]
-      if player then
+      if player and not silent then
         player.print({"vehicle-wagon2.vehicle-invalid-error"})
       end
       global.action_queue[unit_number] = nil
@@ -293,7 +293,8 @@ function OnEntityDied(event)
   elseif entity.name == "vehicle-wagon" then
     clearWagon(entity.unit_number)
   elseif event.entity.type == "car" then
-    clearVehicle(entity)
+    -- Car died, 
+    clearVehicle(entity, true)
   end
 end
 script.on_event(defines.events.on_entity_died, OnEntityDied)

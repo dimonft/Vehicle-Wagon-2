@@ -1,8 +1,13 @@
 ---------------------------------------------------------------------------------------------------
-Version: 2.1.1
-Date: 28. 1. 2020
+Version: 2.18.2
+Date: 2020-03-02
+  Features:
+    - Changed loading beam graphics to a conveyor belt.
   Changes:
     - Removed dependency on StdLib mod.
+  Bugfixes:
+    - Fixed compatibility with Mobile Factory mod by fixing how last_user and player_index are saved and restored.
+    - Fixed compatibility with Creative Mod by handling the case when magic robots with no inventory deconstruct a loaded wagon.
 ---------------------------------------------------------------------------------------------------
 Version: 2.1.0
 Date: 24. 1. 2020
