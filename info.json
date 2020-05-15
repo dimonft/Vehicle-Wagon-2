@@ -1,6 +1,6 @@
 {
 	"name": "VehicleWagon2",
-	"version": "2.18.2",
+	"version": "2.18.3",
 	"factorio_version": "0.18",
 	"title": "Vehicle Wagon 2",
 	"author": "robot256",
@@ -12,7 +12,8 @@
         "? SchallTransportGroup",
         "? TrainOverhaul",
 		"? bigtruck",
-		"? Aircraft"
+		"? Aircraft",
+		"? GCKI"
 	],
 	"description": "Winch vehicles onto trains and go for a ride! | RU: Возьмите с собой полностью заряженный и готовый к бою транспорт и отправьте его в путешествие по железной дороге."
 }

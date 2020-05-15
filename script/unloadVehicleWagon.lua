@@ -146,6 +146,18 @@ function unloadVehicleWagon(action)
     saveRestoreLib.spillStacks(r2, surface, unload_position)
   end
   
+  -- Restore data for other mods
+  if remote.interfaces["autodrive"] then
+    if wagon_data.autodrive_data then
+      remote.call("autodrive", "vehicle_restored", vehicle, wagon_data.autodrive_data)
+    end
+  end
+  if remote.interfaces["GCKI"] then
+    if wagon_data.GCKI_data then
+      remote.call("GCKI", "vehicle_restored", vehicle, wagon_data.GCKI_data)
+    end
+  end
+  
   -- Raise event for scripts
   script.raise_event(defines.events.script_raised_built, {entity = vehicle, player_index = player_index})
   

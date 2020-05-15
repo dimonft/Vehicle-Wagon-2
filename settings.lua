@@ -38,3 +38,16 @@ data:extend({
     max_value = 1.0
   },
 })
+
+if mods["GCKI"] then
+  data:extend({
+    {
+    type = "string-setting",
+    name = "vehicle-wagon-GCKI-interaction",
+    order = "cc",
+    setting_type = "runtime-global",
+    default_value = "owner",
+    allowed_values = {"anyone","owner","locker"}
+    },
+  })
+end

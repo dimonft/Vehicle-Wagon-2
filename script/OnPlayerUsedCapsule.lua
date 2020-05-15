@@ -62,7 +62,7 @@ local function OnPlayerUsedCapsule(event)
         -- Tutorial message to select unloading 
         if global.tutorials[index][2] < 5 then
           global.tutorials[index][2] = global.tutorials[index][2] + 1
-          player.print({"vehicle-wagon2.select-unload-vehicle-location"})
+          player.print({"vehicle-wagon2.select-unload-vehicle-location", game.entity_prototypes[global.wagon_data[unit_number].name].localised_name})
         end
         -- Record selection
         global.player_selection[index] = {wagon=loaded_wagon}
@@ -75,10 +75,28 @@ local function OnPlayerUsedCapsule(event)
       global.tutorials[index] = global.tutorials[index] or {}
       global.tutorials[index][1] = global.tutorials[index][1] or 0
       
+      -- Compatibility with GCKI:
+      local owner = nil
+      local locker = nil
+      if remote.interfaces["GCKI"] then
+        local permission_setting = settings.global["vehicle-wagon-GCKI-interaction"].value
+        if permission_setting == "owner" then
+          owner = remote.call("GCKI", "vehicle_owned_by", vehicle)
+        elseif permission_setting == "locker" then
+          locker = remote.call("GCKI", "vehicle_locked_by", vehicle)
+        end
+      end
+      
       if get_driver_or_passenger(vehicle) then
         player.print({"vehicle-wagon2.vehicle-passenger-error"})
       elseif not global.vehicleMap[vehicle.name] then
-        player.print({"vehicle-wagon2.unknown-vehicle-error"})
+        player.print({"vehicle-wagon2.unknown-vehicle-error", vehicle.localised_name})
+      elseif owner and owner ~= player then
+        -- Can't load someone else's claimed vehicle
+        player.print({"vehicle-wagon2.claimed-vehicle-error", vehicle.localised_name, player.name})
+      elseif locker and locker ~= player then
+        -- Can't load someone else's locked vehicle
+        player.print({"vehicle-wagon2.claimed-vehicle-error", vehicle.localised_name, player.name})
       else
         -- Store vehicle selection
         global.player_selection[index] = {vehicle=vehicle}
@@ -87,7 +105,7 @@ local function OnPlayerUsedCapsule(event)
         -- Tutorial message to select an empty wagon
         if global.tutorials[index][1] < 5 then
           global.tutorials[index][1] = global.tutorials[index][1] + 1
-          player.print({"vehicle-wagon2.vehicle-selected"})
+          player.print({"vehicle-wagon2.vehicle-selected", vehicle.localised_name})
         end
       end
       
@@ -117,7 +135,7 @@ local function OnPlayerUsedCapsule(event)
         else
           local loaded_name = global.vehicleMap[vehicle.name]
           if not loaded_name then
-            player.print({"vehicle-wagon2.unknown-vehicle-error"})
+            player.print({"vehicle-wagon2.unknown-vehicle-error", vehicle.localised_name})
             clearSelection(index)
           else
             player.surface.play_sound({path = "winch-sound", position = player.position})
