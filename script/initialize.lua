@@ -293,6 +293,7 @@ end
 
 -- Runs when new game starts (we also call it when mods are changed)
 function OnInit()
+  game.check_prototype_translations()
   -- Generate wagon-vehicle mapping tables 
   makeGlobalMaps()
   -- Create global data tables
