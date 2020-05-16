@@ -87,9 +87,7 @@ data:extend({
 	{
 		type = "item",
 		name = "loaded-vehicle-wagon-tank",
-		localised_name = {"vehicle-wagon2.loaded-wagon-name", {"item-name.tank"}},
-		localised_description = {"vehicle-wagon2.loaded-wagon-description", {"item-name.tank"}},
-	  icon = "__VehicleWagon2__/graphics/tech-icon.png",
+		icon = "__VehicleWagon2__/graphics/tech-icon.png",
 		icon_size = 128,
 		flags = {"hidden"},
 		subgroup = "transport",
@@ -100,9 +98,7 @@ data:extend({
 	{
 		type = "item",
 		name = "loaded-vehicle-wagon-car",
-		localised_name = {"vehicle-wagon2.loaded-wagon-name", {"item-name.car"}},
-		localised_description = {"vehicle-wagon2.loaded-wagon-description", {"item-name.car"}},
-	  icon = "__VehicleWagon2__/graphics/tech-icon.png",
+		icon = "__VehicleWagon2__/graphics/tech-icon.png",
 		icon_size = 128,
 		flags = {"hidden"},
 		subgroup = "transport",
@@ -128,8 +124,6 @@ if mods["bigtruck"] then
 		{
 			type = "item",
 			name = "loaded-vehicle-wagon-truck",
-			localised_name = {"vehicle-wagon2.loaded-wagon-name", {"item-name.dumper-truck"}},
-			localised_description = {"vehicle-wagon2.loaded-wagon-description", {"item-name.dumper-truck"}},
 			icon = "__VehicleWagon2__/graphics/tech-icon.png",
 			icon_size = 128,
 			flags = {"hidden"},
@@ -146,8 +140,6 @@ if mods["Aircraft"] then
 		{
 			type = "item",
 			name = "loaded-vehicle-wagon-cargoplane",
-			localised_name = {"vehicle-wagon2.loaded-wagon-name", {"item-name.cargo-plane"}},
-			localised_description = {"vehicle-wagon2.loaded-wagon-description", {"item-name.cargo-plane"}},
 			icon = "__VehicleWagon2__/graphics/tech-icon.png",
 			icon_size = 128,
 			flags = {"hidden"},
@@ -162,9 +154,7 @@ if mods["Aircraft"] then
 		{
 			type = "item",
 			name = "loaded-vehicle-wagon-jet",
-      localised_name = {"vehicle-wagon2.loaded-wagon-name", {"item-name.jet"}},
-			localised_description = {"vehicle-wagon2.loaded-wagon-description", {"item-name.jet"}},
-			icon = "__VehicleWagon2__/graphics/tech-icon.png",
+      icon = "__VehicleWagon2__/graphics/tech-icon.png",
 			icon_size = 128,
 			flags = {"hidden"},
 			subgroup = "transport",
@@ -178,8 +168,6 @@ if mods["Aircraft"] then
 		{
 			type = "item",
 			name = "loaded-vehicle-wagon-gunship",
-			localised_name = {"vehicle-wagon2.loaded-wagon-name", {"item-name.gunship"}},
-			localised_description = {"vehicle-wagon2.loaded-wagon-description", {"item-name.gunship"}},
 			icon = "__VehicleWagon2__/graphics/tech-icon.png",
 			icon_size = 128,
 			flags = {"hidden"},

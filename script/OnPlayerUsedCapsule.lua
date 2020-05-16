@@ -92,11 +92,11 @@ local function OnPlayerUsedCapsule(event)
       elseif not global.vehicleMap[vehicle.name] then
         player.print({"vehicle-wagon2.unknown-vehicle-error", vehicle.localised_name})
       elseif owner and owner ~= player then
-        -- Can't load someone else's claimed vehicle
-        player.print({"vehicle-wagon2.claimed-vehicle-error", vehicle.localised_name, player.name})
+        -- Can't load someone else's vehicle
+        player.print({"vehicle-wagon2.owned-vehicle-error", vehicle.localised_name, owner.name})
       elseif locker and locker ~= player then
         -- Can't load someone else's locked vehicle
-        player.print({"vehicle-wagon2.claimed-vehicle-error", vehicle.localised_name, player.name})
+        player.print({"vehicle-wagon2.locked-vehicle-error", vehicle.localised_name, locker.name})
       else
         -- Store vehicle selection
         global.player_selection[index] = {vehicle=vehicle}

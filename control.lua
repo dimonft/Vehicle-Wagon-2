@@ -45,6 +45,7 @@ script.on_configuration_changed(OnConfigurationChanged)
 --== ON_LOAD ==--
 -- Enable on_tick event according to global variable state
 function OnLoad()
+  game.check_prototype_translations()
   if global.action_queue and table_size(global.action_queue) > 0 then
     script.on_event(defines.events.on_tick, process_tick)
   end

@@ -25,8 +25,8 @@ data:extend({
     order = "bb",
     setting_type = "startup",
     default_value = 0.5,
-    min_value = 0.1,
-    max_value = 2.0
+    minimum_value = 0.1,
+    maximum_value = 2.0
   },
   {
     type = "double-setting",
@@ -34,8 +34,8 @@ data:extend({
     order = "bc",
     setting_type = "startup",
     default_value = 0.3,
-    min_value = 0.01,
-    max_value = 1.0
+    minimum_value = 0.01,
+    maximum_value = 1.0
   },
 })
 
@@ -47,7 +47,7 @@ if mods["GCKI"] then
     order = "cc",
     setting_type = "runtime-global",
     default_value = "owner",
-    allowed_values = {"anyone","owner","locker"}
+    allowed_values = {"anyone","locker","owner"}
     },
   })
 end

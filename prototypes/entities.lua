@@ -52,8 +52,6 @@ end
 
 local loaded_vehicle_wagon_tank = util.table.deepcopy(vehicle_wagon)
 loaded_vehicle_wagon_tank.name = "loaded-vehicle-wagon-tank"
-loaded_vehicle_wagon_tank.localised_name = {"vehicle-wagon2.loaded-wagon-name", {"entity-name.tank"}}
-loaded_vehicle_wagon_tank.localised_description = {"vehicle-wagon2.loaded-wagon-description", {"entity-name.tank"}}
 if useWeights then
   loaded_vehicle_wagon_tank.weight = vehicle_wagon.weight + (data.raw["car"]["tank"].weight * weightFactor)
 end
@@ -130,8 +128,6 @@ loaded_vehicle_wagon_tank.pictures =
 local loaded_vehicle_wagon_car = util.table.deepcopy(vehicle_wagon)
 
 loaded_vehicle_wagon_car.name = "loaded-vehicle-wagon-car"
-loaded_vehicle_wagon_car.localised_name = {"vehicle-wagon2.loaded-wagon-name", {"entity-name.car"}}
-loaded_vehicle_wagon_car.localised_description = {"vehicle-wagon2.loaded-wagon-description", {"entity-name.car"}}
 if useWeights then
   loaded_vehicle_wagon_car.weight = vehicle_wagon.weight + (data.raw["car"]["car"].weight * weightFactor)
 end
@@ -263,8 +259,6 @@ data:extend({vehicle_wagon, loaded_vehicle_wagon_tank, loaded_vehicle_wagon_car,
 if mods["bigtruck"] then
 	local loaded_vehicle_wagon_truck = util.table.deepcopy(vehicle_wagon)
 	loaded_vehicle_wagon_truck.name = "loaded-vehicle-wagon-truck"
-  loaded_vehicle_wagon_truck.localised_name = {"vehicle-wagon2.loaded-wagon-name", {"entity-name.dumper-truck"}}
-  loaded_vehicle_wagon_truck.localised_description = {"vehicle-wagon2.loaded-wagon-description", {"entity-name.dumper-truck"}}
   if useWeights then
     loaded_vehicle_wagon_truck.weight = vehicle_wagon.weight + (data.raw["car"]["dumper-truck"].weight * weightFactor)
   end
@@ -328,8 +322,6 @@ end
 if mods["Aircraft"] then
 	local loaded_vehicle_wagon_cargo_plane = util.table.deepcopy(vehicle_wagon)
 	loaded_vehicle_wagon_cargo_plane.name = "loaded-vehicle-wagon-cargoplane"
-  loaded_vehicle_wagon_cargo_plane.localised_name = {"vehicle-wagon2.loaded-wagon-name", {"entity-name.cargo-plane"}}
-  loaded_vehicle_wagon_cargo_plane.localised_description = {"vehicle-wagon2.loaded-wagon-description", {"entity-name.cargo-plane"}}
   if useWeights then
     loaded_vehicle_wagon_cargo_plane.weight = vehicle_wagon.weight + (data.raw["car"]["cargo-plane"].weight * weightFactor)
   end
@@ -356,9 +348,7 @@ if mods["Aircraft"] then
 
 	local loaded_vehicle_wagon_jet = util.table.deepcopy(vehicle_wagon)
 	loaded_vehicle_wagon_jet.name = "loaded-vehicle-wagon-jet"
-	loaded_vehicle_wagon_jet.localised_name = {"vehicle-wagon2.loaded-wagon-name", {"entity-name.jet"}}
-  loaded_vehicle_wagon_jet.localised_description = {"vehicle-wagon2.loaded-wagon-description", {"entity-name.jet"}}
-  if useWeights then
+	if useWeights then
     loaded_vehicle_wagon_jet.weight = vehicle_wagon.weight + (data.raw["car"]["jet"].weight * weightFactor)
   end
 	loaded_vehicle_wagon_jet.pictures =
@@ -384,9 +374,7 @@ if mods["Aircraft"] then
 
 	local loaded_vehicle_wagon_gunship = util.table.deepcopy(vehicle_wagon)
 	loaded_vehicle_wagon_gunship.name = "loaded-vehicle-wagon-gunship"
-	loaded_vehicle_wagon_gunship.localised_name = {"vehicle-wagon2.loaded-wagon-name", {"entity-name.gunship"}}
-  loaded_vehicle_wagon_gunship.localised_description = {"vehicle-wagon2.loaded-wagon-description", {"entity-name.gunship"}}
-  if useWeights then
+	if useWeights then
     loaded_vehicle_wagon_gunship.weight = vehicle_wagon.weight + (data.raw["car"]["gunship"].weight * weightFactor)
   end
 	loaded_vehicle_wagon_gunship.pictures =
