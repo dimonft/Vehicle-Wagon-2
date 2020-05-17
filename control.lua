@@ -36,9 +36,11 @@ require("script.initialize")
 
 
 --== ON_INIT ==--
---== ON_CONFIGURATION_CHANGED ==--
 -- Initialize global data tables
 script.on_init(OnInit)
+
+--== ON_CONFIGURATION_CHANGED ==--
+-- Initialize global data tables and perform migrations
 script.on_configuration_changed(OnConfigurationChanged)
 
 

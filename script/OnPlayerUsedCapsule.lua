@@ -31,10 +31,8 @@ local function OnPlayerUsedCapsule(event)
       local loaded_wagon = selected_entity
       
       -- Clicked on a Loaded Wagon
-      global.tutorials[index] = global.tutorials[index] or {}
-      global.tutorials[index][2] = global.tutorials[index][2] or 0
-      
       local unit_number = loaded_wagon.unit_number
+      local vehicle_prototype = game.entity_prototypes[global.wagon_data[unit_number].name]
       
       if loaded_wagon.get_driver() then
         player.print({"vehicle-wagon2.wagon-passenger-error"})  -- Can't unload while passenger in wagon
@@ -52,6 +50,35 @@ local function OnPlayerUsedCapsule(event)
         -- Replace wagon with unloaded version and delete data
         deleteWagon(unit_number)
         replaceCarriage(loaded_wagon, "vehicle-wagon", false, false)
+      elseif remote.interfaces["GCKI"] and settings.global["vehicle-wagon-use-GCKI-permissions"].value then
+        -- Check to see if the loaded vehicle had an owner/locker, and if that claim is still valid
+        if global.wagon_data[unit_number].GCKI_data then
+          -- Someone had rights to this vehicle when it was loaded.
+          -- Do they still have rights now?
+          if global.wagon_data[unit_number].GCKI_data.locker and global.wagon_data[unit_number].GCKI_data.locker ~= player.index then
+            -- Error: vehicle was locked by someone else before it was loaded 
+            -- Does not matter if that player exists or claimed a different vehicle, only that player can unload this one
+            local locker = game.players[global.wagon_data[unit_number].GCKI_data.locker]
+            if locker and locker.valid then
+              -- Player exists, display their name
+              player.print({"vehicle-wagon2.unload-locked-vehicle-error", vehicle_prototype.localised_name, locker.name})
+            else
+              -- Player no longer exists.  Should permission still apply?
+              player.print({"vehicle-wagon2.unload-locked-vehicle-error", vehicle_prototype.localised_name, "Player #"..tostring(global.wagon_data[unit_number].GCKI_data.locker)})
+            end
+          elseif global.wagon_data[unit_number].GCKI_data.owner and global.wagon_data[unit_number].GCKI_data.owner ~= player.index then
+            -- Vehicle is unlocked, but a different player owned it when it was loaded.
+            -- Check if that player still owns it, or if he has claimed a different vehicle and relinquished this one
+            -- Need a new interface function to do this, so for now assume that they still own it LOL
+            local owner = game.players[global.wagon_data[unit_number].GCKI_data.owner]
+            if owner and owner.valid then
+              -- Player exists, display their name
+              player.print({"vehicle-wagon2.unload-owned-vehicle-error", vehicle_prototype.localised_name, owner.name})
+            else
+              -- Player no longer exists.  Should permission still apply?
+              player.print({"vehicle-wagon2.unload-owned-vehicle-error", vehicle_prototype.localised_name, "Player #"..tostring(global.wagon_data[unit_number].GCKI_data.owner)})
+            end
+          end
       elseif global.action_queue[unit_number] then
         -- This wagon already has a pending action
         player.print({"vehicle-wagon2.loaded-wagon-busy-error"})
@@ -59,11 +86,8 @@ local function OnPlayerUsedCapsule(event)
         -- Select vehicle as unloading source
         player.play_sound({path = "latch-on"})
         player.set_gui_arrow({type = "entity", entity = loaded_wagon})
-        -- Tutorial message to select unloading 
-        if global.tutorials[index][2] < 5 then
-          global.tutorials[index][2] = global.tutorials[index][2] + 1
-          player.print({"vehicle-wagon2.select-unload-vehicle-location", game.entity_prototypes[global.wagon_data[unit_number].name].localised_name})
-        end
+        -- Always show tutorial message, to find out what kind of vehicle is stored here
+        player.print({"vehicle-wagon2.select-unload-vehicle-location", vehicle_prototype.localised_name})
         -- Record selection
         global.player_selection[index] = {wagon=loaded_wagon}
       end
@@ -78,25 +102,22 @@ local function OnPlayerUsedCapsule(event)
       -- Compatibility with GCKI:
       local owner = nil
       local locker = nil
-      if remote.interfaces["GCKI"] then
-        local permission_setting = settings.global["vehicle-wagon-GCKI-interaction"].value
-        if permission_setting == "owner" then
-          owner = remote.call("GCKI", "vehicle_owned_by", vehicle)
-        elseif permission_setting == "locker" then
-          locker = remote.call("GCKI", "vehicle_locked_by", vehicle)
-        end
+      if remote.interfaces["GCKI"] and settings.global["vehicle-wagon-use-GCKI-permissions"].value then
+        -- Either or both of these may be set to a player
+        owner = remote.call("GCKI", "vehicle_owned_by", vehicle)
+        locker = remote.call("GCKI", "vehicle_locked_by", vehicle)
       end
       
       if get_driver_or_passenger(vehicle) then
         player.print({"vehicle-wagon2.vehicle-passenger-error"})
       elseif not global.vehicleMap[vehicle.name] then
         player.print({"vehicle-wagon2.unknown-vehicle-error", vehicle.localised_name})
-      elseif owner and owner ~= player then
-        -- Can't load someone else's vehicle
-        player.print({"vehicle-wagon2.owned-vehicle-error", vehicle.localised_name, owner.name})
       elseif locker and locker ~= player then
         -- Can't load someone else's locked vehicle
-        player.print({"vehicle-wagon2.locked-vehicle-error", vehicle.localised_name, locker.name})
+        player.print({"vehicle-wagon2.load-locked-vehicle-error", vehicle.localised_name, locker.name})
+      elseif owner and owner ~= player then
+        -- Can't load someone else's vehicle
+        player.print({"vehicle-wagon2.load-owned-vehicle-error", vehicle.localised_name, owner.name})
       else
         -- Store vehicle selection
         global.player_selection[index] = {vehicle=vehicle}

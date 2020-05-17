@@ -34,7 +34,7 @@ data:extend({
     order = "bc",
     setting_type = "startup",
     default_value = 0.3,
-    minimum_value = 0.01,
+    minimum_value = 0,
     maximum_value = 1.0
   },
 })
@@ -42,12 +42,11 @@ data:extend({
 if mods["GCKI"] then
   data:extend({
     {
-    type = "string-setting",
-    name = "vehicle-wagon-GCKI-interaction",
+    type = "bool-setting",
+    name = "vehicle-wagon-use-GCKI-permissions",
     order = "cc",
     setting_type = "runtime-global",
-    default_value = "owner",
-    allowed_values = {"anyone","locker","owner"}
+    default_value = "true"
     },
   })
 end
