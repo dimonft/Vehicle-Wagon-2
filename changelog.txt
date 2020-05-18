@@ -1,4 +1,19 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.18.3
+Date: 2020-05-XX
+  Features:
+    - Added compatibility with Gizmo's Cark Keys (Improved). Locked and claimed vehicles can only be loaded or unloaded by their owner.
+    - Added new sprites for Schall Light Tank and Schall Heavy Tank, with matching wagon weights.
+    - Added startup settings to adjust braking and friction force of vehicle wagons.
+    - Uploaded by robot256
+  Changes:
+    - Rebalanced wagon weights and stats so that vehicle weight is treated fairly.  Hauling tanks needs multiple locomotives now.
+    - Fixed compatibility with Train Overhaul so wagon speed is set to match the Nuclear Locomotive.
+    - Updated German locale with the many new strings, thanks to ST-DDT and Pi-C.
+    - Improved English locale with string cross-referencing.
+  Bugfixes:
+    - Fixed minimum and maximum parameters on weight scaling startup settings.
+---------------------------------------------------------------------------------------------------
 Version: 2.18.2
 Date: 2020-03-02
   Features:

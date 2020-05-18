@@ -24,7 +24,7 @@ data:extend({
     name = "vehicle-wagon-empty-weight-factor",
     order = "bb",
     setting_type = "startup",
-    default_value = 0.5,
+    default_value = 0.25,
     minimum_value = 0.1,
     maximum_value = 2.0
   },
@@ -51,7 +51,7 @@ data:extend({
     name = "vehicle-wagon-empty-friction-factor",
     order = "be",
     setting_type = "startup",
-    default_value = 0.5,
+    default_value = 0.25,
     minimum_value = 0.1,
     maximum_value = 5.0
   },
@@ -60,7 +60,7 @@ data:extend({
     name = "vehicle-wagon-loaded-friction-factor",
     order = "bf",
     setting_type = "startup",
-    default_value = 1.25,
+    default_value = 1.5,
     minimum_value = 0.1,
     maximum_value = 5.0
   },

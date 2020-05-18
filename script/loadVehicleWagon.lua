@@ -75,7 +75,7 @@ function loadVehicleWagon(action)
     -- This will return a table with { owner = player.index, locker = player.index }
     saveData.GCKI_data = remote.call("GCKI", "get_vehicle_data", vehicle.unit_number)
     remote.call("GCKI", "vehicle_removed", vehicle)
-    if saveData.GCKI_data then
+    if saveData.GCKI_data and settings.global["vehicle-wagon-use-GCKI-permissions"].value then
       -- There is an owner or a locker of this wagon.  Make it un-minable.
       -- Issue: if owner claims another car, it un-claims the vehicle in this wagon, but we won't make this minable again.
       loaded_wagon.minable = false
