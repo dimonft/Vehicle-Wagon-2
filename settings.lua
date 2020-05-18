@@ -33,9 +33,36 @@ data:extend({
     name = "vehicle-wagon-vehicle-weight-factor",
     order = "bc",
     setting_type = "startup",
-    default_value = 0.3,
+    default_value = 1.0,
     minimum_value = 0,
-    maximum_value = 1.0
+    maximum_value = 5.0
+  },
+  {
+    type = "double-setting",
+    name = "vehicle-wagon-braking-factor",
+    order = "bd",
+    setting_type = "startup",
+    default_value = 2.0,
+    minimum_value = 0.5,
+    maximum_value = 5.0
+  },
+  {
+    type = "double-setting",
+    name = "vehicle-wagon-empty-friction-factor",
+    order = "be",
+    setting_type = "startup",
+    default_value = 0.5,
+    minimum_value = 0.1,
+    maximum_value = 5.0
+  },
+  {
+    type = "double-setting",
+    name = "vehicle-wagon-loaded-friction-factor",
+    order = "bf",
+    setting_type = "startup",
+    default_value = 1.25,
+    minimum_value = 0.1,
+    maximum_value = 5.0
   },
 })
 

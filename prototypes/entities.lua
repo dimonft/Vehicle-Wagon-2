@@ -17,6 +17,11 @@
 local useWeights = settings.startup["vehicle-wagon-use-custom-weights"].value
 local weightFactor = settings.startup["vehicle-wagon-vehicle-weight-factor"].value
 local emptyWeightFactor = settings.startup["vehicle-wagon-empty-weight-factor"].value
+local brakingFactor = settings.startup["vehicle-wagon-braking-factor"].value
+local emptyFrictionFactor = settings.startup["vehicle-wagon-empty-friction-factor"].value
+local loadedFrictionFactor = settings.startup["vehicle-wagon-loaded-friction-factor"].value
+
+local loadedFriction = data.raw["cargo-wagon"]["cargo-wagon"].friction_force * loadedFrictionFactor
 
 local vehicle_wagon = util.table.deepcopy(data.raw["cargo-wagon"]["cargo-wagon"])
 vehicle_wagon.name = "vehicle-wagon"
@@ -48,14 +53,17 @@ vehicle_wagon.pictures =
 }
 if useWeights then
   vehicle_wagon.weight = vehicle_wagon.weight * emptyWeightFactor
+  vehicle_wagon.braking_force = vehicle_wagon.braking_force * brakingFactor
+  vehicle_wagon.friction_force = vehicle_wagon.friction_force * emptyFrictionFactor
 end
 
-local loaded_vehicle_wagon_tank = util.table.deepcopy(vehicle_wagon)
-loaded_vehicle_wagon_tank.name = "loaded-vehicle-wagon-tank"
+local loaded_tank = util.table.deepcopy(vehicle_wagon)
+loaded_tank.name = "loaded-vehicle-wagon-tank"
 if useWeights then
-  loaded_vehicle_wagon_tank.weight = vehicle_wagon.weight + (data.raw["car"]["tank"].weight * weightFactor)
+  loaded_tank.weight = vehicle_wagon.weight + (data.raw["car"]["tank"].weight * weightFactor)
+  loaded_tank.friction_force = loadedFriction
 end
-loaded_vehicle_wagon_tank.pictures = 
+loaded_tank.pictures = 
 {
 	layers =
 	{
@@ -125,13 +133,14 @@ loaded_vehicle_wagon_tank.pictures =
 }
 
 
-local loaded_vehicle_wagon_car = util.table.deepcopy(vehicle_wagon)
+local loaded_car = util.table.deepcopy(vehicle_wagon)
 
-loaded_vehicle_wagon_car.name = "loaded-vehicle-wagon-car"
+loaded_car.name = "loaded-vehicle-wagon-car"
 if useWeights then
-  loaded_vehicle_wagon_car.weight = vehicle_wagon.weight + (data.raw["car"]["car"].weight * weightFactor)
+  loaded_car.weight = vehicle_wagon.weight + (data.raw["car"]["car"].weight * weightFactor)
+  loaded_car.friction_force = loadedFriction
 end
-loaded_vehicle_wagon_car.pictures =
+loaded_car.pictures =
 {
 	layers =
 	{
@@ -195,13 +204,14 @@ loaded_vehicle_wagon_car.pictures =
 	}
 }
 
-local loaded_vehicle_wagon_tarp = util.table.deepcopy(vehicle_wagon)
+local loaded_tarp = util.table.deepcopy(vehicle_wagon)
 
-loaded_vehicle_wagon_tarp.name = "loaded-vehicle-wagon-tarp"
+loaded_tarp.name = "loaded-vehicle-wagon-tarp"
 if useWeights then
-  loaded_vehicle_wagon_tarp.weight = vehicle_wagon.weight * 2  -- arbitrary factor for unknown vehicles
+  loaded_tarp.weight = loaded_car.weight  -- Use weight of Car for unknown vehicles
+  loaded_tarp.friction_force = loadedFriction
 end
-loaded_vehicle_wagon_tarp.pictures =
+loaded_tarp.pictures =
 {
 	layers =
 	{
@@ -254,15 +264,16 @@ loaded_vehicle_wagon_tarp.pictures =
 	}
 }
 
-data:extend({vehicle_wagon, loaded_vehicle_wagon_tank, loaded_vehicle_wagon_car, loaded_vehicle_wagon_tarp})
+data:extend({vehicle_wagon, loaded_tank, loaded_car, loaded_tarp})
 
 if mods["bigtruck"] then
-	local loaded_vehicle_wagon_truck = util.table.deepcopy(vehicle_wagon)
-	loaded_vehicle_wagon_truck.name = "loaded-vehicle-wagon-truck"
+	local loaded_truck = util.table.deepcopy(vehicle_wagon)
+	loaded_truck.name = "loaded-vehicle-wagon-truck"
   if useWeights then
-    loaded_vehicle_wagon_truck.weight = vehicle_wagon.weight + (data.raw["car"]["dumper-truck"].weight * weightFactor)
+    loaded_truck.weight = vehicle_wagon.weight + (data.raw["car"]["dumper-truck"].weight * weightFactor)
+    loaded_truck.friction_force = loadedFriction
   end
-	loaded_vehicle_wagon_truck.pictures =
+	loaded_truck.pictures =
 	{
 		layers =
 		{
@@ -315,17 +326,18 @@ if mods["bigtruck"] then
 		}
 	}
 
-	data:extend({loaded_vehicle_wagon_truck})
+	data:extend({loaded_truck})
 end
 
 
 if mods["Aircraft"] then
-	local loaded_vehicle_wagon_cargo_plane = util.table.deepcopy(vehicle_wagon)
-	loaded_vehicle_wagon_cargo_plane.name = "loaded-vehicle-wagon-cargoplane"
+	local loaded_cargo_plane = util.table.deepcopy(vehicle_wagon)
+	loaded_cargo_plane.name = "loaded-vehicle-wagon-cargoplane"
   if useWeights then
-    loaded_vehicle_wagon_cargo_plane.weight = vehicle_wagon.weight + (data.raw["car"]["cargo-plane"].weight * weightFactor)
+    loaded_cargo_plane.weight = vehicle_wagon.weight + (data.raw["car"]["cargo-plane"].weight * weightFactor)
+    loaded_cargo_plane.friction_force = loadedFriction
   end
-	loaded_vehicle_wagon_cargo_plane.pictures =
+	loaded_cargo_plane.pictures =
 	{
 		layers =
 		{
@@ -346,12 +358,13 @@ if mods["Aircraft"] then
 		}
 	}
 
-	local loaded_vehicle_wagon_jet = util.table.deepcopy(vehicle_wagon)
-	loaded_vehicle_wagon_jet.name = "loaded-vehicle-wagon-jet"
+	local loaded_jet = util.table.deepcopy(vehicle_wagon)
+	loaded_jet.name = "loaded-vehicle-wagon-jet"
 	if useWeights then
-    loaded_vehicle_wagon_jet.weight = vehicle_wagon.weight + (data.raw["car"]["jet"].weight * weightFactor)
+    loaded_jet.weight = vehicle_wagon.weight + (data.raw["car"]["jet"].weight * weightFactor)
+    loaded_jet.friction_force = loadedFriction
   end
-	loaded_vehicle_wagon_jet.pictures =
+	loaded_jet.pictures =
 	{
 		layers =
 		{
@@ -372,12 +385,13 @@ if mods["Aircraft"] then
 		}
 	}
 
-	local loaded_vehicle_wagon_gunship = util.table.deepcopy(vehicle_wagon)
-	loaded_vehicle_wagon_gunship.name = "loaded-vehicle-wagon-gunship"
+	local loaded_gunship = util.table.deepcopy(vehicle_wagon)
+	loaded_gunship.name = "loaded-vehicle-wagon-gunship"
 	if useWeights then
-    loaded_vehicle_wagon_gunship.weight = vehicle_wagon.weight + (data.raw["car"]["gunship"].weight * weightFactor)
+    loaded_gunship.weight = vehicle_wagon.weight + (data.raw["car"]["gunship"].weight * weightFactor)
+    loaded_gunship.friction_force = loadedFriction
   end
-	loaded_vehicle_wagon_gunship.pictures =
+	loaded_gunship.pictures =
 	{
 		layers =
 		{
@@ -398,7 +412,44 @@ if mods["Aircraft"] then
 		}
 	}
 
-	data:extend({loaded_vehicle_wagon_cargo_plane,
-               loaded_vehicle_wagon_gunship,
-               loaded_vehicle_wagon_jet})
+	data:extend{
+    loaded_cargo_plane,
+    loaded_gunship,
+    loaded_jet
+  }
+end
+
+
+if mods["SchallTankPlatoon"] then
+  -- Add more Tank versions with different weights
+  -- Light tanks is smaller and lighter
+  local loaded_tank_L = util.table.deepcopy(loaded_tank)
+  loaded_tank_L.name = "loaded-vehicle-wagon-tank-L"
+  if useWeights then
+    loaded_tank_L.weight = vehicle_wagon.weight + (data.raw["car"]["Schall-tank-L"].weight * weightFactor)
+    loaded_tank_L.friction_force = loadedFriction
+  end
+  for i,layer in pairs(loaded_tank_L.pictures.layers) do
+    if i > 1 then
+      layer.scale = 0.95*0.8
+    end
+  end
+  
+  -- Heavy tank is bigger and heavier
+  local loaded_tank_H = util.table.deepcopy(loaded_tank)
+  loaded_tank_H.name = "loaded-vehicle-wagon-tank-H"
+  if useWeights then
+    loaded_tank_H.weight = vehicle_wagon.weight + (data.raw["car"]["Schall-tank-H"].weight * weightFactor)
+    loaded_tank_H.friction_force = loadedFriction
+  end
+  for i,layer in pairs(loaded_tank_H.pictures.layers) do
+    if i > 1 then
+      layer.scale = 0.95*1.5
+    end
+  end
+  
+  data:extend{
+    loaded_tank_L,
+    loaded_tank_H,
+  }
 end

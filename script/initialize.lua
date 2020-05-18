@@ -47,6 +47,10 @@ local function makeGlobalMaps()
       global.vehicleMap[k] = "loaded-vehicle-wagon-truck"  -- Specific to dump truck mod
     elseif k and string.find(k,"Schall%-ht%-RA") ~= nil then
       global.vehicleMap[k] = "loaded-vehicle-wagon-tank"  -- Schall's Rocket Artillery look like tanks
+    elseif k and string.find(k,"Schall%-tank%-L") ~= nil then
+      global.vehicleMap[k] = "loaded-vehicle-wagon-tank-L"  -- Schall's Light Tank
+    elseif k and string.find(k,"Schall%-tank%-H") ~= nil then
+      global.vehicleMap[k] = "loaded-vehicle-wagon-tank-H"  -- Schall's Heavy Tank
     elseif k and string.find(k,"tank") ~= nil then
       global.vehicleMap[k] = "loaded-vehicle-wagon-tank"  -- Generic tank
     elseif k and string.find(k,"car") ~= nil and string.find(k,"cargo") == nil then

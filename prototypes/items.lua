@@ -23,7 +23,7 @@ if mods["SchallTransportGroup"] then
 end
 
 
-data:extend({
+data:extend{
   {
 		type = "capsule",
 		name = "winch",
@@ -71,9 +71,9 @@ data:extend({
 			}
 		}
 	}
-})
+}
 
-data:extend({
+data:extend{
 	{
 		type = "item",
 		name = "vehicle-wagon",
@@ -117,10 +117,10 @@ data:extend({
 		place_result = "loaded-vehicle-wagon-tarp",
 		stack_size = 1
 	}
-})
+}
 
 if mods["bigtruck"] then
-	data:extend({
+	data:extend{
 		{
 			type = "item",
 			name = "loaded-vehicle-wagon-truck",
@@ -132,11 +132,11 @@ if mods["bigtruck"] then
 			place_result = "loaded-vehicle-wagon-truck",
 			stack_size = 1
 		},
-	})
+	}
 end
 
 if mods["Aircraft"] then
-	data:extend({
+	data:extend{
 		{
 			type = "item",
 			name = "loaded-vehicle-wagon-cargoplane",
@@ -148,10 +148,7 @@ if mods["Aircraft"] then
 			place_result = "loaded-vehicle-wagon-cargoplane",
 			stack_size = 1
 		},
-	})
-
-	data:extend({
-		{
+	  {
 			type = "item",
 			name = "loaded-vehicle-wagon-jet",
       icon = "__VehicleWagon2__/graphics/tech-icon.png",
@@ -162,9 +159,6 @@ if mods["Aircraft"] then
 			place_result = "loaded-vehicle-wagon-jet",
 			stack_size = 1
 		},
-	})
-
-	data:extend({
 		{
 			type = "item",
 			name = "loaded-vehicle-wagon-gunship",
@@ -176,5 +170,32 @@ if mods["Aircraft"] then
 			place_result = "loaded-vehicle-wagon-gunship",
 			stack_size = 1
 		},
-	})
+	}
+end
+
+if mods["SchallTankPlatoon"] then
+  data:extend{
+    {
+      type = "item",
+      name = "loaded-vehicle-wagon-tank-L",
+      icon = "__VehicleWagon2__/graphics/tech-icon.png",
+      icon_size = 128,
+      flags = {"hidden"},
+      subgroup = "transport",
+      order = "a[train-system]-z[vehicle-wagon]",
+      place_result = "loaded-vehicle-wagon-tank-L",
+      stack_size = 1
+    },
+    {
+      type = "item",
+      name = "loaded-vehicle-wagon-tank-H",
+      icon = "__VehicleWagon2__/graphics/tech-icon.png",
+      icon_size = 128,
+      flags = {"hidden"},
+      subgroup = "transport",
+      order = "a[train-system]-z[vehicle-wagon]",
+      place_result = "loaded-vehicle-wagon-tank-H",
+      stack_size = 1
+    },
+  }
 end
