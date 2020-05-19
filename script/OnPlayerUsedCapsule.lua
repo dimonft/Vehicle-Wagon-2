@@ -122,14 +122,21 @@ local function OnPlayerUsedCapsule(event)
       
       if get_driver_or_passenger(vehicle) then
         player.print({"vehicle-wagon2.vehicle-passenger-error"})
+      
+      elseif vehicle.speed ~= 0 then
+        player.print({"vehicle-wagon2.vehicle-in-motion-error"})
+      
       elseif not global.vehicleMap[vehicle.name] then
         player.print({"vehicle-wagon2.unknown-vehicle-error", vehicle.localised_name})
+      
       elseif locker and locker ~= player then
         -- Can't load someone else's locked vehicle
         player.print({"vehicle-wagon2.load-locked-vehicle-error", vehicle.localised_name, locker.name})
+      
       elseif owner and owner ~= player then
         -- Can't load someone else's vehicle
         player.print({"vehicle-wagon2.load-owned-vehicle-error", vehicle.localised_name, owner.name})
+      
       else
         -- Store vehicle selection
         player.play_sound({path = "latch-on"})
@@ -165,7 +172,7 @@ local function OnPlayerUsedCapsule(event)
           -- This wagon already has a pending action
           player.print({"vehicle-wagon2.empty-wagon-busy-error"})
         elseif distance(wagon.position, vehicle.position) > LOADING_DISTANCE then
-          player.print({"vehicle-wagon2.too-far-away"})
+          player.print({"vehicle-wagon2.wagon-too-far-away-error", vehicle.localised_name})
         else
           local loaded_name = global.vehicleMap[vehicle.name]
           if not loaded_name then
@@ -199,7 +206,7 @@ local function OnPlayerUsedCapsule(event)
       if not unload_position then
         player.print({"vehicle-wagon2.vehicle-not-created-error", {"entity-name."..global.wagon_data[wagon.unit_number].name}})  -- Game could not find open position to unload
       elseif distance(wagon.position, unload_position) > LOADING_DISTANCE then
-        player.print({"vehicle-wagon2.too-far-away"})  -- Player clicked too far away
+        player.print({"vehicle-wagon2.location-too-far-away-error", wagon.localised_name})  -- Player clicked too far away
       elseif global.action_queue[wagon.unit_number] then
         -- This wagon already has a pending action
         player.print({"vehicle-wagon2.loaded-wagon-busy-error"})
