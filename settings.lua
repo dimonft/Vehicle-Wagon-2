@@ -21,6 +21,15 @@ data:extend({
   },
   {
     type = "double-setting",
+    name = "vehicle-wagon-maximum-weight",
+    order = "baa",
+    setting_type = "startup",
+    default_value = 75000,
+    minimum_value = 1000,
+    maximum_value = math.huge
+  },
+  {
+    type = "double-setting",
     name = "vehicle-wagon-empty-weight-factor",
     order = "bb",
     setting_type = "startup",

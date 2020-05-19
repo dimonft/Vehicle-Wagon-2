@@ -13,6 +13,7 @@ local function distance(a,b)
   return math.sqrt((a.x - b.x)^2 + (a.y - b.y)^2)
 end
 
+
 --== ON_PLAYER_USED_CAPSULE ==--
 -- Queues load/unload data when player clicks with the winch.
 local function OnPlayerUsedCapsule(event)
@@ -27,6 +28,7 @@ local function OnPlayerUsedCapsule(event)
       selected_entity = nil
     end
     
+    -- Don't check GCKI data if the mod was uninstalled or setting turned off
     local check_GCKI = remote.interfaces["GCKI"] and settings.global["vehicle-wagon-use-GCKI-permissions"].value
     
     
@@ -92,12 +94,11 @@ local function OnPlayerUsedCapsule(event)
         
       else
         -- Select vehicle as unloading source
-        player.play_sound({path = "latch-on"})
-        player.set_gui_arrow({type = "entity", entity = loaded_wagon})
+        player.play_sound{path = "latch-on"}
         -- Always show tutorial message, to find out what kind of vehicle is stored here
-        player.print({"vehicle-wagon2.select-unload-vehicle-location", vehicle_prototype.localised_name})
-        -- Record selection
-        global.player_selection[index] = {wagon=loaded_wagon}
+        player.print{"vehicle-wagon2.select-unload-vehicle-location", vehicle_prototype.localised_name}
+        -- Record selection and create radius circle
+        global.player_selection[index] = {wagon=loaded_wagon, visuals= renderVisuals(player,loaded_wagon)}
       end
     
     
@@ -131,9 +132,8 @@ local function OnPlayerUsedCapsule(event)
         player.print({"vehicle-wagon2.load-owned-vehicle-error", vehicle.localised_name, owner.name})
       else
         -- Store vehicle selection
-        global.player_selection[index] = {vehicle=vehicle}
-        player.set_gui_arrow({type = "entity", entity = vehicle})
         player.play_sound({path = "latch-on"})
+        global.player_selection[index] = {vehicle=vehicle, visuals= renderVisuals(player,vehicle)}
         -- Tutorial message to select an empty wagon
         if global.tutorials[index][1] < 5 then
           global.tutorials[index][1] = global.tutorials[index][1] + 1

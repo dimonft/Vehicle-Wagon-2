@@ -15,12 +15,19 @@
 
 -- Go through all the available prototypes and assign them to a valid loaded wagon or "nope"
 local function makeGlobalMaps()
+
+  -- Need to check max weight as we go through
+  local useWeights = settings.startup["vehicle-wagon-use-custom-weights"].value
+  local maxWeight = settings.startup["vehicle-wagon-maximum-weight"].value
+  if not useWeights then
+    maxWeight = math.huge
+  end  
   
   -- Some sprites show up backwards from how they ought to, so we flip the wagons relative to the vehicles.
   global.loadedWagonFlip = {}  --: loaded-wagon-name --> boolean
   
   global.vehicleMap = {}  --: vehicle-name --> loaded-wagon-name
-  for k,_ in pairs(game.get_filtered_entity_prototypes({{filter="type", type="car"}})) do
+  for k,p in pairs(game.get_filtered_entity_prototypes({{filter="type", type="car"}})) do
     
     if k and string.find(k,"nixie") ~= nil then
       global.vehicleMap[k] = nil  -- non vehicle entity
@@ -31,9 +38,11 @@ local function makeGlobalMaps()
     elseif k == "vwtransportercargo" then
       global.vehicleMap[k] = nil  -- non vehicle or incompatible?
     elseif k and string.find(k,"airborne") ~= nil then
-      global.vehicleMap[k] = nil  -- can't load flying planes
+      global.vehicleMap[k] = nil  -- can't load flying planes [Aircraft Realism compatibility]
+    elseif p.weight > maxWeight then
+      global.vehicleMap[k] = nil  -- This vehicle is too heavy
     elseif k and string.find(k,"Schall%-tank%-SH") ~= nil then
-      global.vehicleMap[k] = nil  -- Super Heavy tank doesn't fit on train
+      global.vehicleMap[k] = "loaded-vehicle-wagon-tank-SH"  -- Schall's Super Heavy Tank
     elseif k and string.find(k,"cargo%-plane") ~= nil then
       global.vehicleMap[k] = "loaded-vehicle-wagon-cargoplane"  -- Cargo plane, Better cargo plane, Even better cargo plane
       global.loadedWagonFlip["loaded-vehicle-wagon-cargoplane"] = true  -- Cargo plane wagon sprite is flipped
@@ -51,6 +60,8 @@ local function makeGlobalMaps()
       global.vehicleMap[k] = "loaded-vehicle-wagon-tank-L"  -- Schall's Light Tank
     elseif k and string.find(k,"Schall%-tank%-H") ~= nil then
       global.vehicleMap[k] = "loaded-vehicle-wagon-tank-H"  -- Schall's Heavy Tank
+    elseif k == "kr-advanced-tank" then
+      global.vehicleMap[k] = "loaded-vehicle-wagon-kr-advanced-tank"  -- Krastorio2 Advanced Tank  
     elseif k and string.find(k,"tank") ~= nil then
       global.vehicleMap[k] = "loaded-vehicle-wagon-tank"  -- Generic tank
     elseif k and string.find(k,"car") ~= nil and string.find(k,"cargo") == nil then
@@ -128,6 +139,7 @@ local function Migrate_1_x_x()
       local player = game.get_player(player_index)
       if player then
         player.clear_gui_arrow()
+        clearVisuals(player)
       end
     end
     global.vehicle_data = nil  -- No longer used
@@ -138,6 +150,7 @@ local function Migrate_1_x_x()
     for player_index,player in pairs(game.players) do
       if global.wagon_data[player_index] then
         player.clear_gui_arrow()
+        clearVisuals(player)
         global.wagon_data[player_index] = nil
       end
     end
@@ -309,7 +322,7 @@ function OnConfigurationChanged(data)
   -- Regenerate maps before migrating
   makeGlobalMaps()
 
-  -- Migrate existing data if any
+  -- Migrate existing data if any exists
   if data and data.mod_changes["VehicleWagon2"] then
     -- format version string to "00.00.00"
     local oldVersion, newVersion = nil
@@ -325,6 +338,11 @@ function OnConfigurationChanged(data)
     -- If there was an older version installed, migrate the global data tables
     if oldVersion and oldVersion < "02.00.00" then
       Migrate_1_x_x()
+    end
+    
+    -- Remove all player arrows, now we use drawn circles
+    for _,player in pairs(game.players) do
+      player.clear_gui_arrow()
     end
   end
   

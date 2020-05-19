@@ -4,6 +4,8 @@
  * Description:  Main Data Stage function.  Include all the prototype definitions.
  --]]
 
+require("config")
+
 require("prototypes.beams")
 require("prototypes.items")
 require("prototypes.entities")

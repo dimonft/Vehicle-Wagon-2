@@ -22,8 +22,7 @@
  *   - on_player_setup_blueprint
 --]]
 
--- Lazy place for a constant
-LOADING_DISTANCE = 9
+require("config")
 
 
 replaceCarriage = require("__Robot256Lib__/script/carriage_replacement").replaceCarriage
@@ -133,12 +132,105 @@ function process_tick(event)
 end
 
 
+---------------------------------
+-- [GCKI Compatibility]
+-- Remove locker or owner assignment when necessary
+--== ON_PRE_PLAYER_REMOVED EVENT ==--
+function onPrePlayerRemoved(event)
+  -- event.player_index
+  for _,wagon in pairs(global.wagon_data) do
+    if wagon.GCKI_data then
+      if wagon.GCKI_data.owner and wagon.GCKI_data.owner == event.player_index then
+        -- Owner was removed
+        wagon.GCKI_data.owner = nil
+      end
+      if wagon.GCKI_data.locker and wagon.GCKI_data.locker == event.player_index then
+        -- Locker was removed
+        wagon.GCKI_data.locker = nil
+      end
+      if wagon.GCKI_data == {} then
+        wagon.GCKI_data = nil
+      end
+    end
+  end
+end
+script.on_event(defines.events.on_pre_player_removed, onPrePlayerRemoved)
+
+-- MOD INTERFACE FUNCTIONS
+function release_owned_by_player(p)
+  local player_index = p
+  if type(p) ~= "number" then
+    player_index = p.index
+  end
+  for _,wagon in pairs(global.wagon_data) do
+    if wagon.GCKI_data then
+      if wagon.GCKI_data.owner and wagon.GCKI_data.owner == event.player_index then
+        -- Owner was removed
+        wagon.GCKI_data.owner = nil
+      end
+      if wagon.GCKI_data == {} then
+        wagon.GCKI_data = nil
+      end
+    end
+  end
+end
+
+function release_locked_by_player(p)
+  local player_index = p
+  if type(p) ~= "number" then
+    player_index = p.index
+  end
+  for _,wagon in pairs(global.wagon_data) do
+    if wagon.GCKI_data then
+      if wagon.GCKI_data.locker and wagon.GCKI_data.locker == event.player_index then
+        -- Locker was removed
+        wagon.GCKI_data.locker = nil
+      end
+      if wagon.GCKI_data == {} then
+        wagon.GCKI_data = nil
+      end
+    end
+  end
+end
+
+------------------------------
+
+
+function clearVisuals(p)
+  local player_index = p
+  if type(p) ~= "number" then
+    player_index = p.index
+  end
+  if global.player_selection[player_index] and global.player_selection[player_index].visuals then
+    for _,id in pairs(global.player_selection[player_index].visuals) do
+      rendering.destroy(id)
+    end
+  end
+end
+
+function renderVisuals(player, target)
+  -- First clear any existing circle
+  clearVisuals(player)
+  
+  -- Then create circle for player
+  return { 
+            rendering.draw_circle{
+              color={r=0.08, g=0.08, b=0, a=0.01},
+              radius=LOADING_DISTANCE,
+              filled=true,
+              target=target,
+              surface=target.surface,
+              players={player},
+              draw_on_ground=true
+            }
+         }
+end
+
+
 function clearSelection(player_index)
   -- Clear wagon/vehicle selections of this player
+  clearVisuals(player_index)
   global.player_selection[player_index] = nil
-  if game.players[player_index] then
-    game.players[player_index].clear_gui_arrow()
-  end
 end
 
 function clearWagon(unit_number)
@@ -330,6 +422,21 @@ script.on_event(defines.events.on_player_pipette,
 -- Force Blueprints to only store empty vehicle wagons
 script.on_event({defines.events.on_player_setup_blueprint, defines.events.on_player_configured_blueprint}, 
                 function(event) blueprintLib.mapBlueprint(event, global.loadedWagonMap) end)
+
+
+--------------------------------------
+-- REMOTE MOD INTERFACES
+remote.add_interface('VehicleWagon2', {
+  
+  -- GCKI COMPATIBILITY
+  -- Removes this player as "owner" of any loaded vehicles.  Called when this player claims a different vehicle.
+  release_owned_by_player = release_owned_by_player,
+  -- Removes this player as "locker" of any loaded vehicles.
+  release_locked_by_player = release_locked_by_player
+  
+  })
+
+
 
 ------------------------------------------
 -- Debug (print text to player console)
