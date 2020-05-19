@@ -94,7 +94,7 @@ local function OnPlayerUsedCapsule(event)
         
       else
         -- Select vehicle as unloading source
-        player.play_sound{path = "latch-on"}
+        player.play_sound({path = "latch-on"})
         -- Always show tutorial message, to find out what kind of vehicle is stored here
         player.print{"vehicle-wagon2.select-unload-vehicle-location", vehicle_prototype.localised_name}
         -- Record selection and create radius circle
