@@ -118,6 +118,7 @@ local function OnPlayerUsedCapsule(event)
         player.print{"vehicle-wagon2.select-unload-vehicle-location", vehicle_prototype.localised_name}
         -- Record selection and create radius circle
         global.player_selection[index] = {wagon=loaded_wagon, visuals= renderWagonVisuals(player,loaded_wagon)}
+        script.on_event(defines.events.on_tick, process_tick)
       end
     
     
@@ -165,6 +166,7 @@ local function OnPlayerUsedCapsule(event)
           global.tutorials[index][1] = global.tutorials[index][1] + 1
           player.print({"vehicle-wagon2.vehicle-selected", vehicle.localised_name})
         end
+        script.on_event(defines.events.on_tick, process_tick)
       end
     
     --------------------------------------

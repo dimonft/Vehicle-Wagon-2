@@ -7,6 +7,7 @@
  *   - on_init
  *   - on_configuration_changed
  *   - on_tick (conditional)
+ *   - on_pre_player_removed
  *   - on_player_used_capsule
  *   - on_player_cursor_stack_changed
  *   - on_pre_player_mined_item
@@ -47,7 +48,8 @@ script.on_configuration_changed(OnConfigurationChanged)
 --== ON_LOAD ==--
 -- Enable on_tick event according to global variable state
 function OnLoad()
-  if global.action_queue and table_size(global.action_queue) > 0 then
+  if (global.action_queue and table_size(global.action_queue) > 0) or
+     (global.player_selection and table_size(global.player_selection) > 0) then
     script.on_event(defines.events.on_tick, process_tick)
   end
 end
@@ -73,16 +75,29 @@ end
 function process_tick(event)
   local current_tick = event.tick
   
-  -- Loop through players to see if any of them requested load/unload
-  --   (would be better to have a separate global queue)
+  for i, selection in pairs(global.player_selection) do
+    -- Check that selected wagon or vehicle is still stopped
+    if selection.wagon and selection.wagon.speed ~= 0 then
+      clearWagon(selection.wagon.unit_number, {silent=true, sound=true})
+    elseif selection.vehicle and selection.vehicle.speed ~= 0 then
+      clearVehicle(selection.vehicle, {silent=true, sound=true})
+    end
+  end
+  
+  -- Check Action queue to see if any are ready this tick, or became invalid
   for i, action in pairs(global.action_queue) do
     if action.player_index and game.players[action.player_index] and action.status then
       local player = game.players[action.player_index]
+      ------- CHECK THAT WAGON AND CAR ARE STILL STOPPED ------
+      local wagon = action.wagon
+      local vehicle = action.vehicle
+      if wagon.train.speed ~= 0 or (vehicle and vehicle.speed ~= 0) then
+        -- Train or car started moving, cancel action
+        clearWagon(wagon.unit_number, {silent=true, sound=false})
+      
       ------- LOADING OPERATION --------
-      if action.status == "load" and action.tick == current_tick then
+      elseif action.status == "load" and action.tick == current_tick then
         -- Check that the wagon and vehicle indicated by the player are a valid target for loading
-        local wagon = action.wagon
-        local vehicle = action.vehicle
         if not vehicle or not vehicle.valid then
           player.print({"vehicle-wagon2.vehicle-invalid-error"})
         elseif not wagon or not wagon.valid then
@@ -101,12 +116,11 @@ function process_tick(event)
       ------- UNLOADING OPERATION --------
       elseif action.status == "unload" and action.tick == current_tick then
         -- Check that the wagon indicated by the player is a valid target for unloading
-        local loaded_wagon = action.wagon
-        if not loaded_wagon or not loaded_wagon.valid then
+        if not wagon or not wagon.valid then
           player.print({"vehicle-wagon2.wagon-invalid-error"})
-        elseif loaded_wagon.get_driver() then
+        elseif wagon.get_driver() then
           player.print({"vehicle-wagon2.wagon-passenger-error"})
-        elseif loaded_wagon.train.speed ~= 0 then
+        elseif wagon.train.speed ~= 0 then
           player.print({"vehicle-wagon2.train-in-motion-error"})
         else
           -- Execute unloading if possible.  Vehicle object returned if successful.
@@ -127,7 +141,7 @@ function process_tick(event)
   end
   
   -- Unsubscribe from on_tick if no actions remains in queue
-  if table_size(global.action_queue) == 0 then
+  if table_size(global.action_queue) == 0 and table_size(global.player_selection) == 0 then
     script.on_event(defines.events.on_tick, nil)
   end
 end
@@ -198,13 +212,19 @@ end
 
 
 
-function clearSelection(player_index)
+function clearSelection(player_index, flags)
+  flags = flags or {}
   -- Clear wagon/vehicle selections of this player
   clearVisuals(player_index)
   global.player_selection[player_index] = nil
+  local player = game.players[player_index]
+  if player and flags.sound then
+    player.play_sound({path = "latch-off"})
+  end
 end
 
-function clearWagon(unit_number)
+function clearWagon(unit_number, flags)
+  flags = flags or {}
   -- Halt pending load/unload actions with this wagon
   if global.action_queue[unit_number] then
     if global.action_queue[unit_number].beam then
@@ -212,7 +232,7 @@ function clearWagon(unit_number)
     end
     if global.action_queue[unit_number].status == "load" then
       local player = game.players[global.action_queue[unit_number].player_index]
-      if player then
+      if player and not flags.silent then
         player.print({"vehicle-wagon2.wagon-invalid-error"})
       end
     end
@@ -222,7 +242,7 @@ function clearWagon(unit_number)
   -- Clear player selections of this wagon
   for player_index,selection in pairs(global.player_selection) do
     if selection.wagon and (not selection.wagon.valid or selection.wagon.unit_number == unit_number) then
-      clearSelection(player_index)
+      clearSelection(player_index, flags)
     end
   end
 end
@@ -232,7 +252,8 @@ function deleteWagon(unit_number)
   clearWagon(unit_number)
 end
 
-function clearVehicle(vehicle, silent)
+function clearVehicle(vehicle, flags)
+  flags = flags or {}
   -- Clear selection and halt pending actions that involve this vehicle
   for unit_number,action in pairs(global.action_queue) do
     if action.vehicle == vehicle then
@@ -241,7 +262,7 @@ function clearVehicle(vehicle, silent)
         action.beam.destroy()
       end
       local player = game.players[global.action_queue[unit_number].player_index]
-      if player and not silent then
+      if player and not flags.silent then
         player.print({"vehicle-wagon2.vehicle-invalid-error"})
       end
       global.action_queue[unit_number] = nil
@@ -250,10 +271,11 @@ function clearVehicle(vehicle, silent)
   -- Clear player selections of this vehicle
   for player_index,selection in pairs(global.player_selection) do
     if selection.vehicle and (not selection.vehicle.valid or selection.vehicle == vehicle) then
-      clearSelection(player_index)
+      clearSelection(player_index, flags)
     end
   end
 end
+
 
 --== ON_PLAYER_USED_CAPSULE ==--
 -- Queues load/unload data when player clicks with the winch.
@@ -268,8 +290,7 @@ function OnPlayerCursorStackChanged(event)
   local stack = player.cursor_stack
   if not (stack and stack.valid and stack.valid_for_read and stack.name == "winch") then
     if global.player_selection[index] then
-      player.play_sound({path = "latch-off"})
-      clearSelection(index)
+      clearSelection(index, {sound=true})
     end
   end
 end
@@ -359,7 +380,7 @@ function OnEntityDied(event)
     clearWagon(entity.unit_number)
   elseif event.entity.type == "car" then
     -- Car died, 
-    clearVehicle(entity, true)
+    clearVehicle(entity, {silent=true})
   end
 end
 script.on_event(defines.events.on_entity_died, OnEntityDied)
@@ -367,15 +388,25 @@ script.on_event(defines.events.script_raised_destroy, OnEntityDied)
 
 
 --== ON_PLAYER_DRIVING_CHANGED_STATE ==--
--- Eject player from unloaded wagon
--- Can't ride on an empty flatcar, but you can in a loaded one
 function OnPlayerDrivingChangedState(event)
+  -- Eject player from unloaded wagon
+  -- Cancel selections/actions when player enters selected vehicle or wagon
   local player = game.players[event.player_index]
-  if player.vehicle and player.vehicle.name == "vehicle-wagon" then
-    player.driving = false
+  if player.vehicle then
+    local vehicle = player.vehicle
+    if vehicle.name == "vehicle-wagon" then
+      player.driving = false
+    elseif global.loadedWagonMap[vehicle.name] then
+      clearWagon(vehicle.unit_number, {silent=true, sound=true})
+    elseif vehicle.type == "car" then
+      clearVehicle(vehicle, {silent=true, sound=true})
+    end
   end
+  
 end
 script.on_event(defines.events.on_player_driving_changed_state, OnPlayerDrivingChangedState)
+
+
 
 
 ------------------------- CURSOR AND BLUEPRINT HANDLING FOR 0.17.x ---------------------------------------
