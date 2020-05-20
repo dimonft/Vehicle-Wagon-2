@@ -5,5 +5,7 @@
 --]]
 
 
-LOADING_DISTANCE = 10   -- Allowable distance between vehicle and wagon when loading or unloading
+LOADING_DISTANCE = 10   -- Allowable distance between vehicle and wagon when Loading
 CAPSULE_RANGE = 12 -- Range in Winch capsule prototype
+RANGE_COLOR = {r=0.08, g=0.08, b=0, a=0.01}  -- Color of the loading/unloaidng range graphics
+UNLOAD_RANGE = 6  -- Allowable distance between vehicle and wagon when Unloading

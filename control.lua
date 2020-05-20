@@ -29,6 +29,7 @@ replaceCarriage = require("__Robot256Lib__/script/carriage_replacement").replace
 blueprintLib = require("__Robot256Lib__/script/blueprint_replacement")
 saveRestoreLib = require("__Robot256Lib__/script/save_restore")
 
+require("script.renderVisuals")
 require("script.loadVehicleWagon")
 require("script.unloadVehicleWagon")
 require("script.initialize")
@@ -195,36 +196,6 @@ end
 
 ------------------------------
 
-
-function clearVisuals(p)
-  local player_index = p
-  if type(p) ~= "number" then
-    player_index = p.index
-  end
-  if global.player_selection[player_index] and global.player_selection[player_index].visuals then
-    for _,id in pairs(global.player_selection[player_index].visuals) do
-      rendering.destroy(id)
-    end
-  end
-end
-
-function renderVisuals(player, target)
-  -- First clear any existing circle
-  clearVisuals(player)
-  
-  -- Then create circle for player
-  return { 
-            rendering.draw_circle{
-              color={r=0.08, g=0.08, b=0, a=0.01},
-              radius=LOADING_DISTANCE,
-              filled=true,
-              target=target,
-              surface=target.surface,
-              players={player},
-              draw_on_ground=true
-            }
-         }
-end
 
 
 function clearSelection(player_index)
@@ -479,3 +450,18 @@ function cmd_debug(params)
   end
 end
 commands.add_command("vehicle-wagon-debug", {"command-help.vehicle-wagon-debug"}, cmd_debug)
+
+------------------------------------------------------------------------------------
+--                    FIND LOCAL VARIABLES THAT ARE USED GLOBALLY                 --
+--                              (Thanks to eradicator!)                           --
+------------------------------------------------------------------------------------
+setmetatable(_ENV,{
+  __newindex=function (self,key,value) --locked_global_write
+    error('\n\n[ER Global Lock] Forbidden global *write*:\n'
+      .. serpent.line{key=key or '<nil>',value=value or '<nil>'}..'\n')
+    end,
+  __index   =function (self,key) --locked_global_read
+    error('\n\n[ER Global Lock] Forbidden global *read*:\n'
+      .. serpent.line{key=key or '<nil>'}..'\n')
+    end ,
+  })

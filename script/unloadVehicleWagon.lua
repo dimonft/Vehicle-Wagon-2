@@ -128,7 +128,7 @@ function unloadVehicleWagon(action)
   
   -- Restore ammo inventory if this car has guns
   if vehicle.selected_gun_index then
-    ammoInventory = vehicle.get_inventory(defines.inventory.car_ammo)
+    local ammoInventory = vehicle.get_inventory(defines.inventory.car_ammo)
     local r2 = saveRestoreLib.insertInventoryStacks(ammoInventory, wagon_data.items.ammo)
     r1 = saveRestoreLib.mergeStackLists(r1, r2)
   else
@@ -136,7 +136,7 @@ function unloadVehicleWagon(action)
   end
   
   -- Restore the cargo inventory
-  trunkInventory = vehicle.get_inventory(defines.inventory.car_trunk)
+  local trunkInventory = vehicle.get_inventory(defines.inventory.car_trunk)
   local r2 = saveRestoreLib.insertInventoryStacks(trunkInventory, wagon_data.items.trunk)
   r1 = saveRestoreLib.mergeStackLists(r1, r2)
   

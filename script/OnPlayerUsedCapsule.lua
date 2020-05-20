@@ -8,9 +8,27 @@
  *    3. If player clicked on a Vehicle Wagon after clicking on a Vehicle, queue the Loading Action.
  *    4. If player clicked on none of the above after clicking on a Loaded Vehicle Wagon, queue the Unloading Action.
 --]]
+local function dist2(a,b)
+  return (a.x - b.x)^2 + (a.y - b.y)^2
+end
 
 local function distance(a,b)
-  return math.sqrt((a.x - b.x)^2 + (a.y - b.y)^2)
+  return math.sqrt(dist2(a,b))
+end
+
+-- Cribbed from https://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
+local function distToWagon(wagon,p)
+  local length_front = wagon.prototype.collision_box.left_top.y
+  local length_back  = wagon.prototype.collision_box.right_bottom.y
+  local wagon_angle  = wagon.orientation*2*math.pi
+  local v  = {x=-length_front*math.sin(wagon_angle)+wagon.position.x, y=length_front*math.cos(wagon_angle)+wagon.position.y}
+  local w   = {x=-length_back*math.sin(wagon_angle)+wagon.position.x,  y=length_back*math.cos(wagon_angle)+wagon.position.y}
+  
+  -- Now find the distance from the point to the line (wagon_front,wagon_back)
+  local len2 = dist2(v, w)
+  local t = ((p.x - v.x)*(w.x - v.x) + (p.y - v.y)*(w.y - v.y)) / len2
+  t = math.max(0, math.min(1,t))
+  return distance(p, {x=v.x + t*(w.x - v.x), y=v.y + t*(w.y - v.y)})
 end
 
 
@@ -24,6 +42,7 @@ local function OnPlayerUsedCapsule(event)
     local surface = player.surface
     local position = event.position
     local selected_entity = player.selected
+    
     if selected_entity and not selected_entity.valid then
       selected_entity = nil
     end
@@ -98,7 +117,7 @@ local function OnPlayerUsedCapsule(event)
         -- Always show tutorial message, to find out what kind of vehicle is stored here
         player.print{"vehicle-wagon2.select-unload-vehicle-location", vehicle_prototype.localised_name}
         -- Record selection and create radius circle
-        global.player_selection[index] = {wagon=loaded_wagon, visuals= renderVisuals(player,loaded_wagon)}
+        global.player_selection[index] = {wagon=loaded_wagon, visuals= renderWagonVisuals(player,loaded_wagon)}
       end
     
     
@@ -140,7 +159,7 @@ local function OnPlayerUsedCapsule(event)
       else
         -- Store vehicle selection
         player.play_sound({path = "latch-on"})
-        global.player_selection[index] = {vehicle=vehicle, visuals= renderVisuals(player,vehicle)}
+        global.player_selection[index] = {vehicle=vehicle, visuals= renderVehicleVisuals(player,vehicle)}
         -- Tutorial message to select an empty wagon
         if global.tutorials[index][1] < 5 then
           global.tutorials[index][1] = global.tutorials[index][1] + 1
@@ -205,7 +224,7 @@ local function OnPlayerUsedCapsule(event)
       local unload_position = player.surface.find_non_colliding_position(global.wagon_data[wagon.unit_number].name, position, 5, 0.5)
       if not unload_position then
         player.print({"vehicle-wagon2.vehicle-not-created-error", {"entity-name."..global.wagon_data[wagon.unit_number].name}})  -- Game could not find open position to unload
-      elseif distance(wagon.position, unload_position) > LOADING_DISTANCE then
+      elseif distToWagon(wagon, unload_position) > UNLOAD_RANGE then
         player.print({"vehicle-wagon2.location-too-far-away-error", wagon.localised_name})  -- Player clicked too far away
       elseif global.action_queue[wagon.unit_number] then
         -- This wagon already has a pending action
