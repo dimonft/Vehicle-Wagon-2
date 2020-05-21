@@ -358,8 +358,16 @@ function OnConfigurationChanged(data)
         game.print({"vehicle-wagon2.migrate-prototype-error",id,data.name})
         missing_prototypes = true
         global.wagon_data[id] = nil
-      elseif data.last_user and type(data.last_user) ~= "number" then
-        data.last_user = data.last_user.index
+      else
+        -- Migrate last_user to player_index
+        if data.last_user and type(data.last_user) ~= "number" then
+          data.last_user = data.last_user.index
+        end
+        -- Add alt-mode icons
+        if not data.icon then
+          renderIcon(loaded_wagons[id], data.name)
+          data.icon = true
+        end
       end
     end
     -- Give error message for missing prototypes

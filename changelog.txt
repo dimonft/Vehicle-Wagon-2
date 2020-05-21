@@ -7,6 +7,7 @@ Date: 2020-05-XX
     - Added startup settings to adjust braking and friction force of vehicle wagons.
     - Added startup setting to control maximum weight of load-able vehicles.
     - Added compability with Krastorio 2 Advanced Tank (beta graphics), if you change the Maximum Weight to more than 150000.
+    - Added alt-mode icons showing what vehicle is loaded in each wagon.
     - Uploaded by robot256
   Changes:
     - Rebalanced wagon weights and stats so that vehicle weight is treated fairly.  Hauling tanks needs multiple locomotives now.

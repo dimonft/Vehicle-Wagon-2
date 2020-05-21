@@ -96,3 +96,30 @@ function renderWagonVisuals(p, target)
   
   return visuals
 end
+
+function renderIcon(target, contents)
+  -- Create icon showing contents (will be deleted automatically when wagon is destroyed or unloaded)
+  local visuals = {
+    rendering.draw_sprite{
+      sprite="virtual-signal.signal-black",
+      x_scale=1.4,
+      y_scale=1.4,
+      render_layer="entity-info-icon",
+      target=target,
+      target_offset={0,-0.5},
+      surface=target.surface,
+      only_in_alt_mode=true
+    },
+    rendering.draw_sprite{
+      sprite="entity."..contents,
+      x_scale=1,
+      y_scale=1,
+      render_layer="entity-info-icon",
+      target=target,
+      target_offset={0,-0.5},
+      surface=target.surface,
+      only_in_alt_mode=true
+    }
+  }
+  return visuals
+end
