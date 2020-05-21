@@ -100,11 +100,15 @@ function unloadVehicleWagon(action)
   end
   
   -- Set vehicle user to the player who unloaded, or the saved last user if unloaded automatically
-  if player_index then
+  if not player_index and wagon_data.last_user then
+    if type(wagon_data.last_user) == "number" then
+      player_index = wagon_data.last_user
+    else
+      player_index = wagon_data.last_user.index
+    end
+  end
+  if player_index and game.players[player_index] then
     vehicle.last_user = game.players[player_index]
-  elseif wagon_data.last_user then
-    vehicle.last_user = wagon_data.last_user
-    player_index = wagon_data.last_user.index
   end
   
   -- Restore vehicle parameters from global data

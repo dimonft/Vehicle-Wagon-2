@@ -18,10 +18,7 @@ local function makeGlobalMaps()
 
   -- Need to check max weight as we go through
   local useWeights = settings.startup["vehicle-wagon-use-custom-weights"].value
-  local maxWeight = settings.startup["vehicle-wagon-maximum-weight"].value
-  if not useWeights then
-    maxWeight = math.huge
-  end  
+  local maxWeight = (useWeights and settings.startup["vehicle-wagon-maximum-weight"].value) or math.huge
   
   -- Some sprites show up backwards from how they ought to, so we flip the wagons relative to the vehicles.
   global.loadedWagonFlip = {}  --: loaded-wagon-name --> boolean
@@ -150,7 +147,6 @@ local function Migrate_1_x_x()
     for player_index,player in pairs(game.players) do
       if global.wagon_data[player_index] then
         player.clear_gui_arrow()
-        clearVisuals(player)
         global.wagon_data[player_index] = nil
       end
     end
@@ -343,6 +339,25 @@ function OnConfigurationChanged(data)
     -- Remove all player arrows, now we use drawn circles
     for _,player in pairs(game.players) do
       player.clear_gui_arrow()
+    end
+  end
+  
+  -- Run when any mod or mod setting changes:
+  -- Scrub wagon_data for invalid references and convert last_user to player_index
+  local loaded_wagons = {}
+  for _,surface in pairs(game.surfaces) do
+    local wagons = surface.find_entities_filtered{name = global.loadedWagonList}
+    for _,wagon in pairs(wagons) do
+      loaded_wagons[wagon.unit_number] = wagon
+    end
+  end
+  if global.wagon_data then
+    for id,data in pairs(global.wagon_data) do
+      if not loaded_wagons[id] then
+        global.wagon_data[id] = nil
+      elseif data.last_user and type(data.last_user) ~= "number" then
+        data.last_user = data.last_user.index
+      end
     end
   end
   

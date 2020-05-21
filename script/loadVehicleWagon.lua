@@ -47,7 +47,7 @@ function loadVehicleWagon(action)
   saveData.name = vehicle.name
   saveData.health = vehicle.health
   saveData.color = vehicle.color
-  saveData.last_user = vehicle.last_user
+  saveData.last_user = vehicle.last_user and vehicle.last_user.index
   
   -- Store inventory contents
   saveData.items = {

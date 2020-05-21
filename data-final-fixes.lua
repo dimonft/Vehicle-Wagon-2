@@ -1,9 +1,11 @@
 --[[ Copyright (c) 2020 robot256 (MIT License)
  * Project: Vehicle Wagon 2 rewrite
- * File: data-updates.lua
+ * File: data-final-fixes.lua
  * Description:  Modify wagon data if Train Overhaul is installed
  --]]
 
+
+-- Update speeds
 if mods["TrainOverhaul"] then
   for name,entity in pairs(data.raw["cargo-wagon"]) do
     if string.find(name,"vehicle%-wagon") ~= nil then
@@ -11,3 +13,6 @@ if mods["TrainOverhaul"] then
     end
   end
 end
+
+-- Update weights and friction
+require("prototypes.update_stats")
