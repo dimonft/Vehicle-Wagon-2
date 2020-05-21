@@ -28,7 +28,7 @@ function make_ramp_beam(sound)
     },
     head =
     {
-      filename = "__VehicleWagon2__/graphics/ramp/loading-ramp.png",
+      filename = "__VehicleWagon2__/graphics/ramp/loading-ramp-head.png",
       flags = beam_non_light_flags,
       line_length = 16,
       width = 32,

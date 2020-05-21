@@ -163,7 +163,7 @@ function onPrePlayerRemoved(event)
         -- Locker was removed
         wagon.GCKI_data.locker = nil
       end
-      if wagon.GCKI_data == {} then
+      if table_size(wagon.GCKI_data) == 0 then
         wagon.GCKI_data = nil
       end
     end
@@ -172,7 +172,7 @@ function onPrePlayerRemoved(event)
         -- Owner was removed
         wagon.autodrive_data.owner = nil
       end
-      if wagon.autodrive_data == {} then
+      if table_size(wagon.autodrive_data) == 0 then
         wagon.autodrive_data = nil
       end
     end
@@ -192,8 +192,9 @@ function release_owned_by_player(p)
         -- Owner was removed
         wagon.GCKI_data.owner = nil
       end
-      if wagon.GCKI_data == {} then
-        wagon.GCKI_data = nil
+      if table_size(wagon.GCKI_data) == 0 then
+        wagon.GCKI_data = nil  -- Clear the GCKI data when empty
+        wagon.wagon.minable = true  -- Make wagon minable when it belongs to no one
       end
     end
   end
