@@ -352,12 +352,19 @@ function OnConfigurationChanged(data)
     end
   end
   if global.wagon_data then
+    local missing_prototypes = false
     for id,data in pairs(global.wagon_data) do
       if not loaded_wagons[id] then
+        game.print({"vehicle-wagon2.migrate-prototype-error",id,data.name})
+        missing_prototypes = true
         global.wagon_data[id] = nil
       elseif data.last_user and type(data.last_user) ~= "number" then
         data.last_user = data.last_user.index
       end
+    end
+    -- Give error message for missing prototypes
+    if missing_prototypes then
+      game.print({"vehicle-wagon2.migrate-prototype-warning"})
     end
   end
   

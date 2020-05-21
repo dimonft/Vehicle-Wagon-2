@@ -152,14 +152,14 @@ end
 -- Remove locker or owner assignment when necessary
 --== ON_PRE_PLAYER_REMOVED EVENT ==--
 function onPrePlayerRemoved(event)
-  -- event.player_index
+  player_index = event.player_index
   for _,wagon in pairs(global.wagon_data) do
     if wagon.GCKI_data then
-      if wagon.GCKI_data.owner and wagon.GCKI_data.owner == event.player_index then
+      if wagon.GCKI_data.owner and wagon.GCKI_data.owner == player_index then
         -- Owner was removed
         wagon.GCKI_data.owner = nil
       end
-      if wagon.GCKI_data.locker and wagon.GCKI_data.locker == event.player_index then
+      if wagon.GCKI_data.locker and wagon.GCKI_data.locker == player_index then
         -- Locker was removed
         wagon.GCKI_data.locker = nil
       end
@@ -179,7 +179,7 @@ function release_owned_by_player(p)
   end
   for _,wagon in pairs(global.wagon_data) do
     if wagon.GCKI_data then
-      if wagon.GCKI_data.owner and wagon.GCKI_data.owner == event.player_index then
+      if wagon.GCKI_data.owner and wagon.GCKI_data.owner == player_index then
         -- Owner was removed
         wagon.GCKI_data.owner = nil
       end
@@ -189,25 +189,6 @@ function release_owned_by_player(p)
     end
   end
 end
-
-function release_locked_by_player(p)
-  local player_index = p
-  if type(p) ~= "number" then
-    player_index = p.index
-  end
-  for _,wagon in pairs(global.wagon_data) do
-    if wagon.GCKI_data then
-      if wagon.GCKI_data.locker and wagon.GCKI_data.locker == event.player_index then
-        -- Locker was removed
-        wagon.GCKI_data.locker = nil
-      end
-      if wagon.GCKI_data == {} then
-        wagon.GCKI_data = nil
-      end
-    end
-  end
-end
-
 ------------------------------
 
 
@@ -433,8 +414,6 @@ remote.add_interface('VehicleWagon2', {
   -- GCKI COMPATIBILITY
   -- Removes this player as "owner" of any loaded vehicles.  Called when this player claims a different vehicle.
   release_owned_by_player = release_owned_by_player,
-  -- Removes this player as "locker" of any loaded vehicles.
-  release_locked_by_player = release_locked_by_player
   
   })
 
