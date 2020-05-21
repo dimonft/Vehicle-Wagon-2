@@ -148,7 +148,7 @@ end
 
 
 ---------------------------------
--- [GCKI Compatibility]
+-- [GCKI  and Autodrive Compatibility]
 -- Remove locker or owner assignment when necessary
 --== ON_PRE_PLAYER_REMOVED EVENT ==--
 function onPrePlayerRemoved(event)
@@ -165,6 +165,15 @@ function onPrePlayerRemoved(event)
       end
       if wagon.GCKI_data == {} then
         wagon.GCKI_data = nil
+      end
+    end
+    if wagon.autodrive_data then
+      if wagon.autodrive_data.owner and wagon.autodrive_data.owner == player_index then
+        -- Owner was removed
+        wagon.autodrive_data.owner = nil
+      end
+      if wagon.autodrive_data == {} then
+        wagon.autodrive_data = nil
       end
     end
   end
