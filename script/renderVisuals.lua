@@ -102,8 +102,8 @@ function renderIcon(target, contents)
   local visuals = {
     rendering.draw_sprite{
       sprite="virtual-signal.signal-black",
-      x_scale=1.4,
-      y_scale=1.4,
+      x_scale=1.6,
+      y_scale=1.6,
       render_layer="entity-info-icon",
       target=target,
       target_offset={0,-0.5},
@@ -112,8 +112,8 @@ function renderIcon(target, contents)
     },
     rendering.draw_sprite{
       sprite="entity."..contents,
-      x_scale=1,
-      y_scale=1,
+      x_scale=1.2,
+      y_scale=1.2,
       render_layer="entity-info-icon",
       target=target,
       target_offset={0,-0.5},
@@ -122,4 +122,24 @@ function renderIcon(target, contents)
     }
   }
   return visuals
+end
+
+function renderLoadingRamp(wagon, vehicle)
+  return wagon.surface.create_entity{
+      name="loading-ramp-beam",
+      position=wagon.position,
+      source_position=vehicle.position,
+      target_position=wagon.position,
+      duration=LOADING_EFFECT_TIME
+  }
+end
+
+function renderUnloadingRamp(wagon, position)
+  return wagon.surface.create_entity{
+      name="unloading-ramp-beam",
+      position=wagon.position,
+      source_position=wagon.position,
+      target_position=position,
+      duration=UNLOADING_EFFECT_TIME
+  }
 end
