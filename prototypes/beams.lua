@@ -28,7 +28,7 @@ data:extend{
     },
     head =
     {
-      filename = "__VehicleWagon2__/graphics/ramp/loading-ramp.png",
+      filename = "__VehicleWagon2__/graphics/ramp/loading-ramp-head.png",
       flags = beam_non_light_flags,
       line_length = 16,
       width = 32,
@@ -40,7 +40,7 @@ data:extend{
     },
     tail =
     {
-      filename = "__VehicleWagon2__/graphics/ramp/loading-ramp.png",
+      filename = "__VehicleWagon2__/graphics/ramp/loading-ramp-tail.png",
       flags = beam_non_light_flags,
       line_length = 16,
       width = 32,
@@ -63,7 +63,7 @@ data:extend{
         scale = ramp_scale,
         animation_speed = ramp_speed,
         apply_runtime_tint = true,
-        tint = {r=1, g=1, b=1, a=0.8},
+        --tint = {r=1, g=1, b=1, a=0.8},
         blend_mode = ramp_blend_mode
       }
     }
@@ -105,7 +105,7 @@ data:extend{
     },
     tail =
     {
-      filename = "__VehicleWagon2__/graphics/ramp/loading-ramp.png",
+      filename = "__VehicleWagon2__/graphics/ramp/unloading-ramp-tail.png",
       flags = beam_non_light_flags,
       line_length = 16,
       width = 32,
@@ -128,7 +128,7 @@ data:extend{
         scale = ramp_scale,
         animation_speed = ramp_speed,
         apply_runtime_tint = true,
-        tint = {r=1, g=1, b=1, a=0.8},
+        --tint = {r=1, g=1, b=1, a=0.8},
         blend_mode = ramp_blend_mode
       }
     }
