@@ -66,12 +66,12 @@ function loadVehicleWagon(action)
   saveData.burner = saveRestoreLib.saveBurner(vehicle.burner)
   
   -- Store data for other mods
-  if remote.interfaces["autodrive"] then
+  if remote.interfaces["autodrive"] and remote.interfaces["autodrive"].get_vehicle_data then
     -- This will return a table with just { owner = player.index } for now!
     saveData.autodrive_data = remote.call("autodrive", "get_vehicle_data", vehicle.unit_number)
     remote.call("autodrive", "vehicle_removed", vehicle)
   end
-  if remote.interfaces["GCKI"] then
+  if remote.interfaces["GCKI"] and remote.interfaces["GCKI"].get_vehicle_data then
     -- This will return a table with { owner = player.index, locker = player.index }
     saveData.GCKI_data = remote.call("GCKI", "get_vehicle_data", vehicle.unit_number)
     if table_size(saveData.GCKI_data) == 0 then
