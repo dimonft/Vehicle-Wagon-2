@@ -36,7 +36,6 @@ local function OnPlayerUsedCapsule(event)
       
       -- Clicked on a Loaded Wagon
       local unit_number = loaded_wagon.unit_number
-      local vehicle_prototype = game.entity_prototypes[global.wagon_data[unit_number].name]
             
       
       if loaded_wagon.get_driver() then
@@ -64,6 +63,7 @@ local function OnPlayerUsedCapsule(event)
         -- Error: vehicle was locked by someone else before it was loaded 
         -- Does not matter if that player exists or claimed a different vehicle, only that player can unload this one
         local locker = game.players[global.wagon_data[unit_number].GCKI_data.locker]
+        local vehicle_prototype = game.entity_prototypes[global.wagon_data[unit_number].name]
         if locker and locker.valid then
           -- Player exists, display their name
           player.print({"vehicle-wagon2.unload-locked-vehicle-error", vehicle_prototype.localised_name, locker.name})
@@ -77,6 +77,7 @@ local function OnPlayerUsedCapsule(event)
                remote.call("GCKI", "owned_by_player", global.wagon_data[unit_number].GCKI_data.owner) == nil then
         -- Error: Unloading player is not previous owner, and previous owner has NOT claimed another vehicle in the meantime.
         local owner = game.players[global.wagon_data[unit_number].GCKI_data.owner]
+        local vehicle_prototype = game.entity_prototypes[global.wagon_data[unit_number].name]
         if owner and owner.valid then
           -- Player exists, display their name
           player.print({"vehicle-wagon2.unload-owned-vehicle-error", vehicle_prototype.localised_name, owner.name})
@@ -90,12 +91,13 @@ local function OnPlayerUsedCapsule(event)
         player.print({"vehicle-wagon2.loaded-wagon-busy-error"})
         
       else
+        local vehicle_prototype = game.entity_prototypes[global.wagon_data[unit_number].name]
         -- Select vehicle as unloading source
         player.play_sound({path = "latch-on"})
         -- Always show tutorial message, to find out what kind of vehicle is stored here
         player.print{"vehicle-wagon2.select-unload-vehicle-location", vehicle_prototype.localised_name}
         -- Record selection and create radius circle
-        global.player_selection[index] = {wagon=loaded_wagon, visuals= renderWagonVisuals(player,loaded_wagon)}
+        global.player_selection[index] = {wagon=loaded_wagon, visuals= renderWagonVisuals(player,loaded_wagon,vehicle_prototype.radius)}
         script.on_event(defines.events.on_tick, process_tick)
       end
     
@@ -202,23 +204,37 @@ local function OnPlayerUsedCapsule(event)
     elseif (global.player_selection[index] and global.player_selection[index].wagon) then
       -- Clicked on the ground or unrelated entity after clicking on a loaded wagon
       local wagon = global.player_selection[index].wagon
-      local unload_position = player.surface.find_non_colliding_position(global.wagon_data[wagon.unit_number].name, position, 5, 0.5)
-      if not unload_position then
-        player.print({"vehicle-wagon2.vehicle-not-created-error", {"entity-name."..global.wagon_data[wagon.unit_number].name}})  -- Game could not find open position to unload
-      elseif distToWagon(wagon, unload_position) > UNLOAD_RANGE then
-        player.print({"vehicle-wagon2.location-too-far-away-error", wagon.localised_name})  -- Player clicked too far away
-      elseif global.action_queue[wagon.unit_number] then
+      local unit_number = wagon.unit_number
+      local click_distance = distToWagon(wagon, position)
+      local unload_position = player.surface.find_non_colliding_position(global.wagon_data[unit_number].name, position, 5, 0.5)
+      local unload_distance = distToWagon(wagon, unload_position)
+      
+      local vehicle_prototype = game.entity_prototypes[global.wagon_data[unit_number].name]
+      local min_distance = vehicle_prototype.radius + math.abs(wagon.prototype.collision_box.right_bottom.x)
+      local max_distance = vehicle_prototype.radius + UNLOAD_RANGE
+      
+      if global.action_queue[unit_number] then
         -- This wagon already has a pending action
         player.print({"vehicle-wagon2.loaded-wagon-busy-error"})
+      elseif not unload_position then
+        player.print({"vehicle-wagon2.vehicle-not-created-error", {"entity-name."..global.wagon_data[unit_number].name}})  -- Game could not find open position to unload
+      elseif click_distance > max_distance then
+        player.print({"vehicle-wagon2.location-too-far-away-error", wagon.localised_name})  -- Player clicked too far away
+      elseif click_distance < min_distance then
+        player.print({"vehicle-wagon2.location-too-close-error", wagon.localised_name})  -- Player clicked too close
       else
-        player.surface.play_sound({path = "winch-sound", position = player.position})
-        global.action_queue[wagon.unit_number] = {
+        -- Manually unload the wagon
+        -- Vehicle will be oriented radially outward from the center of the wagon
+        local unload_orientation = math.atan2(unload_position.x - wagon.position.x, -(unload_position.y - wagon.position.y))/(2*math.pi)
+        player.surface.play_sound({path = "winch-sound", position = wagon.position})
+        global.action_queue[unit_number] = {
             player_index = index,
             status = "unload",
             wagon = wagon,
             unload_position = unload_position,
+            unload_orientation = unload_orientation,
             tick = game.tick + UNLOADING_EFFECT_TIME,
-            beam = renderUnloadingRamp(wagon, unload_position)
+            beam = renderUnloadingRamp(wagon, unload_position, vehicle_prototype.radius)
         }
         clearSelection(index)
         script.on_event(defines.events.on_tick, process_tick)

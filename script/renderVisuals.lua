@@ -32,6 +32,9 @@ function distToLine(v,w,p)
 end
 
 function distToWagon(wagon,p)
+  if not wagon or not wagon.valid or not p then
+    return nil
+  end
   local length_front = wagon.prototype.collision_box.left_top.y
   local length_back  = wagon.prototype.collision_box.right_bottom.y
   local wagon_angle  = wagon.orientation*2*math.pi
@@ -119,24 +122,43 @@ end
 -- function renderWagonRange: Display the unloading area around the selected wagon
 -- p: player or player_index
 -- target: selected entity to track
-function renderWagonVisuals(p, target)
+function renderWagonVisuals(p, target, vehicle_radius)
   -- First clear existing renders for this player
   clearVisuals(p)
   
-  -- Now create a rotated polygon with hemispheres on either end
+  if not vehicle_radius then
+    vehicle_radius = 0
+  end
+  
+  -- Now create a rotated polygon with semicircles on either end
   -- Entity is referenced in the North orientation before being rotated
   local length_front = target.prototype.collision_box.left_top.y
   local length_back  = target.prototype.collision_box.right_bottom.y
   local wagon_angle  = target.orientation*2*math.pi
   local wagon_front  = rot({x=0,y=length_front},wagon_angle)
   local wagon_back   = rot({x=0,y=length_back},wagon_angle)
+  local min_distance = vehicle_radius + math.abs(target.prototype.collision_box.right_bottom.x)
+  local max_distance = vehicle_radius + UNLOAD_RANGE
+  
   local visuals = {
     rendering.draw_polygon{
       color=RANGE_COLOR,
-      vertices={{target={UNLOAD_RANGE,length_back}},
-                {target={-UNLOAD_RANGE,length_back}},
-                {target={UNLOAD_RANGE,length_front}},
-                {target={-UNLOAD_RANGE,length_front}}},
+      vertices={{target={max_distance,length_back}},
+                {target={min_distance,length_back}},
+                {target={max_distance,length_front}},
+                {target={min_distance,length_front}}},
+      target=target,
+      orientation=target.orientation,
+      surface=target.surface,
+      players={p},
+      draw_on_ground=true
+    },
+    rendering.draw_polygon{
+      color=RANGE_COLOR,
+      vertices={{target={-min_distance,length_back}},
+                {target={-max_distance,length_back}},
+                {target={-min_distance,length_front}},
+                {target={-max_distance,length_front}}},
       target=target,
       orientation=target.orientation,
       surface=target.surface,
@@ -145,8 +167,8 @@ function renderWagonVisuals(p, target)
     },
     rendering.draw_arc{
       color=RANGE_COLOR,
-      max_radius=UNLOAD_RANGE,
-      min_radius=0,
+      max_radius=max_distance,
+      min_radius=min_distance,
       start_angle=wagon_angle+math.pi,
       angle=math.pi,
       target=target,
@@ -157,7 +179,43 @@ function renderWagonVisuals(p, target)
     },
     rendering.draw_arc{
       color=RANGE_COLOR,
-      max_radius=UNLOAD_RANGE,
+      max_radius=max_distance,
+      min_radius=min_distance,
+      start_angle=wagon_angle,
+      angle=math.pi,
+      target=target,
+      target_offset=wagon_back,
+      surface=target.surface,
+      players={p},
+      draw_on_ground=true
+    },
+    rendering.draw_polygon{
+      color=KEEPOUT_RANGE_COLOR,
+      vertices={{target={min_distance,length_back}},
+                {target={-min_distance,length_back}},
+                {target={min_distance,length_front}},
+                {target={-min_distance,length_front}}},
+      target=target,
+      orientation=target.orientation,
+      surface=target.surface,
+      players={p},
+      draw_on_ground=true
+    },
+    rendering.draw_arc{
+      color=KEEPOUT_RANGE_COLOR,
+      max_radius=min_distance,
+      min_radius=0,
+      start_angle=wagon_angle+math.pi,
+      angle=math.pi,
+      target=target,
+      target_offset=wagon_front,
+      surface=target.surface,
+      players={p},
+      draw_on_ground=true
+    },
+    rendering.draw_arc{
+      color=KEEPOUT_RANGE_COLOR,
+      max_radius=min_distance,
       min_radius=0,
       start_angle=wagon_angle,
       angle=math.pi,
@@ -167,8 +225,8 @@ function renderWagonVisuals(p, target)
       players={p},
       draw_on_ground=true
     }
-  }  
-  
+  }
+
   return visuals
 end
 
@@ -233,7 +291,7 @@ function renderLoadingRamp(wagon, vehicle)
     local radius = vehicle.get_radius()
     local source_point = {x=wagon.position.x + closest_point.x, y=wagon.position.y + closest_point.y}
     local d = distance(vehicle.position, source_point)
-    local new_d = d - radius
+    local new_d = math.max(MIN_LOADING_RAMP_LENGTH, d - radius)
     local ratio = new_d / d
     local delta = {x=source_point.x-vehicle.position.x, y=source_point.y-vehicle.position.y}
     local new_delta = {x=delta.x * ratio, y=delta.y * ratio}
@@ -245,15 +303,20 @@ function renderLoadingRamp(wagon, vehicle)
         target_position=new_target,
         source_position=wagon.position,
         source_offset=closest_point,
-        duration=LOADING_EFFECT_TIME
+        duration=LOADING_EFFECT_TIME+EXTRA_RAMP_TIME
     }
   else
     return nil
   end
 end
 
-function renderUnloadingRamp(wagon, position)
- local length_front = wagon.prototype.collision_box.left_top.y*0.8
+function renderUnloadingRamp(wagon, position, vehicle_radius)
+  
+  if not vehicle_radius then
+    vehicle_radius = 0
+  end
+  
+  local length_front = wagon.prototype.collision_box.left_top.y*0.8
   local length_back  = wagon.prototype.collision_box.right_bottom.y*0.8
   local wagon_angle  = wagon.orientation*2*math.pi
   local wagon_front  = rot({x=0,y=length_front},wagon_angle)
@@ -281,13 +344,21 @@ function renderUnloadingRamp(wagon, position)
   end
   
   if closest_point then
+    local source_point = {x=wagon.position.x + closest_point.x, y=wagon.position.y + closest_point.y}
+    local d = distance(position, source_point)
+    local new_d = math.max(MIN_LOADING_RAMP_LENGTH, d - vehicle_radius)
+    local ratio = new_d / d
+    local delta = {x=source_point.x-position.x, y=source_point.y-position.y}
+    local new_delta = {x=delta.x * ratio, y=delta.y * ratio}
+    local new_target = {x=source_point.x-new_delta.x, y=source_point.y-new_delta.y}
+    
     return wagon.surface.create_entity{
         name="unloading-ramp-beam",
         position=wagon.position,
         source_position=wagon.position,
         source_offset=closest_point,
-        target_position=position,
-        duration=UNLOADING_EFFECT_TIME
+        target_position=new_target,
+        duration=UNLOADING_EFFECT_TIME+EXTRA_RAMP_TIME
     }
   else
     return nil

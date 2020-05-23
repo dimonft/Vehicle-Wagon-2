@@ -91,7 +91,8 @@ function loadVehicleWagon(action)
   
   global.wagon_data[unit_number] = saveData
   
-  -- Destroy vehicle
-  vehicle.destroy({raise_destroy=true})
+  -- Destroy vehicle. Raise event with custom parameter so we don't immediately clear the loading ramp.
+  script.raise_event(defines.events.script_raised_destroy, {entity=vehicle, vehicle_loaded=true})
+  vehicle.destroy({raise_destroy=false})
   
 end

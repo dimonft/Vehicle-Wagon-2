@@ -369,7 +369,7 @@ function OnEntityDied(event)
     deleteWagon(entity.unit_number)
   elseif entity.name == "vehicle-wagon" then
     clearWagon(entity.unit_number)
-  elseif event.entity.type == "car" then
+  elseif event.entity.type == "car" and not event.vehicle_loaded then
     -- Car died, 
     clearVehicle(entity, {silent=true})
   end
