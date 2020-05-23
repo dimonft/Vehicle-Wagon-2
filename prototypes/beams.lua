@@ -1,3 +1,9 @@
+--[[ Copyright (c) 2020 robot256 (MIT License)
+ * Project: Vehicle Wagon 2 rewrite
+ * File: beams.lua
+ * Description: Prototype definitions of loading ramp beams.
+--]]
+
 local ramp_blend_mode = "normal"
 local ramp_scale = 1
 local ramp_speed = 0.25
@@ -54,7 +60,7 @@ data:extend{
     body =
     {
       {
-        filename = "__VehicleWagon2__/graphics/ramp/loading-ramp.png",
+        filename = "__VehicleWagon2__/graphics/ramp/loading-ramp-body.png",
         flags = beam_non_light_flags,
         line_length = 16,
         width = 32,
@@ -119,7 +125,7 @@ data:extend{
     body =
     {
       {
-        filename = "__VehicleWagon2__/graphics/ramp/loading-ramp.png",
+        filename = "__VehicleWagon2__/graphics/ramp/unloading-ramp-body.png",
         flags = beam_non_light_flags,
         line_length = 16,
         width = 32,

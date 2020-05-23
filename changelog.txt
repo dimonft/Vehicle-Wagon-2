@@ -17,6 +17,7 @@ Date: 2020-05-XX
     - Improved behavior when players move or get in vehicles mid-loading.
     - Changed selection indicator to an area highlight instead of giant arrows.
     - Changed unloading zone to oblong shape surrounding wagon.
+    - Improved loading ramp graphics.
   Bugfixes:
     - Fixed minimum and maximum parameters on weight scaling startup settings.
     - Moved final weight calculations to data-final-fixes so that they are consistent with the final wagon and vehicle weights set by other mods.
