@@ -43,6 +43,9 @@ function loadVehicleWagon(action)
   local unit_number = loaded_wagon.unit_number
   local saveData = {}
   
+  -- Save reference to loaded wagon entity
+  saveData.wagon = loaded_wagon
+  
   -- Store vehicle parameters
   saveData.name = vehicle.name
   saveData.health = vehicle.health
@@ -76,7 +79,7 @@ function loadVehicleWagon(action)
     saveData.GCKI_data = remote.call("GCKI", "get_vehicle_data", vehicle.unit_number)
     remote.call("GCKI", "vehicle_removed", vehicle, script.mod_name)
     if saveData.GCKI_data and settings.global["vehicle-wagon-use-GCKI-permissions"].value then
-      if wagon.GCKI_data.owner or wagon.GCKI_data.locker then
+      if saveData.GCKI_data.owner or saveData.GCKI_data.locker then
         -- There is an owner or a locker of the vehicle on this wagon.  Make it un-minable.
         -- GCKI will call an interface function to release it if the owner unclaims it.
         loaded_wagon.minable = false

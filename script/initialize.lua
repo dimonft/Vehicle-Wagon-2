@@ -353,8 +353,10 @@ function OnConfigurationChanged(event)
   end
   if global.wagon_data then
     local missing_prototypes = false
-    local gcki_enabled = remote.interfaces["GCKI"] and remote.interfaces["GCKI"].get_vehicle_data
-       settings.global["vehicle-wagon-use-GCKI-permissions"] then
+    local units_to_find = {}
+    local gcki_enabled = (remote.interfaces["GCKI"] and 
+                          remote.interfaces["GCKI"].get_vehicle_data and 
+                          settings.global["vehicle-wagon-use-GCKI-permissions"].value)
     for id,data in pairs(global.wagon_data) do
       if not loaded_wagons[id] then
         game.print({"vehicle-wagon2.migrate-prototype-error",id,data.name})
@@ -373,10 +375,47 @@ function OnConfigurationChanged(event)
         -- Double-check GCKI-controlled lock state. 
         -- Reset all wagons if GCKI permissions are disabled or GCKI is uninstalled.
         if gcki_enabled and data.GCKI_data and (data.GCKI_data.owner or data.GCKI_data.locker) then
-          data.wagon.minable = false
+          if data.wagon and data.wagon.valid then
+            data.wagon.minable = false
+          else
+            units_to_find[wagon_id] = 2
+          end
         else
-          data.wagon.minable = true
+          if data.wagon and data.wagon.valid then
+            data.wagon.minable = true
+          else
+            units_to_find[wagon_id] = 1
+          end
         end
+      end
+    end
+    -- Find references to any loaded wagon entities that were missing in the data table
+    -- Update their minable properties according to the values chosen above
+    if table_size(units_to_find) > 0 then
+      for surface_id,surface in pairs(game.surfaces) do
+        for _,entity in pairs(surface.find_filtered_entities{name=global.loadedWagonList}) do
+          local wagon_id = entity.unit_number
+          -- Assign wagon entity to any we come across
+          if global.wagon_data[wagon_id] and not global.wagon_data[wagon_id].wagon then
+            global.wagon_data[wagon_id].wagon = entity
+          end
+          -- Found one on the list to make minable again
+          if units_to_find[wagon_id] then
+            entity.minable = (units_to_find[wagon_id] == 1)
+            units_to_find[wagon_id] = nil
+            -- If list is empty now, stop searching
+            if table_size(units_to_find) == 0 then
+              break
+            end
+          end
+        end
+        if table_size(units_to_find) == 0 then
+          break
+        end
+      end
+      -- Make sure we found everything
+      for unit_number,_ in pairs(units_to_find) do
+        game.print({"vehicle-wagon2.migrate-wagon-error", unit_number, global.wagon_data[unit_number].name})  
       end
     end
     -- Give error message for missing prototypes
@@ -393,15 +432,18 @@ end
 function OnRuntimeModSettingChanged(event)
   if event.setting == "vehicle-wagon-use-GCKI-permissions" then
     if global.wagon_data then
-      local gcki_enabled = remote.interfaces["GCKI"] and remote.interfaces["GCKI"].get_vehicle_data
-         settings.global["vehicle-wagon-use-GCKI-permissions"] then
+      local gcki_enabled = (remote.interfaces["GCKI"] and 
+                            remote.interfaces["GCKI"].get_vehicle_data and 
+                            settings.global["vehicle-wagon-use-GCKI-permissions"].value)
       for id,data in pairs(global.wagon_data) do
         -- Double-check GCKI-controlled lock state. 
         -- Reset all wagons if GCKI permissions are disabled or GCKI is uninstalled.
-        if gcki_enabled and data.GCKI_data and (data.GCKI_data.owner or data.GCKI_data.locker) then
-          data.wagon.minable = false
-        else
-          data.wagon.minable = true
+        if data.wagon and data.wagon.valid then
+          if gcki_enabled and data.GCKI_data and (data.GCKI_data.owner or data.GCKI_data.locker) then
+            data.wagon.minable = false
+          else
+            data.wagon.minable = true
+          end
         end
       end
     end

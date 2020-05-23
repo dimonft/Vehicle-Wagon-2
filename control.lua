@@ -47,7 +47,7 @@ script.on_configuration_changed(OnConfigurationChanged)
 
 --== ON_RUNTIME_MOD_SETTING_CHANGED ==--
 -- Update loaded_wagon.minable properties when GCKI permission setting changes
-script.on_event(devines.events.on_runtime_mod_setting_changed, OnRuntimeModSettingChanged)
+script.on_event(defines.events.on_runtime_mod_setting_changed, OnRuntimeModSettingChanged)
 
 
 --== ON_LOAD ==--
@@ -158,26 +158,28 @@ end
 --== ON_PRE_PLAYER_REMOVED EVENT ==--
 function onPrePlayerRemoved(event)
   player_index = event.player_index
-  for _,wagon in pairs(global.wagon_data) do
-    if wagon.GCKI_data then
-      if wagon.GCKI_data.owner and wagon.GCKI_data.owner == player_index then
+  for wagon_id,data in pairs(global.wagon_data) do
+    if data.GCKI_data then
+      if data.GCKI_data.owner and data.GCKI_data.owner == player_index then
         -- Owner was removed
-        wagon.GCKI_data.owner = nil
+        data.GCKI_data.owner = nil
       end
-      if wagon.GCKI_data.locker and wagon.GCKI_data.locker == player_index then
+      if data.GCKI_data.locker and data.GCKI_data.locker == player_index then
         -- Locker was removed
-        wagon.GCKI_data.locker = nil
+        data.GCKI_data.locker = nil
       end
       -- If there is no owner or locker, make the wagon minable again
-      if (not wagon.GCKI_data.owner) and (not wagon.GCKI_data.locker) then
-        wagon.wagon.minable = true  -- Make wagon minable when it belongs to no one
+      if (not data.GCKI_data.owner) and (not data.GCKI_data.locker) then
+        if data.wagon and data.wagon.valid then
+          data.wagon.minable = true  -- Make wagon minable when it belongs to no one
+        end
         -- Leave empty table GCKI_data to indicate that vehicle was owned and now is not
       end
     end
-    if wagon.autodrive_data then
-      if wagon.autodrive_data.owner and wagon.autodrive_data.owner == player_index then
+    if data.autodrive_data then
+      if data.autodrive_data.owner and data.autodrive_data.owner == player_index then
         -- Owner was removed
-        wagon.autodrive_data.owner = nil
+        data.autodrive_data.owner = nil
       end
       -- Leave empty table to indicate the vehicle was owned and now is not
     end
@@ -191,14 +193,17 @@ function release_owned_by_player(p)
   if type(p) ~= "number" then
     player_index = p.index
   end
-  for _,wagon in pairs(global.wagon_data) do
-    if wagon.GCKI_data then
-      if wagon.GCKI_data.owner and wagon.GCKI_data.owner == player_index then
+  local units_to_find = {}  -- Some will not have entity references, but don't search for entities unless we have to for performance reasons
+  for wagon_id,data in pairs(global.wagon_data) do
+    if data.GCKI_data then
+      if data.GCKI_data.owner and data.GCKI_data.owner == player_index then
         -- Owner was removed
-        wagon.GCKI_data.owner = nil
+        data.GCKI_data.owner = nil
         -- If there is no owner or locker, make the wagon minable again
-        if (not wagon.GCKI_data.owner) and (not wagon.GCKI_data.locker) then
-          wagon.wagon.minable = true  -- Make wagon minable when it belongs to no one
+        if (not data.GCKI_data.owner) and (not data.GCKI_data.locker) then
+          if data.wagon and data.wagon.valid then
+            data.wagon.minable = true  -- Make wagon minable when it belongs to no one
+          end
           -- Leave empty table GCKI_data to indicate that vehicle was owned and now is not
         end
       end
