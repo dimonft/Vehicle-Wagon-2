@@ -313,20 +313,20 @@ function OnInit()
 end
 
 
-function OnConfigurationChanged(data)
+function OnConfigurationChanged(event)
 
   -- Regenerate maps before migrating
   makeGlobalMaps()
 
   -- Migrate existing data if any exists
-  if data and data.mod_changes["VehicleWagon2"] then
+  if event and event.mod_changes["VehicleWagon2"] then
     -- format version string to "00.00.00"
     local oldVersion, newVersion = nil
-    local oldVersionString = data.mod_changes["VehicleWagon2"].old_version
+    local oldVersionString = event.mod_changes["VehicleWagon2"].old_version
     if oldVersionString then
       oldVersion = string.format("%02d.%02d.%02d", string.match(oldVersionString, "(%d+).(%d+).(%d+)"))
     end
-    local newVersionString = data.mod_changes["VehicleWagon2"].new_version
+    local newVersionString = event.mod_changes["VehicleWagon2"].new_version
     if newVersionString then
       newVersion = string.format("%02d.%02d.%02d", string.match(newVersionString, "(%d+).(%d+).(%d+)"))
     end
@@ -353,6 +353,8 @@ function OnConfigurationChanged(data)
   end
   if global.wagon_data then
     local missing_prototypes = false
+    local gcki_enabled = remote.interfaces["GCKI"] and remote.interfaces["GCKI"].get_vehicle_data
+       settings.global["vehicle-wagon-use-GCKI-permissions"] then
     for id,data in pairs(global.wagon_data) do
       if not loaded_wagons[id] then
         game.print({"vehicle-wagon2.migrate-prototype-error",id,data.name})
@@ -368,6 +370,13 @@ function OnConfigurationChanged(data)
           renderIcon(loaded_wagons[id], data.name)
           data.icon = true
         end
+        -- Double-check GCKI-controlled lock state. 
+        -- Reset all wagons if GCKI permissions are disabled or GCKI is uninstalled.
+        if gcki_enabled and data.GCKI_data and (data.GCKI_data.owner or data.GCKI_data.locker) then
+          data.wagon.minable = false
+        else
+          data.wagon.minable = true
+        end
       end
     end
     -- Give error message for missing prototypes
@@ -380,3 +389,22 @@ function OnConfigurationChanged(data)
   makeGlobalTables()
   
 end
+
+function OnRuntimeModSettingChanged(event)
+  if event.setting == "vehicle-wagon-use-GCKI-permissions" then
+    if global.wagon_data then
+      local gcki_enabled = remote.interfaces["GCKI"] and remote.interfaces["GCKI"].get_vehicle_data
+         settings.global["vehicle-wagon-use-GCKI-permissions"] then
+      for id,data in pairs(global.wagon_data) do
+        -- Double-check GCKI-controlled lock state. 
+        -- Reset all wagons if GCKI permissions are disabled or GCKI is uninstalled.
+        if gcki_enabled and data.GCKI_data and (data.GCKI_data.owner or data.GCKI_data.locker) then
+          data.wagon.minable = false
+        else
+          data.wagon.minable = true
+        end
+      end
+    end
+  end
+end
+

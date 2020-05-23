@@ -68,20 +68,19 @@ function loadVehicleWagon(action)
   -- Store data for other mods
   if remote.interfaces["autodrive"] and remote.interfaces["autodrive"].get_vehicle_data then
     -- This will return a table with just { owner = player.index } for now!
-    saveData.autodrive_data = remote.call("autodrive", "get_vehicle_data", vehicle.unit_number)
+    saveData.autodrive_data = remote.call("autodrive", "get_vehicle_data", vehicle.unit_number, script.mod_name)
     remote.call("autodrive", "vehicle_removed", vehicle)
   end
   if remote.interfaces["GCKI"] and remote.interfaces["GCKI"].get_vehicle_data then
     -- This will return a table with { owner = player.index, locker = player.index }
     saveData.GCKI_data = remote.call("GCKI", "get_vehicle_data", vehicle.unit_number)
-    if table_size(saveData.GCKI_data) == 0 then
-      saveData.GCKI_data = nil
-    end
-    remote.call("GCKI", "vehicle_removed", vehicle)
+    remote.call("GCKI", "vehicle_removed", vehicle, script.mod_name)
     if saveData.GCKI_data and settings.global["vehicle-wagon-use-GCKI-permissions"].value then
-      -- There is an owner or a locker of the vehicle on this wagon.  Make it un-minable.
-      -- GCKI will call an interface function to release it if the owner unclaims it.
-      loaded_wagon.minable = false
+      if wagon.GCKI_data.owner or wagon.GCKI_data.locker then
+        -- There is an owner or a locker of the vehicle on this wagon.  Make it un-minable.
+        -- GCKI will call an interface function to release it if the owner unclaims it.
+        loaded_wagon.minable = false
+      end
     end
   end
   

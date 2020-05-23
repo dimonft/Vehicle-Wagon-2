@@ -166,12 +166,12 @@ function unloadVehicleWagon(action)
   -- Restore data for other mods
   if remote.interfaces["autodrive"] and remote.interfaces["autodrive"].vehicle_restored then
     if wagon_data.autodrive_data then
-      remote.call("autodrive", "vehicle_restored", vehicle, wagon_data.autodrive_data)
+      remote.call("autodrive", "vehicle_restored", vehicle, wagon_data.autodrive_data, script.mod_name)
     end
   end
   if remote.interfaces["GCKI"] and remote.interfaces["GCKI"].vehicle_restored then
     if wagon_data.GCKI_data then
-      remote.call("GCKI", "vehicle_restored", vehicle, wagon_data.GCKI_data)
+      remote.call("GCKI", "vehicle_restored", vehicle, wagon_data.GCKI_data, script.mod_name)
     end
   end
   

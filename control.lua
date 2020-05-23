@@ -6,6 +6,7 @@
  *   - on_load
  *   - on_init
  *   - on_configuration_changed
+ *   - on_runtime_mod_setting_changed
  *   - on_tick (conditional)
  *   - on_pre_player_removed
  *   - on_player_used_capsule
@@ -43,6 +44,10 @@ script.on_init(OnInit)
 --== ON_CONFIGURATION_CHANGED ==--
 -- Initialize global data tables and perform migrations
 script.on_configuration_changed(OnConfigurationChanged)
+
+--== ON_RUNTIME_MOD_SETTING_CHANGED ==--
+-- Update loaded_wagon.minable properties when GCKI permission setting changes
+script.on_event(devines.events.on_runtime_mod_setting_changed, OnRuntimeModSettingChanged)
 
 
 --== ON_LOAD ==--
@@ -163,8 +168,10 @@ function onPrePlayerRemoved(event)
         -- Locker was removed
         wagon.GCKI_data.locker = nil
       end
-      if table_size(wagon.GCKI_data) == 0 then
-        wagon.GCKI_data = nil
+      -- If there is no owner or locker, make the wagon minable again
+      if (not wagon.GCKI_data.owner) and (not wagon.GCKI_data.locker) then
+        wagon.wagon.minable = true  -- Make wagon minable when it belongs to no one
+        -- Leave empty table GCKI_data to indicate that vehicle was owned and now is not
       end
     end
     if wagon.autodrive_data then
@@ -172,9 +179,7 @@ function onPrePlayerRemoved(event)
         -- Owner was removed
         wagon.autodrive_data.owner = nil
       end
-      if table_size(wagon.autodrive_data) == 0 then
-        wagon.autodrive_data = nil
-      end
+      -- Leave empty table to indicate the vehicle was owned and now is not
     end
   end
 end
@@ -191,10 +196,11 @@ function release_owned_by_player(p)
       if wagon.GCKI_data.owner and wagon.GCKI_data.owner == player_index then
         -- Owner was removed
         wagon.GCKI_data.owner = nil
-      end
-      if table_size(wagon.GCKI_data) == 0 then
-        wagon.GCKI_data = nil  -- Clear the GCKI data when empty
-        wagon.wagon.minable = true  -- Make wagon minable when it belongs to no one
+        -- If there is no owner or locker, make the wagon minable again
+        if (not wagon.GCKI_data.owner) and (not wagon.GCKI_data.locker) then
+          wagon.wagon.minable = true  -- Make wagon minable when it belongs to no one
+          -- Leave empty table GCKI_data to indicate that vehicle was owned and now is not
+        end
       end
     end
   end
