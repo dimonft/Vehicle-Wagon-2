@@ -1,7 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.18.4
-Date: 2020-05-23
+Date: 2020-05-24
   Bugfixes:
+    - Fixed missing dependency on Krastorio2 by moving modded wagons to data-updates. No more dependencies!
     - Fixed that wagons would not always become minable again when GCKI ownership is released.
     - Fixed that wagons would not become update minable state when GCKI mod was uninstalled or GCKI Permission setting changed.
     - Fixed that vehicle color would not be reset if unloaded after GCKI ownership was released.
