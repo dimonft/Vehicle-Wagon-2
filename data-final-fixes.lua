@@ -15,4 +15,4 @@ if mods["TrainOverhaul"] then
 end
 
 -- Update weights and friction
-require("prototypes.update_stats")
+require("data.update_stats")

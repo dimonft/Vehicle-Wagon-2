@@ -5,6 +5,7 @@
  --]]
 
 require("config")
+require("data.helpers")
 
 require("prototypes.beams")
 require("prototypes.items")
@@ -13,6 +14,3 @@ require("prototypes.recipes")
 require("prototypes.sounds")
 require("prototypes.technologies")
 require("prototypes.sprites")
-
--- After entities are added, calculate the weights and forces based on mod settings
-require("prototypes.update_stats")
