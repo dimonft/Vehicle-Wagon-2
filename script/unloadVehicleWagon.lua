@@ -10,8 +10,8 @@
  *    5. If unsuccessful, return nil.
  *    1. Replace Loaded Vehicle Wagon with Vehicle Wagon.
  --]]
- 
- 
+
+
 -------------------------
 -- Unload Wagon (either manually or from mining)
 function unloadVehicleWagon(action)
@@ -97,8 +97,8 @@ function unloadVehicleWagon(action)
   
   -- Create the vehicle
   local vehicle = surface.create_entity{
-                      name = wagon_data.name, 
-                      position = unload_position, 
+                      name = wagon_data.name,
+                      position = unload_position,
                       force = force,
                       direction = direction,
                       raise_built = false
@@ -126,7 +126,7 @@ function unloadVehicleWagon(action)
   
   -- Restore vehicle parameters from global data
   vehicle.health = wagon_data.health
-  if wagon_data.color then 
+  if wagon_data.color then
     vehicle.color = wagon_data.color
   end
   
@@ -163,20 +163,16 @@ function unloadVehicleWagon(action)
     saveRestoreLib.spillStacks(r2, surface, unload_position)
   end
   
-  -- Restore data for other mods
-  if remote.interfaces["autodrive"] and remote.interfaces["autodrive"].vehicle_restored then
-    if wagon_data.autodrive_data then
-      remote.call("autodrive", "vehicle_restored", vehicle, wagon_data.autodrive_data, script.mod_name)
-    end
-  end
-  if remote.interfaces["GCKI"] and remote.interfaces["GCKI"].vehicle_restored then
-    if wagon_data.GCKI_data then
-      remote.call("GCKI", "vehicle_restored", vehicle, wagon_data.GCKI_data, script.mod_name)
-    end
-  end
-  
   -- Raise event for scripts
-  script.raise_event(defines.events.script_raised_built, {entity = vehicle, player_index = player_index, vehicle_unloaded=true})
+  -- Added autodrive_data and GCKI_data to arguments. No need to test if they are set: If nil, they will be ignored!
+  script.raise_event( defines.events.script_raised_built, {
+      entity = vehicle,
+      player_index = player_index, 
+      vehicle_unloaded=true,  -- Custom parameter used by Vehicle Wagon
+      autodrive_data = wagon_data.autodrive_data,  -- Custom parameter used by Autodrive
+      GCKI_data = wagon_data.GCKI_data  -- Custom parameter used by GCKI
+    }
+  )
   
   -- Play sound associated with creating the vehicle
   surface.play_sound({path = "utility/build_medium", position = unload_position, volume_modifier = 0.7})
