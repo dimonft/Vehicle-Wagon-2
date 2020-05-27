@@ -26,7 +26,7 @@ function loadVehicleWagon(action)
   end
   
   -- Replace the unloaded wagon with loaded one
-  local loaded_wagon = replaceCarriage(wagon, action.name, false, false, flip)
+  local loaded_wagon = replaceCarriage(wagon, action.name, true, true, flip)
   
   -- Check that loaded wagon was created correctly
   if not loaded_wagon or not loaded_wagon.valid then
@@ -51,6 +51,11 @@ function loadVehicleWagon(action)
   saveData.health = vehicle.health
   saveData.color = vehicle.color
   saveData.last_user = vehicle.last_user and vehicle.last_user.index
+  saveData.minable = vehicle.minable
+  saveData.destructible = vehicle.destructible
+  saveData.operable = vehicle.operable
+  saveData.rotatable = vehicle.rotatable
+  saveData.enable_logistics_while_moving = vehicle.enable_logistics_while_moving
   
   -- Store inventory contents
   saveData.items = {

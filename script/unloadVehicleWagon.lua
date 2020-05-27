@@ -126,10 +126,15 @@ function unloadVehicleWagon(action)
   
   -- Restore vehicle parameters from global data
   vehicle.health = wagon_data.health
-  if wagon_data.color then
-    vehicle.color = wagon_data.color
+  if wagon_data.color then vehicle.color = wagon_data.color end
+  if wagon_data.minable ~= nil then vehicle.minable = wagon_data.minable end
+  if wagon_data.destructible ~= nil then vehicle.destructible = wagon_data.destructible end
+  if wagon_data.operable ~= nil then vehicle.operable = wagon_data.operable end
+  if wagon_data.rotatable ~= nil then vehicle.rotatable = wagon_data.rotatable end
+  if wagon_data.enable_logistics_while_moving ~= nil then
+    vehicle.enable_logistics_while_moving = wagon_data.enable_logistics_while_moving
   end
-  
+
   -- Restore burner
   local r1 = saveRestoreLib.restoreBurner(vehicle.burner, wagon_data.burner)
   
@@ -185,7 +190,7 @@ function unloadVehicleWagon(action)
   
   if replace_wagon then
     -- Replace loaded wagon with unloaded wagon
-    local wagon = replaceCarriage(loaded_wagon, "vehicle-wagon", false, false)
+    local wagon = replaceCarriage(loaded_wagon, "vehicle-wagon", true, true)
     
     -- Check that unloaded wagon was created correctly
     if not(wagon and wagon.valid) then
