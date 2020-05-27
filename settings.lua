@@ -75,14 +75,12 @@ data:extend({
   },
 })
 
-if mods["GCKI"] then
-  data:extend({
-    {
-    type = "bool-setting",
-    name = "vehicle-wagon-use-GCKI-permissions",
-    order = "cc",
-    setting_type = "runtime-global",
-    default_value = "true"
-    },
-  })
-end
+data:extend({
+  {
+  type = "bool-setting",
+  name = "vehicle-wagon-use-GCKI-permissions",
+  order = "cc",
+  setting_type = "runtime-global",
+  default_value = "true"
+  },
+})
