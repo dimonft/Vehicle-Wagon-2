@@ -190,7 +190,7 @@ function unloadVehicleWagon(action)
   
   if replace_wagon then
     -- Replace loaded wagon with unloaded wagon
-    local wagon = replaceCarriage(loaded_wagon, "vehicle-wagon", true, true)
+    local wagon = replaceCarriage(loaded_wagon, "vehicle-wagon", false, false)
     
     -- Check that unloaded wagon was created correctly
     if not(wagon and wagon.valid) then

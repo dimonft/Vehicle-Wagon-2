@@ -26,7 +26,7 @@ function loadVehicleWagon(action)
   end
   
   -- Replace the unloaded wagon with loaded one
-  local loaded_wagon = replaceCarriage(wagon, action.name, true, true, flip)
+  local loaded_wagon = replaceCarriage(wagon, action.name, false, false, flip)
   
   -- Check that loaded wagon was created correctly
   if not loaded_wagon or not loaded_wagon.valid then
