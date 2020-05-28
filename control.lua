@@ -158,6 +158,9 @@ end
 --== ON_PRE_PLAYER_REMOVED EVENT ==--
 function onPrePlayerRemoved(event)
   player_index = event.player_index
+  
+  local unminable_enabled = game.active_mods["UnminableVehicles"] and settings.global["unminable_vehicles_make_unminable"].value
+  
   for wagon_id,data in pairs(global.wagon_data) do
     if data.GCKI_data then
       if data.GCKI_data.owner and data.GCKI_data.owner == player_index then
@@ -168,12 +171,17 @@ function onPrePlayerRemoved(event)
         -- Locker was removed
         data.GCKI_data.locker = nil
       end
-      -- If there is no owner or locker, make the wagon minable again
-      if (not data.GCKI_data.owner) and (not data.GCKI_data.locker) then
-        if data.wagon and data.wagon.valid then
-          data.wagon.minable = true  -- Make wagon minable when it belongs to no one
+      
+      -- If UnminableVehicles is not enabled, update minable states.
+      if not unminable_enabled then
+        -- Make wagon minable when it belongs to no one
+        if not (data.GCKI_data.owner or data.GCKI_data.locker) and data.wagon and data.wagon.valid then
+          data.wagon.minable = true
         end
-        -- Leave empty table GCKI_data to indicate that vehicle was owned and now is not
+        -- Make vehicle minable when it is locked by no one
+        if not data.GCKI_data.locker then
+          data.minable = nil
+        end
       end
     end
     if data.autodrive_data then
@@ -181,7 +189,6 @@ function onPrePlayerRemoved(event)
         -- Owner was removed
         data.autodrive_data.owner = nil
       end
-      -- Leave empty table to indicate the vehicle was owned and now is not
     end
   end
 end
@@ -193,18 +200,24 @@ function release_owned_by_player(p)
   if type(p) ~= "number" then
     player_index = p.index
   end
-  local units_to_find = {}  -- Some will not have entity references, but don't search for entities unless we have to for performance reasons
+  
+  local unminable_enabled = game.active_mods["UnminableVehicles"] and settings.global["unminable_vehicles_make_unminable"].value
+  
   for wagon_id,data in pairs(global.wagon_data) do
     if data.GCKI_data then
       if data.GCKI_data.owner and data.GCKI_data.owner == player_index then
         -- Owner was removed
         data.GCKI_data.owner = nil
-        -- If there is no owner or locker, make the wagon minable again
-        if (not data.GCKI_data.owner) and (not data.GCKI_data.locker) then
-          if data.wagon and data.wagon.valid then
-            data.wagon.minable = true  -- Make wagon minable when it belongs to no one
+        -- If UnminableVehicles is not enabled, update minable states.
+        if not unminable_enabled then
+          -- Make wagon minable when it belongs to no one
+          if not (data.GCKI_data.owner or data.GCKI_data.locker) and data.wagon and data.wagon.valid then
+            data.wagon.minable = true
           end
-          -- Leave empty table GCKI_data to indicate that vehicle was owned and now is not
+          -- Make vehicle minable when it is locked by no one
+          if not data.GCKI_data.locker then
+            data.minable = nil
+          end
         end
       end
     end
