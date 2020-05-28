@@ -127,12 +127,15 @@ function unloadVehicleWagon(action)
   -- Restore vehicle parameters from global data
   vehicle.health = wagon_data.health
   if wagon_data.color then vehicle.color = wagon_data.color end
-  if wagon_data.minable ~= nil then vehicle.minable = wagon_data.minable end
-  if wagon_data.destructible ~= nil then vehicle.destructible = wagon_data.destructible end
-  if wagon_data.operable ~= nil then vehicle.operable = wagon_data.operable end
-  if wagon_data.rotatable ~= nil then vehicle.rotatable = wagon_data.rotatable end
-  if wagon_data.enable_logistics_while_moving ~= nil then
-    vehicle.enable_logistics_while_moving = wagon_data.enable_logistics_while_moving
+  
+  -- Flags default to true on creation, and are only saved in wagon_data if they should be false
+  -- But setting flags to nil is same as setting false, so only assign false if wagon_data entry is not nil
+  if wagon_data.minable == false then vehicle.minable = false end
+  if wagon_data.destructible == false then vehicle.destructible =false end
+  if wagon_data.operable == false then vehicle.operable = false end
+  if wagon_data.rotatable == false then vehicle.rotatable = false end
+  if wagon_data.enable_logistics_while_moving == false then
+    vehicle.enable_logistics_while_moving = false
   end
 
   -- Restore burner

@@ -51,11 +51,11 @@ function loadVehicleWagon(action)
   saveData.health = vehicle.health
   saveData.color = vehicle.color
   saveData.last_user = vehicle.last_user and vehicle.last_user.index
-  saveData.minable = vehicle.minable
-  saveData.destructible = vehicle.destructible
-  saveData.operable = vehicle.operable
-  saveData.rotatable = vehicle.rotatable
-  saveData.enable_logistics_while_moving = vehicle.enable_logistics_while_moving
+  if not vehicle.minable then saveData.minable = false end
+  if not vehicle.destructible then saveData.destructible = false end
+  if not vehicle.operable then saveData.operable = false end
+  if not vehicle.rotatable then saveData.rotatable = false end
+  if not vehicle.enable_logistics_while_moving then saveData.enable_logistics_while_moving = false end
   
   -- Store inventory contents
   saveData.items = {
