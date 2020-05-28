@@ -54,14 +54,11 @@ function OnConfigurationChanged(event)
 end
 
 function OnRuntimeModSettingChanged(event)
-  game.print("In VW mod setting changed "..event.setting)
+  
   -- Reset minable state when GCKI setting changes
-  if (event.setting == "vehicle-wagon-use-GCKI-permissions" and 
-      remote.interfaces["GCKI"] and
-      remote.interfaces["GCKI"].get_vehicle_data ) then
+  if event.setting == "vehicle-wagon-use-GCKI-permissions" then
     
-    local gcki_enabled = (remote.interfaces["GCKI"] and 
-                          remote.interfaces["GCKI"].get_vehicle_data and 
+    local gcki_enabled = (game.active_mods["GCKI"] and 
                           settings.global["vehicle-wagon-use-GCKI-permissions"].value)
     
     for id,data in pairs(global.wagon_data) do
