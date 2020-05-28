@@ -231,30 +231,32 @@ function renderWagonVisuals(p, target, vehicle_radius)
 end
 
 function renderIcon(target, contents)
-  -- Create icon showing contents (will be deleted automatically when wagon is destroyed or unloaded)
-  local visuals = {
-    rendering.draw_sprite{
-      sprite="vw2-bg-icon",
-      x_scale=1.6,
-      y_scale=1.6,
-      render_layer="entity-info-icon",
-      target=target,
-      target_offset={0,BED_CENTER_OFFSET},
-      surface=target.surface,
-      only_in_alt_mode=true
-    },
-    rendering.draw_sprite{
-      sprite="entity."..contents,
-      x_scale=1.2,
-      y_scale=1.2,
-      render_layer="entity-info-icon",
-      target=target,
-      target_offset={0,BED_CENTER_OFFSET},
-      surface=target.surface,
-      only_in_alt_mode=true
+  if target then
+    -- Create icon showing contents (will be deleted automatically when wagon is destroyed or unloaded)
+    local visuals = {
+      rendering.draw_sprite{
+        sprite="vw2-bg-icon",
+        x_scale=1.6,
+        y_scale=1.6,
+        render_layer="entity-info-icon",
+        target=target,
+        target_offset={0,BED_CENTER_OFFSET},
+        surface=target.surface,
+        only_in_alt_mode=true
+      },
+      rendering.draw_sprite{
+        sprite="entity."..contents,
+        x_scale=1.2,
+        y_scale=1.2,
+        render_layer="entity-info-icon",
+        target=target,
+        target_offset={0,BED_CENTER_OFFSET},
+        surface=target.surface,
+        only_in_alt_mode=true
+      }
     }
-  }
-  return visuals
+    return visuals
+  end
 end
 
 function renderLoadingRamp(wagon, vehicle)
