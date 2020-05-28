@@ -36,7 +36,7 @@ local function OnPlayerUsedCapsule(event)
       
       -- Clicked on a Loaded Wagon
       local unit_number = loaded_wagon.unit_number
-            
+      
       
       if loaded_wagon.get_driver() then
         player.print({"vehicle-wagon2.wagon-passenger-error"})  -- Can't unload while passenger in wagon

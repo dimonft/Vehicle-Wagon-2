@@ -52,17 +52,34 @@ function makeGlobalMaps()
     else
       global.vehicleMap[k] = "loaded-vehicle-wagon-tarp"  -- Default for everything else
     end
-
   end
   
-  global.loadedWagonMap = {}  --: loaded-wagon-name --> "vehicle-wagon"
-  global.loadedWagonList = {} --: list of loaded-wagon-name
-  for _,v in pairs(global.vehicleMap) do
-    if not global.loadedWagonMap[v] then
-      global.loadedWagonMap[v] = "vehicle-wagon"
-      table.insert(global.loadedWagonList, v)
+  -- Make list and map of loaded wagon entities (regardless of whether any vehicles map to them)
+  global.loadedWagonMap = {}   --: loaded-wagon-name --> "vehicle-wagon"
+  global.loadedWagonList = {}  --: list of loaded-wagon-name
+  for k,p in pairs(game.get_filtered_entity_prototypes({{filter="type", type="cargo-wagon"}})) do
+    if string.find(k,"loaded%-vehicle%-wagon%-") ~= nil then
+      global.loadedWagonMap[k] = "vehicle-wagon"
+      table.insert(global.loadedWagonList, k)
     end
   end
+  
+end
+
+
+-- Initialize new global tables if they do not already exist
+function makeGlobalTables()
+  -- Contains data on vehicles loaded on wagons
+  global.wagon_data = global.wagon_data or {}
+  -- Controls sequence of messages that tell players how to use the winch
+  global.tutorials = global.tutorials or {}
+  for i, player in pairs(game.players) do
+    global.tutorials[player.index] = global.tutorials[player.index] or {}
+  end
+  -- Contains load/unload actions players ordered, while they wait for the 2-second delay to expire
+  global.action_queue = global.action_queue or {}
+  -- Contains entity each player actively selected with a winch.
+  global.player_selection = global.player_selection or {}
   
 end
 
