@@ -115,6 +115,44 @@ makeGlobalMaps()
 
 if global.vehicle_data then
 
+  -- Convert pairs of winches to single winches
+  for id,player in pairs(game.players) do
+    -- Main player inventory
+    local inv = player.get_main_inventory()
+    if inv and inv.valid then
+      local count = math.floor(inv.get_item_count("winch")/2)
+      if count > 0 then
+        inv.remove({name="winch", count=count})
+      end
+    end
+    -- Player cursor stack
+    local cursor = player.cursor_stack
+    if cursor and cursor.valid_for_read and cursor.name == "winch" then
+      cursor.count = math.ceil(cursor.count/2)
+    end
+  end
+  
+  -- Convert stored winches to single winches
+  for _,surface in pairs(game.surfaces) do
+    for _,box in pairs(surface.find_entities_filtered{type = {"container","logistic-container","cargo-wagon","car"}}) do
+      local inv
+      if box.type == "container" or box.type == "logistic-container" then
+        inv = box.get_inventory(defines.inventory.chest)
+      elseif box.type == "car" then
+        inv = box.get_inventory(defines.inventory.car_trunk)
+      elseif box.type == "cargo-wagon" then
+        inv = box.get_inventory(defines.inventory.cargo_wagon)
+      end
+      if inv and inv.valid then
+        local count = math.floor(inv.get_item_count("winch")/2)
+        if count > 0 then
+          inv.remove({name="winch", count=count})
+        end
+      end
+    end
+  end
+
+
   log("Vehicle Wagon 2 global before migration:")
   log(serpent.block(global))
 
@@ -140,8 +178,7 @@ if global.vehicle_data then
     -- Step 2: Make a list of all loaded wagon entities in the game
     local loaded_wagons = {}
     for _,surface in pairs(game.surfaces) do
-      local wagons = surface.find_entities_filtered{name = global.loadedWagonList}
-      for _,wagon in pairs(wagons) do
+      for _,wagon in pairs(surface.find_entities_filtered{name = global.loadedWagonList}) do
         log("Found loaded wagon "..tostring(wagon and wagon.name).." "..tostring(wagon and wagon.unit_number))
         loaded_wagons[wagon.unit_number] = wagon
       end
@@ -272,6 +309,20 @@ if global.vehicle_data then
   -- Clear other flags from the old version
   global.found = nil  -- No longer used
   global.tutorials = nil  -- Reset tutorial message sequences
+  
+  
+  -- If there are pairs of winches in any loaded vehicle, halve them
+  if global.wagon_data then
+    for id,data in pairs(global.wagon_data) do
+      if data.items and data.items.trunk then
+        for _,stack in pairs(data.items.trunk) do
+          if stack.name == "winch" then
+            stack.count = math.ceil(stack.count/2)
+          end
+        end
+      end
+    end
+  end
   
   game.print({"vehicle-wagon2.migrate-12x-success"})
   

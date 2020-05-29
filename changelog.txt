@@ -6,6 +6,7 @@ Date: 2020-05-28
     - Added compatibility with Unminable Vehicles.  "Make vehicles unminable" setting takes priority over Gizmo's Car Keys setting.
   Changes:
     - Moved migration code to migrations folder and cleaned them up significantly.
+    - Added migration step to convert double winches to single winches (only when upgrading from 1.2.x).
   Bugfixes:
     - Fixed that these vehicle flags would not be saved and restored: minable, destructible, operable, rotatable, enable_logistics_while_moving.
     - Fixed that any mod changes would reset Vehicle Wagon tutorial states.

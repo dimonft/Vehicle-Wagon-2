@@ -1,3 +1,8 @@
+--[[ Copyright (c) 2020 robot256 (MIT License)
+ * Project: Vehicle Wagon 2 rewrite
+ * File: makeGlobalMaps.lua
+ * Description: Cross-reference prototypes of loaded wagons
+--]]
 
 -- Go through all the available prototypes and assign them to a valid loaded wagon or "nope"
 function makeGlobalMaps()
