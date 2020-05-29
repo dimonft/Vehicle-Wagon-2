@@ -38,9 +38,8 @@ for id,data in pairs(global.wagon_data) do
 
   -- Add alt-mode icons to existing loaded wagons
   if not data.icon then
-    if renderIcon(data.wagon, data.name) then
-      data.icon = true
-    end
+    -- Returns nil if target is invalid
+    data.icon = renderIcon(data.wagon, data.name)
   end
   
 end

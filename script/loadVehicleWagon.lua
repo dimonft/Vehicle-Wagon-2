@@ -93,8 +93,7 @@ function loadVehicleWagon(action)
   end
   
   -- Put an icon on the wagon showing contents
-  renderIcon(loaded_wagon, vehicle.name)
-  saveData.icon = true
+  saveData.icon = renderIcon(loaded_wagon, vehicle.name)
   
   global.wagon_data[unit_number] = saveData
   
