@@ -18,6 +18,7 @@ local vehicle_wagon = util.table.deepcopy(data.raw["cargo-wagon"]["cargo-wagon"]
 vehicle_wagon.name = "vehicle-wagon"
 vehicle_wagon.icon = "__VehicleWagon2__/graphics/vehicle-wagon-icon.png"
 vehicle_wagon.icon_size = 32
+vehicle_wagon.icon_mipmaps = 1
 vehicle_wagon.inventory_size = 0
 vehicle_wagon.minable = {mining_time = 1, result = "vehicle-wagon"}
 vehicle_wagon.horizontal_doors = nil

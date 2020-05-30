@@ -13,6 +13,7 @@ data:extend({
 		name = "vehicle-wagons",
 		icon = "__VehicleWagon2__/graphics/tech-icon.png",
 		icon_size = 128,
+    icon_mipmaps = 1,
 		effects =
 		{
 			{
