@@ -157,7 +157,7 @@ end
 -- Remove locker or owner assignment when necessary
 --== ON_PRE_PLAYER_REMOVED EVENT ==--
 function onPrePlayerRemoved(event)
-  player_index = event.player_index
+  local player_index = event.player_index
   
   local unminable_enabled = game.active_mods["UnminableVehicles"] and settings.global["unminable_vehicles_make_unminable"].value
   
