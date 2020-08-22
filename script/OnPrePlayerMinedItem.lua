@@ -105,7 +105,7 @@ local function OnPrePlayerMinedItem(event)
     if entity.stack.valid_for_read and global.loadedWagonMap[entity.stack.name] then
       entity.stack.set_stack({name="vehicle-wagon", count=entity.stack.count})
     end
-  elseif event.entity.type == "car" then
+  elseif (event.entity.type == "car" or event.entity.type == "spider-vehicle") then
     clearVehicle(entity)
   end
   

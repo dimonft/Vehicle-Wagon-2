@@ -74,6 +74,15 @@ function get_driver_or_passenger(entity)
 end
 
 
+-- Deal with Spidertron not having speed
+function is_vehicle_moving(vehicle)
+  if vehicle.type == "car" then
+    return vehicle.speed ~= 0
+  elseif vehicle.type == "spider-vehicle" then
+    return vehicle.autopilot_destination ~= nil
+  end
+end
+
 
 --== ON_TICK ==--
 -- Executes queued load/unload actions after the correct time has elapsed.
@@ -84,7 +93,7 @@ function process_tick(event)
     -- Check that selected wagon or vehicle is still stopped
     if selection.wagon and selection.wagon.speed ~= 0 then
       clearWagon(selection.wagon.unit_number, {silent=true, sound=true})
-    elseif selection.vehicle and selection.vehicle.speed ~= 0 then
+    elseif selection.vehicle and is_vehicle_moving(selection.vehicle) then
       clearVehicle(selection.vehicle, {silent=true, sound=true})
     end
   end
@@ -96,7 +105,7 @@ function process_tick(event)
       ------- CHECK THAT WAGON AND CAR ARE STILL STOPPED ------
       local wagon = action.wagon
       local vehicle = action.vehicle
-      if wagon.train.speed ~= 0 or (vehicle and vehicle.speed ~= 0) then
+      if wagon.train.speed ~= 0 or (vehicle and is_vehicle_moving(vehicle)) then
         -- Train or car started moving, cancel action
         clearWagon(wagon.unit_number, {silent=true, sound=false})
       
@@ -341,7 +350,7 @@ function OnMarkedForDeconstruction(event)
   -- Delete any player selections or load/unload actions associated with this wagon
   if event.entity.name == "vehicle-wagon" or global.loadedWagonMap[event.entity.name] then
     clearWagon(event.entity.unit_number)
-  elseif event.entity.type == "car" then
+  elseif (event.entity.type == "car" or event.entity.type == "spider-vehicle") then
     clearVehicle(entity)
   end
 end
@@ -393,7 +402,7 @@ function OnEntityDied(event)
     deleteWagon(entity.unit_number)
   elseif entity.name == "vehicle-wagon" then
     clearWagon(entity.unit_number)
-  elseif event.entity.type == "car" and not event.vehicle_loaded then
+  elseif (event.entity.type == "car" or event.entity.type == "spider-vehicle") and not event.vehicle_loaded then
     -- Car died, 
     clearVehicle(entity, {silent=true})
   end
@@ -413,7 +422,7 @@ function OnPlayerDrivingChangedState(event)
       player.driving = false
     elseif global.loadedWagonMap[vehicle.name] then
       clearWagon(vehicle.unit_number, {silent=true, sound=true})
-    elseif vehicle.type == "car" then
+    elseif (vehicle.type == "car" or vehicle.type == "spider-vehicle") then
       clearVehicle(vehicle, {silent=true, sound=true})
     end
   end

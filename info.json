@@ -1,13 +1,13 @@
 {
 	"name": "VehicleWagon2",
-	"version": "2.18.6",
-	"factorio_version": "0.18",
+	"version": "3.0.7",
+	"factorio_version": "1.0",
 	"title": "Vehicle Wagon 2",
 	"author": "robot256",
 	"homepage": "",
 	"contact": "https://forums.factorio.com/memberlist.php?mode=viewprofile&u=63685",
 	"dependencies": [
-		"base >= 0.18.0",
+		"base >= 1.0.0",
         "Robot256Lib >= 0.1.1"
 	],
 	"description": "Winch vehicles onto trains and go for a ride! | RU: Возьмите с собой полностью заряженный и готовый к бою транспорт и отправьте его в путешествие по железной дороге."

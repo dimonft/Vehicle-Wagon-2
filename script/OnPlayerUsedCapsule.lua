@@ -104,7 +104,7 @@ local function OnPlayerUsedCapsule(event)
     
     --------------------------------
     -- Vehicle: Check if valid to load on wagon
-    elseif selected_entity and selected_entity.type == "car" then
+    elseif selected_entity and (selected_entity.type == "car" or selected_entity.type == "spider-vehicle") then
       local vehicle = selected_entity
       
       -- Clicked on a vehicle
@@ -123,9 +123,10 @@ local function OnPlayerUsedCapsule(event)
       if get_driver_or_passenger(vehicle) then
         player.print({"vehicle-wagon2.vehicle-passenger-error"})
       
-      elseif vehicle.speed ~= 0 then
+      elseif ((vehicle.type == "car" and vehicle.speed ~= 0) or 
+              (vehicle.type == "spider-vehicle" and vehicle.autopilot_destination ~= nil)) then
         player.print({"vehicle-wagon2.vehicle-in-motion-error"})
-      
+        
       elseif not global.vehicleMap[vehicle.name] then
         player.print({"vehicle-wagon2.unknown-vehicle-error", vehicle.localised_name})
       

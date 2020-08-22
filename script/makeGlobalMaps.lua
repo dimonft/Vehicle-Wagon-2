@@ -25,7 +25,7 @@ function makeGlobalMaps()
   global.loadedWagonFlip = {}  --: loaded-wagon-name --> boolean
   
   global.vehicleMap = {}  --: vehicle-name --> loaded-wagon-name
-  for k,p in pairs(game.get_filtered_entity_prototypes({{filter="type", type="car"}})) do
+  for k,p in pairs(game.get_filtered_entity_prototypes({{filter="type", type="car"},{filter="type", type="spider-vehicle"}})) do
     local kc = k and string.lower(k)  -- force to lower case when looking for generic car and tank strings
     
     if k and string.find(k,"nixie") then
@@ -41,6 +41,9 @@ function makeGlobalMaps()
     
     elseif p.weight > maxWeight then
       global.vehicleMap[k] = nil  -- This vehicle is too heavy
+      
+    elseif p.type == "spider-vehicle" then
+      global.vehicleMap[k] = "loaded-vehicle-wagon-tarp"  -- All Spidertrons become tarps until we have new graphics :)
     
     elseif k and string.find(k,"cargo%-plane") and global.loadedWagonMap["loaded-vehicle-wagon-cargoplane"] then
       global.vehicleMap[k] = "loaded-vehicle-wagon-cargoplane"  -- Cargo plane, Better cargo plane, Even better cargo plane

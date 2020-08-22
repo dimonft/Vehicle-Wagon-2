@@ -6,6 +6,11 @@
  *    2. Store the Vehicle inventories, grid, and settings in the global.wagon_data table.
  --]]
 
+-- defines.inventory.SPIDER_TRUNK = 2
+-- defines.inventory.SPIDER_AMMO = 3
+
+local SPIDER_TRUNK = 2
+local SPIDER_AMMO = 3
 
 -------------------------
 -- Load Wagon
@@ -57,15 +62,28 @@ function loadVehicleWagon(action)
   if not vehicle.rotatable then saveData.rotatable = false end
   if not vehicle.enable_logistics_while_moving then saveData.enable_logistics_while_moving = false end
   
-  -- Store inventory contents
-  saveData.items = {
-                     ammo = saveRestoreLib.saveInventoryStacks(vehicle.get_inventory(defines.inventory.car_ammo)),
-                     trunk = saveRestoreLib.saveInventoryStacks(vehicle.get_inventory(defines.inventory.car_trunk))
-                   }
   
-  -- Store inventory filters
-  saveData.filters = {ammo = saveRestoreLib.saveFilters(vehicle.get_inventory(defines.inventory.car_ammo)),
-                      trunk = saveRestoreLib.saveFilters(vehicle.get_inventory(defines.inventory.car_trunk)) }
+  if vehicle.type == "car" then
+    -- Store inventory contents
+    saveData.items = {
+                       ammo = saveRestoreLib.saveInventoryStacks(vehicle.get_inventory(defines.inventory.car_ammo)),
+                       trunk = saveRestoreLib.saveInventoryStacks(vehicle.get_inventory(defines.inventory.car_trunk))
+                     }
+    
+    -- Store inventory filters
+    saveData.filters = {ammo = saveRestoreLib.saveFilters(vehicle.get_inventory(defines.inventory.car_ammo)),
+                        trunk = saveRestoreLib.saveFilters(vehicle.get_inventory(defines.inventory.car_trunk)) }
+  elseif vehicle.type == "spider-vehicle" then
+    -- Store inventory contents
+    saveData.items = {
+                       ammo = saveRestoreLib.saveInventoryStacks(vehicle.get_inventory(SPIDER_AMMO)),
+                       trunk = saveRestoreLib.saveInventoryStacks(vehicle.get_inventory(SPIDER_TRUNK))
+                     }
+    
+    -- Store inventory filters
+    saveData.filters = {ammo = saveRestoreLib.saveFilters(vehicle.get_inventory(SPIDER_AMMO)),
+                        trunk = saveRestoreLib.saveFilters(vehicle.get_inventory(SPIDER_TRUNK)) }
+  end
   
   -- Store grid contents
   saveData.grid = saveRestoreLib.saveGrid(vehicle.grid)

@@ -10,7 +10,12 @@
  *    5. If unsuccessful, return nil.
  *    1. Replace Loaded Vehicle Wagon with Vehicle Wagon.
  --]]
+ 
+-- defines.inventory.spider_trunk = 2
+-- defines.inventory.SPIDER_AMMO = 3
 
+local SPIDER_TRUNK = 2
+local SPIDER_AMMO = 3
 
 -------------------------
 -- Unload Wagon (either manually or from mining)
@@ -137,35 +142,63 @@ function unloadVehicleWagon(action)
   -- Restore burner
   local r1 = saveRestoreLib.restoreBurner(vehicle.burner, wagon_data.burner)
   
-  -- Restore inventory filters
-  if wagon_data.filters then
-    saveRestoreLib.restoreFilters(vehicle.get_inventory(defines.inventory.car_ammo), wagon_data.filters.ammo)
-    saveRestoreLib.restoreFilters(vehicle.get_inventory(defines.inventory.car_trunk), wagon_data.filters.trunk)
-  end
-  
   -- Restore equipment grid
   local r2 = saveRestoreLib.restoreGrid(vehicle.grid, wagon_data.grid)
   r1 = saveRestoreLib.mergeStackLists(r1, r2)
   
-  -- Restore ammo inventory if this car has guns
-  if vehicle.selected_gun_index then
-    local ammoInventory = vehicle.get_inventory(defines.inventory.car_ammo)
-    local r2 = saveRestoreLib.insertInventoryStacks(ammoInventory, wagon_data.items.ammo)
+  
+  if vehicle.type == "car" then
+    -- Restore inventory filters
+    if wagon_data.filters then
+      saveRestoreLib.restoreFilters(vehicle.get_inventory(defines.inventory.car_ammo), wagon_data.filters.ammo)
+      saveRestoreLib.restoreFilters(vehicle.get_inventory(defines.inventory.car_trunk), wagon_data.filters.trunk)
+    end
+    
+    -- Restore ammo inventory if this car has guns
+    if vehicle.selected_gun_index then
+      local ammoInventory = vehicle.get_inventory(defines.inventory.car_ammo)
+      local r2 = saveRestoreLib.insertInventoryStacks(ammoInventory, wagon_data.items.ammo)
+      r1 = saveRestoreLib.mergeStackLists(r1, r2)
+    end
+    
+    -- Restore the cargo inventory
+    local trunkInventory = vehicle.get_inventory(defines.inventory.car_trunk)
+    local r2 = saveRestoreLib.insertInventoryStacks(trunkInventory, wagon_data.items.trunk)
     r1 = saveRestoreLib.mergeStackLists(r1, r2)
-  else
-    r1 = saveRestoreLib.mergeStackLists(r1, wagon_data.items.ammo)
+    
+    -- Try to insert remainders into trunk, spill whatever doesn't fit
+    if r1 then
+      local r2 = saveRestoreLib.insertInventoryStacks(trunkInventory, r1)
+      saveRestoreLib.spillStacks(r2, surface, unload_position)
+    end
+  
+  elseif vehicle.type == "spider-vehicle" then
+    -- Restore inventory filters
+    if wagon_data.filters then
+      saveRestoreLib.restoreFilters(vehicle.get_inventory(SPIDER_AMMO), wagon_data.filters.ammo)
+      saveRestoreLib.restoreFilters(vehicle.get_inventory(SPIDER_TRUNK), wagon_data.filters.trunk)
+    end
+    
+    -- Restore ammo inventory if this car has guns
+    --if vehicle.type == "car" and vehicle.selected_gun_index then
+      local ammoInventory = vehicle.get_inventory(SPIDER_AMMO)
+      local r2 = saveRestoreLib.insertInventoryStacks(ammoInventory, wagon_data.items.ammo)
+      r1 = saveRestoreLib.mergeStackLists(r1, r2)
+    --end
+    
+    -- Restore the cargo inventory
+    local trunkInventory = vehicle.get_inventory(SPIDER_TRUNK)
+    local r2 = saveRestoreLib.insertInventoryStacks(trunkInventory, wagon_data.items.trunk)
+    r1 = saveRestoreLib.mergeStackLists(r1, r2)
+    
+    -- Try to insert remainders into trunk, spill whatever doesn't fit
+    if r1 then
+      local r2 = saveRestoreLib.insertInventoryStacks(trunkInventory, r1)
+      saveRestoreLib.spillStacks(r2, surface, unload_position)
+    end
+  
   end
   
-  -- Restore the cargo inventory
-  local trunkInventory = vehicle.get_inventory(defines.inventory.car_trunk)
-  local r2 = saveRestoreLib.insertInventoryStacks(trunkInventory, wagon_data.items.trunk)
-  r1 = saveRestoreLib.mergeStackLists(r1, r2)
-  
-  -- Try to insert remainders into trunk, spill whatever doesn't fit
-  if r1 then
-    local r2 = saveRestoreLib.insertInventoryStacks(trunkInventory, r1)
-    saveRestoreLib.spillStacks(r2, surface, unload_position)
-  end
   
   -- Raise event for scripts
   -- Added autodrive_data and GCKI_data to arguments. No need to test if they are set: If nil, they will be ignored!
