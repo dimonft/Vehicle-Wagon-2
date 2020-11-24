@@ -1,4 +1,15 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.1.8
+Date: 2020-11-23
+  Changes:
+    - Updated for Factorio 1.1.0.
+    - Added support for saving the selected vehicle weapon.
+    - Added support for Spidertron logistics.
+    - Allowed loading of VW Transporter Cargo Van.
+  Bugfixes:
+    - Fixed some error messages in the migration scripts during loading.
+    - Fixed that migration script might crash if modded vehicles are removed.
+---------------------------------------------------------------------------------------------------
 Version: 3.0.7
 Date: 2020-08-22
   Features:

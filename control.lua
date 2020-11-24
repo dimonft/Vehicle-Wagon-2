@@ -74,12 +74,15 @@ function get_driver_or_passenger(entity)
 end
 
 
--- Deal with Spidertron not having speed
+-- Determine if the vehicle is moving.
+-- Use speed and spider autopilot if present.
 function is_vehicle_moving(vehicle)
-  if vehicle.type == "car" then
-    return vehicle.speed ~= 0
-  elseif vehicle.type == "spider-vehicle" then
-    return vehicle.autopilot_destination ~= nil
+  if vehicle.speed ~= 0 then
+    return true
+  elseif vehicle.type == "spider-vehicle" and vehicle.autopilot_destination ~= nil then
+    return true
+  else
+    return false
   end
 end
 

@@ -231,7 +231,8 @@ function renderWagonVisuals(p, target, vehicle_radius)
 end
 
 function renderIcon(target, contents)
-  if target then
+  -- Check that target entity exists, and contents entity/icon is loaded in the game.
+  if target and game.entity_prototypes[contents] then
     -- Create icon showing contents (will be deleted automatically when wagon is destroyed or unloaded)
     local visuals = {
       rendering.draw_sprite{

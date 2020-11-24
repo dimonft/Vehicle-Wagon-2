@@ -123,8 +123,7 @@ local function OnPlayerUsedCapsule(event)
       if get_driver_or_passenger(vehicle) then
         player.print({"vehicle-wagon2.vehicle-passenger-error"})
       
-      elseif ((vehicle.type == "car" and vehicle.speed ~= 0) or 
-              (vehicle.type == "spider-vehicle" and vehicle.autopilot_destination ~= nil)) then
+      elseif is_vehicle_moving(vehicle) then
         player.print({"vehicle-wagon2.vehicle-in-motion-error"})
         
       elseif not global.vehicleMap[vehicle.name] then

@@ -34,8 +34,6 @@ function makeGlobalMaps()
       global.vehicleMap[k] = nil  -- non vehicle entity
     elseif k and (string.find(k,"heli") or string.find(k,"rotor")) then
       global.vehicleMap[k] = nil  -- helicopter & heli parts incompatible
-    elseif k == "vwtransportercargo" then
-      global.vehicleMap[k] = nil  -- non-vehicle part of an obsolete mod
     elseif k and string.find(k,"airborne") then
       global.vehicleMap[k] = nil  -- can't load flying planes [Aircraft Realism compatibility]
     
