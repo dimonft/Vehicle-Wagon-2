@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.1.9
+Date: 2020-11-25
+  Features:
+    - Now you can load and unload using the winch in the map view.
+    - Now you can load a vehicle onto a wagon in one command by selecting them both at the same time!
+  Bugfixes:
+    - Technology description locale.
+---------------------------------------------------------------------------------------------------
 Version: 3.1.8
 Date: 2020-11-23
   Changes:

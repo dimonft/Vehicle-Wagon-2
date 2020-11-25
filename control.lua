@@ -306,7 +306,7 @@ end
 
 --== ON_PLAYER_USED_CAPSULE ==--
 -- Queues load/unload data when player clicks with the winch.
-script.on_event(defines.events.on_player_used_capsule, require("script.OnPlayerUsedCapsule"))
+script.on_event(defines.events.on_player_selected_area, require("script.OnPlayerSelectedArea"))
 
 
 --== ON_PLAYER_CURSOR_STACK_CHANGED ==--

@@ -1,38 +1,59 @@
 --[[ Copyright (c) 2020 robot256 (MIT License)
  * Project: Vehicle Wagon 2 rewrite
- * File: OnPlayerUsedCapsule.lua
- * Description: Event handler for when a player uses a capsule.
- *  - When the player uses a Winch Capsule:
+ * File: OnPlayerSelectedArea.lua
+ * Description: Event handler for when a player selects area with the winch.
+ *  - When the player uses a Winch Tool:
  *    1. If player clicked on a Vehicle, start the loading selection sequence.
  *    2. If player clicked on a Loaded Vehicle Wagon, start the unloading selection sequence.
  *    3. If player clicked on a Vehicle Wagon after clicking on a Vehicle, queue the Loading Action.
  *    4. If player clicked on none of the above after clicking on a Loaded Vehicle Wagon, queue the Unloading Action.
+ *    5. If player selected both a Vehicle and empty Vehicle Wagon, immediately queue the Loading Action.
 --]]
 
 
---== ON_PLAYER_USED_CAPSULE ==--
+--== ON_PLAYER_SELECTED_AREA ==--
 -- Queues load/unload data when player clicks with the winch.
-local function OnPlayerUsedCapsule(event)
-  local capsule = event.item
-  if capsule.name == "winch" then
+local function OnPlayerSelectedArea(event)
+  if event.item == "winch" then
     local index = event.player_index
     local player = game.players[index]
-    local surface = player.surface
-    local position = event.position
-    local selected_entity = player.selected
+    local surface = event.surface
+    local position = {x=(event.area.left_top.x+event.area.right_bottom.x)/2, y=(event.area.left_top.y+event.area.right_bottom.y)/2}
     
-    if selected_entity and not selected_entity.valid then
-      selected_entity = nil
+    -- Check that at most one vehicle and at most one wagon was selected
+    local selected_vehicles = {}
+    local selected_empty_wagons = {}
+    local selected_loaded_wagons = {}
+    for _,entity in pairs(event.entities) do
+      if entity and entity.valid then
+        if global.loadedWagonMap[entity.name]then
+          table.insert(selected_loaded_wagons, entity)
+        elseif entity.name == "vehicle-wagon" then
+          table.insert(selected_empty_wagons, entity)
+        elseif (entity and entity.valid and (entity.type == "car" or entity.type == "spider-vehicle")) then
+          table.insert(selected_vehicles, entity)
+        end
+      end
     end
     
     -- Don't check GCKI data if the mod was uninstalled or setting turned off
     local check_GCKI = remote.interfaces["GCKI"] and settings.global["vehicle-wagon-use-GCKI-permissions"].value
     
+    if event.name == defines.events.on_player_selected_area then
+      -- Player used normal selection mode
+      -- Only allow one wagon and one vehicle
+      if #selected_vehicles > 1 or (#selected_empty_wagons + #selected_loaded_wagons) > 1 then
+        player.print({"vehicle-wagon2.too-many-selected-error"})
+        return
+      end
+    end
+    
+    
     
     ------------------------------------------------
     -- Loaded Wagon: Check if Valid to Unload
-    if selected_entity and global.loadedWagonMap[selected_entity.name] then
-      local loaded_wagon = selected_entity
+    if selected_loaded_wagons[1] then
+      local loaded_wagon = selected_loaded_wagons[1]
       
       -- Clicked on a Loaded Wagon
       local unit_number = loaded_wagon.unit_number
@@ -94,18 +115,19 @@ local function OnPlayerUsedCapsule(event)
         local vehicle_prototype = game.entity_prototypes[global.wagon_data[unit_number].name]
         -- Select vehicle as unloading source
         player.play_sound({path = "latch-on"})
+        
         -- Always show tutorial message, to find out what kind of vehicle is stored here
         player.print{"vehicle-wagon2.select-unload-vehicle-location", vehicle_prototype.localised_name}
         -- Record selection and create radius circle
         global.player_selection[index] = {wagon=loaded_wagon, visuals= renderWagonVisuals(player,loaded_wagon,vehicle_prototype.radius)}
         script.on_event(defines.events.on_tick, process_tick)
       end
-    
+    end
     
     --------------------------------
     -- Vehicle: Check if valid to load on wagon
-    elseif selected_entity and (selected_entity.type == "car" or selected_entity.type == "spider-vehicle") then
-      local vehicle = selected_entity
+    if selected_vehicles[1] then
+      local vehicle = selected_vehicles[1]
       
       -- Clicked on a vehicle
       global.tutorials[index] = global.tutorials[index] or {}
@@ -140,6 +162,7 @@ local function OnPlayerUsedCapsule(event)
       else
         -- Store vehicle selection
         player.play_sound({path = "latch-on"})
+        
         global.player_selection[index] = {vehicle=vehicle, visuals= renderVehicleVisuals(player,vehicle)}
         -- Tutorial message to select an empty wagon
         if global.tutorials[index][1] < 5 then
@@ -148,11 +171,12 @@ local function OnPlayerUsedCapsule(event)
         end
         script.on_event(defines.events.on_tick, process_tick)
       end
+    end
     
     --------------------------------------
     -- Empty Wagon:  Check if valid to load with selected vehicle
-    elseif selected_entity and selected_entity.name == "vehicle-wagon" then
-      local wagon = selected_entity
+    if selected_empty_wagons[1] then
+      local wagon = selected_empty_wagons[1]
       
       -- Clicked on an empty wagon
       if wagon.train.speed ~= 0 then
@@ -180,7 +204,8 @@ local function OnPlayerUsedCapsule(event)
             player.print({"vehicle-wagon2.unknown-vehicle-error", vehicle.localised_name})
             clearSelection(index)
           else
-            player.surface.play_sound({path = "winch-sound", position = player.position})
+            player.surface.play_sound({path = "winch-sound", position = wagon.position})
+            
             global.action_queue[wagon.unit_number] = {
                 player_index = index,
                 status = "load",
@@ -198,10 +223,12 @@ local function OnPlayerUsedCapsule(event)
         -- Clicked on an empty wagon without first clicking on a vehicle
         player.print({"vehicle-wagon2.no-vehicle-selected"})
       end
-
+    end
+    
     ---------------------------------------------
     -- Someplace Else: Check if valid to unlod selected loaded wagon
-    elseif (global.player_selection[index] and global.player_selection[index].wagon) then
+    if (#selected_vehicles == 0 and #selected_loaded_wagons == 0 and #selected_empty_wagons == 0) and
+       (global.player_selection[index] and global.player_selection[index].wagon) then
       -- Clicked on the ground or unrelated entity after clicking on a loaded wagon
       local wagon = global.player_selection[index].wagon
       local unit_number = wagon.unit_number
@@ -227,6 +254,7 @@ local function OnPlayerUsedCapsule(event)
         -- Vehicle will be oriented radially outward from the center of the wagon
         local unload_orientation = math.atan2(unload_position.x - wagon.position.x, -(unload_position.y - wagon.position.y))/(2*math.pi)
         player.surface.play_sound({path = "winch-sound", position = wagon.position})
+        
         global.action_queue[unit_number] = {
             player_index = index,
             status = "unload",
@@ -240,7 +268,8 @@ local function OnPlayerUsedCapsule(event)
         script.on_event(defines.events.on_tick, process_tick)
       end
     end
+    
   end
 end
 
-return OnPlayerUsedCapsule
+return OnPlayerSelectedArea
