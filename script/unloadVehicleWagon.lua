@@ -156,7 +156,9 @@ function unloadVehicleWagon(action)
       r1 = saveRestoreLib.mergeStackLists(r1, r2)
     
       -- Restore the selected gun index
-      vehicle.selected_gun_index = wagon_data.selected_gun_index
+      if wagon_data.selected_gun_index then
+        vehicle.selected_gun_index = wagon_data.selected_gun_index
+      end
     end
     
     -- Restore the cargo inventory
@@ -184,7 +186,9 @@ function unloadVehicleWagon(action)
       r1 = saveRestoreLib.mergeStackLists(r1, r2)
       
       -- Restore the selected gun index
-      vehicle.selected_gun_index = wagon_data.selected_gun_index
+      if wagon_data.selected_gun_index then
+        vehicle.selected_gun_index = wagon_data.selected_gun_index
+      end
     elseif wagon_data.items.ammo then
       r1 = saveRestoreLib.mergeStackLists(r1, wagon_data.items.ammo)
     end
