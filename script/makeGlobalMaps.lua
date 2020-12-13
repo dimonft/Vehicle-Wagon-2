@@ -22,7 +22,11 @@ function makeGlobalMaps()
   local maxWeight = (useWeights and settings.startup["vehicle-wagon-maximum-weight"].value) or math.huge
   
   -- Some sprites show up backwards from how they ought to, so we flip the wagons relative to the vehicles.
-  global.loadedWagonFlip = {}  --: loaded-wagon-name --> boolean
+  global.loadedWagonFlip = {  --: loaded-wagon-name --> boolean
+    ["loaded-vehicle-wagon-cargoplane"] = true,  -- Cargo plane wagon sprite is flipped
+    ["loaded-vehicle-wagon-jet"] = true,  -- Jet wagon sprite is flipped
+    ["loaded-vehicle-wagon-gunship"] = true,  -- Gunship wagon sprite is flipped
+  }
   
   global.vehicleMap = {}  --: vehicle-name --> loaded-wagon-name
   for k,p in pairs(game.get_filtered_entity_prototypes({{filter="type", type="car"},{filter="type", type="spider-vehicle"}})) do
@@ -45,17 +49,14 @@ function makeGlobalMaps()
     
     elseif k and string.find(k,"cargo%-plane") and global.loadedWagonMap["loaded-vehicle-wagon-cargoplane"] then
       global.vehicleMap[k] = "loaded-vehicle-wagon-cargoplane"  -- Cargo plane, Better cargo plane, Even better cargo plane
-      global.loadedWagonFlip["loaded-vehicle-wagon-cargoplane"] = true  -- Cargo plane wagon sprite is flipped
     
-    elseif k == "jet" and global.loadedWagonMap["loaded-vehicle-wagon-jet"] then
+    elseif k and string.find(k,"jet") and global.loadedWagonMap["loaded-vehicle-wagon-jet"] then
       global.vehicleMap[k] = "loaded-vehicle-wagon-jet"
-      global.loadedWagonFlip["loaded-vehicle-wagon-jet"] = true  -- Jet wagon sprite is flipped
     
-    elseif k == "gunship" and global.loadedWagonMap["loaded-vehicle-wagon-gunship"] then
+    elseif k and string.find(k,"gunship") and global.loadedWagonMap["loaded-vehicle-wagon-gunship"] then
       global.vehicleMap[k] = "loaded-vehicle-wagon-gunship"
-      global.loadedWagonFlip["loaded-vehicle-wagon-gunship"] = true  -- Gunship wagon sprite is flipped
     
-    elseif k == "dumper-truck" and global.loadedWagonMap["loaded-vehicle-wagon-truck"] then
+    elseif k and string.find(k,"dumper%-truck") and global.loadedWagonMap["loaded-vehicle-wagon-truck"] then
       global.vehicleMap[k] = "loaded-vehicle-wagon-truck"  -- Specific to dump truck mod
     
     elseif k and string.find(k,"Schall%-ht%-RA") then
@@ -70,7 +71,7 @@ function makeGlobalMaps()
     elseif k and string.find(k,"Schall%-tank%-SH") and global.loadedWagonMap["loaded-vehicle-wagon-tank-SH"] then
       global.vehicleMap[k] = "loaded-vehicle-wagon-tank-SH"  -- Schall's Super Heavy Tank
       
-    elseif k == "kr-advanced-tank" and global.loadedWagonMap["loaded-vehicle-wagon-kr-advanced-tank"] then
+    elseif k and string.find(k,"kr%-advanced%-tank") and global.loadedWagonMap["loaded-vehicle-wagon-kr-advanced-tank"] then
       global.vehicleMap[k] = "loaded-vehicle-wagon-kr-advanced-tank"  -- Krastorio2 Advanced Tank  
     
     elseif kc and string.find(kc,"tank") then
@@ -102,4 +103,3 @@ function makeGlobalTables()
   global.player_selection = global.player_selection or {}
   
 end
-

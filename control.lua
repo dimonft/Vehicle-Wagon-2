@@ -62,11 +62,13 @@ end
 script.on_load(OnLoad)
 
 
--- Deal with the new 0.16 driver/passenger bit
+-- Figure out of a character is driving or riding this car, spider, or wagon
 function get_driver_or_passenger(entity)
-  -- Check if we have a driver:
+  -- Check if we have a driver that is not an AAI character:
   local driver = entity.get_driver()
-  if driver then return driver end
+  if driver and not string.find(driver.name, "%-_%-driver") then
+    return driver
+  end
 
   -- Otherwise check if we have a passenger, which will error if entity is not a car:
   local status, resp = pcall(entity.get_passenger)
@@ -109,8 +111,8 @@ function process_tick(event)
       ------- CHECK THAT WAGON AND CAR ARE STILL STOPPED ------
       local wagon = action.wagon
       local vehicle = action.vehicle
-      if wagon.train.speed ~= 0 or (vehicle and is_vehicle_moving(vehicle)) then
-        -- Train or car started moving, cancel action
+      if not wagon or not wagon.valid or wagon.train.speed ~= 0 or (vehicle and is_vehicle_moving(vehicle)) then
+        -- Wagon lost, or train/vehicle started moving, cancel action silently
         clearWagon(wagon.unit_number, {silent=true, sound=false})
       
       ------- LOADING OPERATION --------

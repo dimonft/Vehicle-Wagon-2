@@ -125,6 +125,13 @@ function loadVehicleWagon(action)
   
   global.wagon_data[unit_number] = saveData
   
+  -- [AAI Programmable Vehicles compatibility]
+  -- Destroy AI driver if present
+  local driver = vehicle.get_driver()
+  if driver and string.find(driver.name, "%-_%-driver") then
+    driver.destroy()
+  end
+  
   -- Destroy vehicle. Raise event with custom parameter so we don't immediately clear the loading ramp.
   script.raise_event(defines.events.script_raised_destroy, {entity=vehicle, vehicle_loaded=true})
   vehicle.destroy({raise_destroy=false})
