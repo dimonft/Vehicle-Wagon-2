@@ -17,6 +17,7 @@
  *   - on_marked_for_deconstruction
  *   - on_built_entity
  *   - script_raised_built
+ *   - on_entity_cloned
  *   - on_entity_died
  *   - script_raised_destroy
  *   - on_player_driving_changed_state
@@ -412,6 +413,28 @@ function OnEntityDied(event)
 end
 script.on_event(defines.events.on_entity_died, OnEntityDied)
 script.on_event(defines.events.script_raised_destroy, OnEntityDied)
+
+
+--== ON_ENTITY_CLONED ==--
+-- When a loaded wagon is cloned, copy its stored data to the new unit_number.
+-- If new wagon is on a different surface, assume the old one was deleted.
+function OnEntityCloned(event)
+  local source = event.source
+  local destination = event.destination
+  if global.loadedWagonMap[source.name] then
+    if global.wagon_data[source.unit_number] then
+      -- Copy the data table for the cloned entity, so the loaded vehicle is cloned too
+      global.wagon_data[destination.unit_number] = table.deepcopy(global.wagon_data[source.unit_number])
+      -- Put an icon on the new wagon showing contents
+      global.wagon_data[destination.unit_number].icon = renderIcon(destination, global.wagon_data[destination.unit_number].name)
+      -- If the new wagon is on a different surface, odds are the old one was deleted, so we should delete it from the data table.
+      if destination.surface ~= source.surface then
+        global.wagon_data[source.unit_number] = nil
+      end
+    end
+  end
+end
+script.on_event(defines.events.on_entity_cloned, OnEntityCloned)
 
 
 --== ON_PLAYER_DRIVING_CHANGED_STATE ==--
