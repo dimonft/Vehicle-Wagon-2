@@ -95,25 +95,36 @@ end
 function process_tick(event)
   local current_tick = event.tick
   
-  for i, selection in pairs(global.player_selection) do
-    -- Check that selected wagon or vehicle is still stopped
-    if selection.wagon and selection.wagon.speed ~= 0 then
-      clearWagon(selection.wagon.unit_number, {silent=true, sound=true})
+  for player_index, selection in pairs(global.player_selection) do
+    -- Check if the selected wagon & vehicle died or started moving
+    if selection.wagon_unit_number and not(selection.wagon and selection.wagon.valid) then
+      -- Wagon was selected but it's not there anymore
+      clearWagon(selection.wagon_unit_number, {silent=true, sound=false})
+    elseif selection.wagon and selection.wagon.speed ~= 0 then
+      -- Wagon still there but started moving
+      clearWagon(selection.wagon_unit_number, {silent=true, sound=true})
+    elseif selection.vehicle_unit_number and not (selection.vehicle and selection.vehicle.valid) then
+      -- Vehicle was selected but it's not there anymore
+      if selection.wagon_unit_number then
+        clearWagon(selection.wagon_unit_number, {silent=true, sound=false})
+      else
+        clearSelection(player_index, {silent=true, sound=false})
+      end
     elseif selection.vehicle and is_vehicle_moving(selection.vehicle) then
       clearVehicle(selection.vehicle, {silent=true, sound=true})
     end
   end
   
   -- Check Action queue to see if any are ready this tick, or became invalid
-  for i, action in pairs(global.action_queue) do
+  for unit_number, action in pairs(global.action_queue) do
     if action.player_index and game.players[action.player_index] and action.status then
       local player = game.players[action.player_index]
       ------- CHECK THAT WAGON AND CAR ARE STILL STOPPED ------
       local wagon = action.wagon
       local vehicle = action.vehicle
       if not wagon or not wagon.valid or wagon.train.speed ~= 0 or (vehicle and is_vehicle_moving(vehicle)) then
-        -- Wagon lost, or train/vehicle started moving, cancel action silently
-        clearWagon(wagon.unit_number, {silent=true, sound=false})
+        -- Train/vehicle started moving, cancel action silently
+        clearWagon(unit_number, {silent=true, sound=false})
       
       ------- LOADING OPERATION --------
       elseif action.status == "load" and action.tick == current_tick then
@@ -131,7 +142,7 @@ function process_tick(event)
           loadVehicleWagon(action)
         end
         -- Clear from queue after completion
-        global.action_queue[i] = nil
+        global.action_queue[unit_number] = nil
         
       ------- UNLOADING OPERATION --------
       elseif action.status == "unload" and action.tick == current_tick then
@@ -152,11 +163,11 @@ function process_tick(event)
           end
         end
         -- Clear from queue after completion
-        global.action_queue[i] = nil
+        global.action_queue[unit_number] = nil
       end
     else
       -- Clear from queue if entry is invalid
-      global.action_queue[i] = nil
+      global.action_queue[unit_number] = nil
     end
   end
   
@@ -379,8 +390,8 @@ function OnBuiltEntity(event)
           force = entity.force,
           create_build_effect_smoke = false,
           raise_built = false,
-          snap_to_train_stop = false}
-      
+          snap_to_train_stop = false
+        }
       entity.destroy()
       surface.create_entity(newGhost)
     end
@@ -429,6 +440,8 @@ function OnEntityCloned(event)
       global.wagon_data[destination.unit_number] = table.deepcopy(global.wagon_data[source.unit_number])
       -- Put an icon on the new wagon showing contents
       global.wagon_data[destination.unit_number].icon = renderIcon(destination, global.wagon_data[destination.unit_number].name)
+      
+      -- TAKE THIS OUT WHEN SPACE EXPLORATION 0.5.24 IS RELEASED and properly issues script-raised-destroy events
       -- If the new wagon is on a different surface, odds are the old one was deleted, so we should delete it from the data table.
       if destination.surface ~= source.surface then
         global.wagon_data[source.unit_number] = nil

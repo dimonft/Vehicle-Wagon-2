@@ -133,7 +133,11 @@ local function OnPlayerSelectedArea(event)
         -- Always show tutorial message, to find out what kind of vehicle is stored here
         player.print{"vehicle-wagon2.select-unload-vehicle-location", vehicle_prototype.localised_name}
         -- Record selection and create radius circle
-        global.player_selection[index] = {wagon=loaded_wagon, visuals= renderWagonVisuals(player,loaded_wagon,vehicle_prototype.radius)}
+        global.player_selection[index] = {
+            wagon=loaded_wagon,
+            wagon_unit_number=loaded_wagon.unit_number,
+            visuals= renderWagonVisuals(player,loaded_wagon,vehicle_prototype.radius)
+          }
         script.on_event(defines.events.on_tick, process_tick)
       end
     end
@@ -180,7 +184,11 @@ local function OnPlayerSelectedArea(event)
         -- Store vehicle selection
         player.play_sound{path = "latch-on"}
 
-        global.player_selection[index] = {vehicle=vehicle, visuals= renderVehicleVisuals(player,vehicle)}
+        global.player_selection[index] = {
+            vehicle=vehicle,
+            vehicle_unit_number=vehicle.unit_number,
+            visuals= renderVehicleVisuals(player,vehicle)
+          }
         -- Tutorial message to select an empty wagon
         if global.tutorials[index][1] < 5 then
           global.tutorials[index][1] = global.tutorials[index][1] + 1
@@ -227,7 +235,9 @@ local function OnPlayerSelectedArea(event)
                 player_index = index,
                 status = "load",
                 wagon = wagon,
+                wagon_unit_number = wagon.unit_number,
                 vehicle = vehicle,
+                vehicle_unit_number = vehicle.unit_number,
                 name = loaded_name,
                 tick = game.tick + LOADING_EFFECT_TIME,
                 beam = renderLoadingRamp(wagon, vehicle)
@@ -276,6 +286,7 @@ local function OnPlayerSelectedArea(event)
             player_index = index,
             status = "unload",
             wagon = wagon,
+            wagon_unit_number = wagon.unit_number,
             unload_position = unload_position,
             unload_orientation = unload_orientation,
             tick = game.tick + UNLOADING_EFFECT_TIME,
