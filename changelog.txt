@@ -1,4 +1,13 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.1.12
+Date: 2020-12-13
+  Features:
+    - Now fully compatible with AAI Programmable Vehicles.  Deploy loaded AI vehicles from trains all by remote control!
+    - Now fully compatible with Space Exploration.  Put your vehicles on a train, and the train in a spaceship!
+    - Spider Vehicles can be loaded and unloaded while in space.
+  Changes:
+    - Other mods that use the "clone" feature will also clone vehicles stored inside wagons.
+---------------------------------------------------------------------------------------------------
 Version: 3.1.11
 Date: 2020-12-05
   Features:

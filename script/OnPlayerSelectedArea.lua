@@ -51,16 +51,12 @@ local function OnPlayerSelectedArea(event)
     -- Check if we are IN SPAAAACE!
     local in_space = false
     if remote.interfaces["space-exploration"] then
-      local zone = remote.call("space-exploration", "get_zone_from_surface_index", {surface_index = surface.index})
-      if not zone then
-        -- Spaceship does not return a zone index, assume we are in space-exploration
+      local surface_type = remote.call("space-exploration", "get_surface_type", {surface_index = surface.index})
+      -- These are the "solid" surface types
+      if not (surface_type == "planet" or surface_type == "moon" or surface_type == "vault") then
         in_space = true
-      else
-        -- Planet/Moon/Orbit/Asteroids can be checked this way
-        in_space = remote.call("space-exploration", "get_zone_is_space", {zone_index = zone.index})
       end
     end
-
 
     ------------------------------------------------
     -- Loaded Wagon: Check if Valid to Unload
@@ -76,9 +72,6 @@ local function OnPlayerSelectedArea(event)
       elseif loaded_wagon.train.speed ~= 0 then
         player.print{"vehicle-wagon2.train-in-motion-error"}  -- Can't unload while train is moving
 
-      elseif in_space == true then
-        player.print{"vehicle-wagon2.train-in-space-error"}  -- Can't unload in space, SE will delete the vehicle
-
       elseif not global.wagon_data[unit_number] then
         -- Loaded wagon data or vehicle entity is invalid
         -- Replace wagon with unloaded version and delete data
@@ -92,6 +85,10 @@ local function OnPlayerSelectedArea(event)
         -- Replace wagon with unloaded version and delete data
         deleteWagon(unit_number)
         replaceCarriage(loaded_wagon, "vehicle-wagon", false, false)
+
+      elseif in_space and game.entity_prototypes[global.wagon_data[unit_number].name].type ~= "spider-vehicle" then
+        -- If it's not a Spidertron, can't unload in space, SE will delete the vehicle
+        player.print{"vehicle-wagon2.train-in-space-error", game.entity_prototypes[global.wagon_data[unit_number].name].localised_name}
 
       elseif check_GCKI and global.wagon_data[unit_number].GCKI_data and global.wagon_data[unit_number].GCKI_data.locker and
                global.wagon_data[unit_number].GCKI_data.locker ~= player.index then
@@ -169,8 +166,9 @@ local function OnPlayerSelectedArea(event)
       elseif is_vehicle_moving(vehicle) then
         player.print{"vehicle-wagon2.vehicle-in-motion-error"}
 
-      elseif in_space == true then
-        player.print{"vehicle-wagon2.vehicle-in-space-error"}  -- Can't unload in space, SE will delete the vehicle
+      elseif in_space and vehicle.type ~= "spider-vehicle" then
+        -- If it's not a Spidertron, can't load in space.
+        player.print{"vehicle-wagon2.vehicle-in-space-error", vehicle.localised_name}
 
       elseif locker and locker ~= player then
         -- Can't load someone else's locked vehicle
