@@ -1,4 +1,16 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.1.14
+Date: 2020-12-16
+  Bugfixes:
+    - Fixed that loaded vehicles would be deleted if you launch them on a spaceship, then change mods before unloading.
+    - Fixed that "Vehicle Lost!" messages would display after transporting loaded wagons on a spaceship.
+    - Fixed that localised name would not be displayed in some console messages.
+  Changes:
+    - Removed hidden dependencies that were actually not needed.  Just make sure to update Space Exploration and AAI Programmable Vehicles to the latest versions.
+  Features:
+    - Added support for Lua API global variable viewer (gvv).
+    - Added startup log messages showing which vehicles are allowed to be loaded on wagons.
+---------------------------------------------------------------------------------------------------
 Version: 3.1.13
 Date: 2020-12-13
   Bugfixes:
