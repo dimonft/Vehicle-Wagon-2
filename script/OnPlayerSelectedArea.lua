@@ -269,7 +269,7 @@ local function OnPlayerSelectedArea(event)
         -- This wagon already has a pending action
         player.print{"vehicle-wagon2.loaded-wagon-busy-error"}
       elseif not unload_position then
-        player.print{"vehicle-wagon2.vehicle-not-created-error", {"entity-name."..global.wagon_data[unit_number].name}}  -- Game could not find open position to unload
+        player.print{"vehicle-wagon2.vehicle-not-created-error", game.entity_prototypes[global.wagon_data[unit_number].name].localised_name}  -- Game could not find open position to unload
       elseif click_distance > max_distance then
         player.print{"vehicle-wagon2.location-too-far-away-error", wagon.localised_name}  -- Player clicked too far away
       elseif click_distance < min_distance then

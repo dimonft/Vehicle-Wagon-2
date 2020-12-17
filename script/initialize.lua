@@ -39,7 +39,7 @@ function OnConfigurationChanged(event)
   -- Migration should already have added "wagon" entity reference to each valid entry
   for id,data in pairs(global.wagon_data) do
     if not data.wagon or not data.wagon.valid then
-      game.print({"vehicle-wagon2.migrate-prototype-error",id,data.name})
+      game.print{"vehicle-wagon2.migrate-prototype-error",id,data.name}
       global.wagon_data[id] = nil
     end
   end

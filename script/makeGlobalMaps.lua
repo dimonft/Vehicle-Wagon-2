@@ -83,6 +83,12 @@ function makeGlobalMaps()
     else
       global.vehicleMap[k] = "loaded-vehicle-wagon-tarp"  -- Default for everything else
     end
+    
+    if global.vehicleMap[k] then
+      log("Assigned vehicle \""..k.."\" to wagon \""..global.vehicleMap[k].."\"")
+    else
+      log("Disallowed loading of vehicle \""..k.."\"")
+    end
   end
   
 end

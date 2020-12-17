@@ -407,13 +407,13 @@ script.on_event(defines.events.script_raised_built, OnBuiltEntity)
 function OnEntityDied(event)
   local entity = event.entity
   if global.loadedWagonMap[entity.name] then
-    -- Loaded wagon died, its vehicle is unrecoverable
+    -- Loaded wagon died, its vehicle is unrecoverable (if it wasn't already cloned)
     -- Also clear selection data for this wagon
-    if global.wagon_data[entity.unit_number] then
+    if global.wagon_data[entity.unit_number] and not global.wagon_data[entity.unit_number].cloned then
       if game.entity_prototypes[global.wagon_data[entity.unit_number].name] then
-        game.print({"vehicle-wagon2.wagon-destroyed", entity.unit_number, {"entity-name."..global.wagon_data[entity.unit_number].name}})
+        game.print{"vehicle-wagon2.wagon-destroyed", entity.unit_number, game.entity_prototypes[global.wagon_data[entity.unit_number].name].localised_name}
       else
-        game.print({"vehicle-wagon2.wagon-destroyed", entity.unit_number, global.wagon_data[entity.unit_number].name})
+        game.print{"vehicle-wagon2.wagon-destroyed", entity.unit_number, global.wagon_data[entity.unit_number].name}
       end
     end
     deleteWagon(entity.unit_number)
@@ -438,14 +438,15 @@ function OnEntityCloned(event)
     if global.wagon_data[source.unit_number] then
       -- Copy the data table for the cloned entity, so the loaded vehicle is cloned too
       global.wagon_data[destination.unit_number] = table.deepcopy(global.wagon_data[source.unit_number])
+      
+      -- Reference the new wagon
+      global.wagon_data[destination.unit_number].wagon = destination
+      
+      -- Store a flag saying the old data was cloned
+      global.wagon_data[source.unit_number].cloned = true
+      
       -- Put an icon on the new wagon showing contents
       global.wagon_data[destination.unit_number].icon = renderIcon(destination, global.wagon_data[destination.unit_number].name)
-      
-      -- TAKE THIS OUT WHEN SPACE EXPLORATION 0.5.24 IS RELEASED and properly issues script-raised-destroy events
-      -- If the new wagon is on a different surface, odds are the old one was deleted, so we should delete it from the data table.
-      if destination.surface ~= source.surface then
-        global.wagon_data[source.unit_number] = nil
-      end
     end
   end
 end
@@ -559,3 +560,6 @@ setmetatable(_ENV,{
       .. serpent.line{key=key or '<nil>'}..'\n')
     end ,
   })
+
+if script.active_mods["gvv"] then require("__gvv__.gvv")() end
+
