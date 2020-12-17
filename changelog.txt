@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.1.15
+Date: 2020-12-16
+  Bugfixes:
+    - Fixed compatibility with Gizmo's Car Keys (Improved) because they don't like being given spider-vehicle entities.
+---------------------------------------------------------------------------------------------------
 Version: 3.1.14
 Date: 2020-12-16
   Bugfixes:
