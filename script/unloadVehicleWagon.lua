@@ -120,6 +120,11 @@ function unloadVehicleWagon(action)
     vehicle.last_user = game.players[player_index]
   end
   
+  -- Restore custom Spidertron name (can't write a nil value yet, and it defaults to empty anyways)
+  if wagon_data.entity_label then
+    vehicle.entity_label = wagon_data.entity_label
+  end
+  
   -- Restore vehicle parameters from global data
   vehicle.health = wagon_data.health
   if wagon_data.color then vehicle.color = wagon_data.color end

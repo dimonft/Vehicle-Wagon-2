@@ -51,6 +51,7 @@ function loadVehicleWagon(action)
   saveData.health = vehicle.health
   saveData.color = vehicle.color
   saveData.last_user = vehicle.last_user and vehicle.last_user.index
+  saveData.entity_label = vehicle.entity_label
   if not vehicle.minable then saveData.minable = false end
   if not vehicle.destructible then saveData.destructible = false end
   if not vehicle.operable then saveData.operable = false end
