@@ -36,7 +36,7 @@ require("script.renderVisuals")
 require("script.loadVehicleWagon")
 require("script.unloadVehicleWagon")
 require("script.initialize")
-
+require("script.interfaces")
 
 --== ON_INIT ==--
 -- Initialize global data tables
