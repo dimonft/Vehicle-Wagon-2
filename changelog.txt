@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.1.18
+Date: 2021-03-03
+  Changes:
+    - Removed debug messages from wagon-data interface functions.
+    - Added handling of custom parameter "cloned" in the "script_raised_destroy" event to silence error messages.
+---------------------------------------------------------------------------------------------------
 Version: 3.1.17
 Date: 2021-03-01
   Bugfixes:

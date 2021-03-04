@@ -146,10 +146,7 @@ function unloadVehicleWagon(action)
   local r2 = saveRestoreLib.restoreGrid(vehicle.grid, wagon_data.grid)
   r1 = saveRestoreLib.mergeStackLists(r1, r2)
   
-  -- Make sure there is the proper inventory structure
-  wagon_data.items = wagon_data.items or {}
-  
-  
+  -- Restore inventory contents and settings
   if vehicle.type == "car" then
     -- Restore inventory filters
     if wagon_data.filters then

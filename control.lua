@@ -254,28 +254,38 @@ end
 
 -- Returns a copy of the loaded vehicle data for the wagon entity.
 function get_wagon_data(wagon)
-  if global.wagon_data and wagon and wagon.valid and global.wagon_data[wagon.unit_number] then
+  if wagon and wagon.valid and global.wagon_data and global.wagon_data[wagon.unit_number] then
     -- Copy the table so it can be safely deleted from our global later
     local saveData = table.deepcopy(global.wagon_data[wagon.unit_number])
     -- Delete references to actual game objects that will be deleted later
     saveData.wagon = nil
     saveData.icon = nil
+    --game.print("VehicleWagon2 retrieved data for wagon #"..tostring(wagon.unit_number).." containing vehicle type "..saveData.name)
     return saveData
+  --elseif wagon and wagon.valid then
+  --  game.print("VehicleWagon2 could not retrieve wagon data for "..wagon.name.." #"..tostring(wagon.unit_number))
+  --else
+  --  game.print("VehicleWagon2 could not retrieve wagon data.")
   end
 end
 
 -- Stores the new loaded-vehicle data associated with the given wagon.
 function set_wagon_data(wagon, new_data)
-  if wagon.valid and new_data and string.find(wagon.name, "loaded%-vehicle%-wagon") then
+  if wagon and wagon.valid and string.find(wagon.name, "loaded%-vehicle%-wagon") and new_data and new_data.name then
     local saveData = table.deepcopy(new_data)
     saveData.wagon = wagon
     -- Put an icon on the wagon showing contents
     saveData.icon = renderIcon(wagon, saveData.name)
+    -- Make sure contents are valid
+    saveData.items = saveData.items or {}
     -- Store data in global
     global.wagon_data = global.wagon_data or {}
     global.wagon_data[wagon.unit_number] = saveData
-  else
-    game.print("VehicleWagon2 could not set wagon data.")
+  --  game.print("VehicleWagon2 set data for wagon "..tostring(wagon.unit_number).." to vehicle type "..saveData.name)
+  --elseif wagon and wagon.valid then
+  --  game.print("VehicleWagon2 could not set wagon data for "..wagon.name.." #"..tostring(wagon.unit_number))
+  --else
+  --  game.print("VehicleWagon2 could not set wagon data.")
   end
 end
 ------------------------------
@@ -438,7 +448,7 @@ function OnEntityDied(event)
   if global.loadedWagonMap[entity.name] then
     -- Loaded wagon died, its vehicle is unrecoverable (if it wasn't already cloned)
     -- Also clear selection data for this wagon
-    if global.wagon_data[entity.unit_number] and not global.wagon_data[entity.unit_number].cloned then
+    if global.wagon_data[entity.unit_number] and not (global.wagon_data[entity.unit_number].cloned or event.cloned) then
       if game.entity_prototypes[global.wagon_data[entity.unit_number].name] then
         game.print{"vehicle-wagon2.wagon-destroyed", entity.unit_number, game.entity_prototypes[global.wagon_data[entity.unit_number].name].localised_name}
       else
