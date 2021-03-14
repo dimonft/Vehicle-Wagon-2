@@ -288,6 +288,22 @@ function set_wagon_data(wagon, new_data)
   --  game.print("VehicleWagon2 could not set wagon data.")
   end
 end
+
+-- Gives the error message from losing a stored vehicle (unit_number of the lost wagon is optional)
+function kill_wagon_data(lost_data, unit_number)
+  if lost_data and lost_data.name then
+    if unit_number then
+      unit_string = "#"..tostring(unit_number).." "
+    else
+      unit_string = ""
+    end
+    if game.entity_prototypes[lost_data.name] then
+        game.print{"vehicle-wagon2.wagon-destroyed", unit_string, game.entity_prototypes[lost_data.name].localised_name}
+    else
+      game.print{"vehicle-wagon2.wagon-destroyed", unit_string, lost_data.name}
+    end
+  end
+end
 ------------------------------
 
 
@@ -450,9 +466,9 @@ function OnEntityDied(event)
     -- Also clear selection data for this wagon
     if global.wagon_data[entity.unit_number] and not (global.wagon_data[entity.unit_number].cloned or event.cloned) then
       if game.entity_prototypes[global.wagon_data[entity.unit_number].name] then
-        game.print{"vehicle-wagon2.wagon-destroyed", entity.unit_number, game.entity_prototypes[global.wagon_data[entity.unit_number].name].localised_name}
+        game.print{"vehicle-wagon2.wagon-destroyed", "#"..entity.unit_number.." ", game.entity_prototypes[global.wagon_data[entity.unit_number].name].localised_name}
       else
-        game.print{"vehicle-wagon2.wagon-destroyed", entity.unit_number, global.wagon_data[entity.unit_number].name}
+        game.print{"vehicle-wagon2.wagon-destroyed", "#"..entity.unit_number.." ", global.wagon_data[entity.unit_number].name}
       end
     end
     deleteWagon(entity.unit_number)
@@ -542,7 +558,9 @@ remote.add_interface('VehicleWagon2', {
   -- Returns the global.wagon_data for the given LuaEntity
   get_wagon_data = get_wagon_data,
   -- Sets the global.wagon_data for the given LuaEntity to the given Lua table, and creates icons
-  set_wagon_data = set_wagon_data
+  set_wagon_data = set_wagon_data,
+  -- Provides the error message from a destroyed wagon
+  kill_wagon_data = kill_wagon_data
   })
 
 
