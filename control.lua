@@ -292,10 +292,9 @@ end
 -- Gives the error message from losing a stored vehicle (unit_number of the lost wagon is optional)
 function kill_wagon_data(lost_data, unit_number)
   if lost_data and lost_data.name then
+    local unit_string = ""
     if unit_number then
       unit_string = "#"..tostring(unit_number).." "
-    else
-      unit_string = ""
     end
     if game.entity_prototypes[lost_data.name] then
         game.print{"vehicle-wagon2.wagon-destroyed", unit_string, game.entity_prototypes[lost_data.name].localised_name}
