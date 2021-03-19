@@ -5,7 +5,7 @@
 --]]
 
 -- Load global prototype data
-require("script.makeGlobalMaps")
+require("__VehicleWagon2__.script.makeGlobalMaps")
 makeGlobalMaps()
 
 --------------------------------

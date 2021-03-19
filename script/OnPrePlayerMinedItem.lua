@@ -60,7 +60,7 @@ local function OnPrePlayerMinedItem(event)
           itemName = proto.mineable_properties.products[1].name
         end
         local text_position = {x=playerPosition.x, y=playerPosition.y+1}
-        surface.create_entity({name = "flying-text", position = text_position, text = {"vehicle-wagon2.item-inserted", 1, {"entity-name."..wagonData.name}}})
+        surface.create_entity{name = "flying-text", position = text_position, text = {"vehicle-wagon2.item-inserted", 1, game.entity_prototypes[wagonData.name].localised_name}}
         
         local r2 = saveRestoreLib.insertInventoryStacks(playerInventory, {{name=itemName, count=1}})
         saveRestoreLib.spillStacks(r2, surface, playerPosition)

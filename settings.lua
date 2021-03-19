@@ -14,6 +14,13 @@ data:extend({
   },
   {
     type = "bool-setting",
+    name = "vehicle-wagon-compatibility-entities",
+    order = "aa",
+    setting_type = "startup",
+    default_value = false,
+  },
+  {
+    type = "bool-setting",
     name = "vehicle-wagon-use-custom-weights",
     order = "ba",
     setting_type = "startup",

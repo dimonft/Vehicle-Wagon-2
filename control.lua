@@ -17,6 +17,7 @@
  *   - on_marked_for_deconstruction
  *   - on_built_entity
  *   - script_raised_built
+ *   - on_entity_cloned
  *   - on_entity_died
  *   - script_raised_destroy
  *   - on_player_driving_changed_state
@@ -35,7 +36,6 @@ require("script.renderVisuals")
 require("script.loadVehicleWagon")
 require("script.unloadVehicleWagon")
 require("script.initialize")
-
 
 --== ON_INIT ==--
 -- Initialize global data tables
@@ -61,11 +61,13 @@ end
 script.on_load(OnLoad)
 
 
--- Deal with the new 0.16 driver/passenger bit
+-- Figure out of a character is driving or riding this car, spider, or wagon
 function get_driver_or_passenger(entity)
-  -- Check if we have a driver:
+  -- Check if we have a driver that is not an AAI character:
   local driver = entity.get_driver()
-  if driver then return driver end
+  if driver and not string.find(driver.name, "%-_%-driver") then
+    return driver
+  end
 
   -- Otherwise check if we have a passenger, which will error if entity is not a car:
   local status, resp = pcall(entity.get_passenger)
@@ -74,12 +76,15 @@ function get_driver_or_passenger(entity)
 end
 
 
--- Deal with Spidertron not having speed
+-- Determine if the vehicle is moving.
+-- Use speed and spider autopilot if present.
 function is_vehicle_moving(vehicle)
-  if vehicle.type == "car" then
-    return vehicle.speed ~= 0
-  elseif vehicle.type == "spider-vehicle" then
-    return vehicle.autopilot_destination ~= nil
+  if vehicle.speed ~= 0 then
+    return true
+  elseif vehicle.type == "spider-vehicle" and vehicle.autopilot_destination ~= nil then
+    return true
+  else
+    return false
   end
 end
 
@@ -89,25 +94,36 @@ end
 function process_tick(event)
   local current_tick = event.tick
   
-  for i, selection in pairs(global.player_selection) do
-    -- Check that selected wagon or vehicle is still stopped
-    if selection.wagon and selection.wagon.speed ~= 0 then
-      clearWagon(selection.wagon.unit_number, {silent=true, sound=true})
+  for player_index, selection in pairs(global.player_selection) do
+    -- Check if the selected wagon & vehicle died or started moving
+    if selection.wagon_unit_number and not(selection.wagon and selection.wagon.valid) then
+      -- Wagon was selected but it's not there anymore
+      clearWagon(selection.wagon_unit_number, {silent=true, sound=false})
+    elseif selection.wagon and selection.wagon.speed ~= 0 then
+      -- Wagon still there but started moving
+      clearWagon(selection.wagon_unit_number, {silent=true, sound=true})
+    elseif selection.vehicle_unit_number and not (selection.vehicle and selection.vehicle.valid) then
+      -- Vehicle was selected but it's not there anymore
+      if selection.wagon_unit_number then
+        clearWagon(selection.wagon_unit_number, {silent=true, sound=false})
+      else
+        clearSelection(player_index, {silent=true, sound=false})
+      end
     elseif selection.vehicle and is_vehicle_moving(selection.vehicle) then
       clearVehicle(selection.vehicle, {silent=true, sound=true})
     end
   end
   
   -- Check Action queue to see if any are ready this tick, or became invalid
-  for i, action in pairs(global.action_queue) do
+  for unit_number, action in pairs(global.action_queue) do
     if action.player_index and game.players[action.player_index] and action.status then
       local player = game.players[action.player_index]
       ------- CHECK THAT WAGON AND CAR ARE STILL STOPPED ------
       local wagon = action.wagon
       local vehicle = action.vehicle
-      if wagon.train.speed ~= 0 or (vehicle and is_vehicle_moving(vehicle)) then
-        -- Train or car started moving, cancel action
-        clearWagon(wagon.unit_number, {silent=true, sound=false})
+      if not wagon or not wagon.valid or wagon.train.speed ~= 0 or (vehicle and is_vehicle_moving(vehicle)) then
+        -- Train/vehicle started moving, cancel action silently
+        clearWagon(unit_number, {silent=true, sound=false})
       
       ------- LOADING OPERATION --------
       elseif action.status == "load" and action.tick == current_tick then
@@ -125,7 +141,7 @@ function process_tick(event)
           loadVehicleWagon(action)
         end
         -- Clear from queue after completion
-        global.action_queue[i] = nil
+        global.action_queue[unit_number] = nil
         
       ------- UNLOADING OPERATION --------
       elseif action.status == "unload" and action.tick == current_tick then
@@ -146,11 +162,11 @@ function process_tick(event)
           end
         end
         -- Clear from queue after completion
-        global.action_queue[i] = nil
+        global.action_queue[unit_number] = nil
       end
     else
       -- Clear from queue if entry is invalid
-      global.action_queue[i] = nil
+      global.action_queue[unit_number] = nil
     end
   end
   
@@ -203,7 +219,10 @@ function onPrePlayerRemoved(event)
 end
 script.on_event(defines.events.on_pre_player_removed, onPrePlayerRemoved)
 
+----------------------------
 -- MOD INTERFACE FUNCTIONS
+
+-- Allow Gizmo's Car Keys to manipulate loaded vehicles
 function release_owned_by_player(p)
   local player_index = p
   if type(p) ~= "number" then
@@ -229,6 +248,58 @@ function release_owned_by_player(p)
           end
         end
       end
+    end
+  end
+end
+
+-- Returns a copy of the loaded vehicle data for the wagon entity.
+function get_wagon_data(wagon)
+  if wagon and wagon.valid and global.wagon_data and global.wagon_data[wagon.unit_number] then
+    -- Copy the table so it can be safely deleted from our global later
+    local saveData = table.deepcopy(global.wagon_data[wagon.unit_number])
+    -- Delete references to actual game objects that will be deleted later
+    saveData.wagon = nil
+    saveData.icon = nil
+    --game.print("VehicleWagon2 retrieved data for wagon #"..tostring(wagon.unit_number).." containing vehicle type "..saveData.name)
+    return saveData
+  --elseif wagon and wagon.valid then
+  --  game.print("VehicleWagon2 could not retrieve wagon data for "..wagon.name.." #"..tostring(wagon.unit_number))
+  --else
+  --  game.print("VehicleWagon2 could not retrieve wagon data.")
+  end
+end
+
+-- Stores the new loaded-vehicle data associated with the given wagon.
+function set_wagon_data(wagon, new_data)
+  if wagon and wagon.valid and string.find(wagon.name, "loaded%-vehicle%-wagon") and new_data and new_data.name then
+    local saveData = table.deepcopy(new_data)
+    saveData.wagon = wagon
+    -- Put an icon on the wagon showing contents
+    saveData.icon = renderIcon(wagon, saveData.name)
+    -- Make sure contents are valid
+    saveData.items = saveData.items or {}
+    -- Store data in global
+    global.wagon_data = global.wagon_data or {}
+    global.wagon_data[wagon.unit_number] = saveData
+  --  game.print("VehicleWagon2 set data for wagon "..tostring(wagon.unit_number).." to vehicle type "..saveData.name)
+  --elseif wagon and wagon.valid then
+  --  game.print("VehicleWagon2 could not set wagon data for "..wagon.name.." #"..tostring(wagon.unit_number))
+  --else
+  --  game.print("VehicleWagon2 could not set wagon data.")
+  end
+end
+
+-- Gives the error message from losing a stored vehicle (unit_number of the lost wagon is optional)
+function kill_wagon_data(lost_data, unit_number)
+  if lost_data and lost_data.name then
+    local unit_string = ""
+    if unit_number then
+      unit_string = "#"..tostring(unit_number).." "
+    end
+    if game.entity_prototypes[lost_data.name] then
+        game.print{"vehicle-wagon2.wagon-destroyed", unit_string, game.entity_prototypes[lost_data.name].localised_name}
+    else
+      game.print{"vehicle-wagon2.wagon-destroyed", unit_string, lost_data.name}
     end
   end
 end
@@ -303,7 +374,7 @@ end
 
 --== ON_PLAYER_USED_CAPSULE ==--
 -- Queues load/unload data when player clicks with the winch.
-script.on_event(defines.events.on_player_used_capsule, require("script.OnPlayerUsedCapsule"))
+script.on_event(defines.events.on_player_selected_area, require("script.OnPlayerSelectedArea"))
 
 
 --== ON_PLAYER_CURSOR_STACK_CHANGED ==--
@@ -373,8 +444,8 @@ function OnBuiltEntity(event)
           force = entity.force,
           create_build_effect_smoke = false,
           raise_built = false,
-          snap_to_train_stop = false}
-      
+          snap_to_train_stop = false
+        }
       entity.destroy()
       surface.create_entity(newGhost)
     end
@@ -390,13 +461,13 @@ script.on_event(defines.events.script_raised_built, OnBuiltEntity)
 function OnEntityDied(event)
   local entity = event.entity
   if global.loadedWagonMap[entity.name] then
-    -- Loaded wagon died, its vehicle is unrecoverable
+    -- Loaded wagon died, its vehicle is unrecoverable (if it wasn't already cloned)
     -- Also clear selection data for this wagon
-    if global.wagon_data[entity.unit_number] then
+    if global.wagon_data[entity.unit_number] and not (global.wagon_data[entity.unit_number].cloned or event.cloned) then
       if game.entity_prototypes[global.wagon_data[entity.unit_number].name] then
-        game.print({"vehicle-wagon2.wagon-destroyed", entity.unit_number, {"entity-name."..global.wagon_data[entity.unit_number].name}})
+        game.print{"vehicle-wagon2.wagon-destroyed", "#"..entity.unit_number.." ", game.entity_prototypes[global.wagon_data[entity.unit_number].name].localised_name}
       else
-        game.print({"vehicle-wagon2.wagon-destroyed", entity.unit_number, global.wagon_data[entity.unit_number].name})
+        game.print{"vehicle-wagon2.wagon-destroyed", "#"..entity.unit_number.." ", global.wagon_data[entity.unit_number].name}
       end
     end
     deleteWagon(entity.unit_number)
@@ -409,6 +480,31 @@ function OnEntityDied(event)
 end
 script.on_event(defines.events.on_entity_died, OnEntityDied)
 script.on_event(defines.events.script_raised_destroy, OnEntityDied)
+
+
+--== ON_ENTITY_CLONED ==--
+-- When a loaded wagon is cloned, copy its stored data to the new unit_number.
+-- If new wagon is on a different surface, assume the old one was deleted.
+function OnEntityCloned(event)
+  local source = event.source
+  local destination = event.destination
+  if global.loadedWagonMap[source.name] then
+    if global.wagon_data[source.unit_number] then
+      -- Copy the data table for the cloned entity, so the loaded vehicle is cloned too
+      global.wagon_data[destination.unit_number] = table.deepcopy(global.wagon_data[source.unit_number])
+      
+      -- Reference the new wagon
+      global.wagon_data[destination.unit_number].wagon = destination
+      
+      -- Store a flag saying the old data was cloned
+      global.wagon_data[source.unit_number].cloned = true
+      
+      -- Put an icon on the new wagon showing contents
+      global.wagon_data[destination.unit_number].icon = renderIcon(destination, global.wagon_data[destination.unit_number].name)
+    end
+  end
+end
+script.on_event(defines.events.on_entity_cloned, OnEntityCloned)
 
 
 --== ON_PLAYER_DRIVING_CHANGED_STATE ==--
@@ -457,7 +553,13 @@ remote.add_interface('VehicleWagon2', {
   -- GCKI COMPATIBILITY
   -- Removes this player as "owner" of any loaded vehicles.  Called when this player claims a different vehicle.
   release_owned_by_player = release_owned_by_player,
-  
+  -- RENAI TRANSPORTATION COMPATIBILITY
+  -- Returns the global.wagon_data for the given LuaEntity
+  get_wagon_data = get_wagon_data,
+  -- Sets the global.wagon_data for the given LuaEntity to the given Lua table, and creates icons
+  set_wagon_data = set_wagon_data,
+  -- Provides the error message from a destroyed wagon
+  kill_wagon_data = kill_wagon_data
   })
 
 
@@ -518,3 +620,6 @@ setmetatable(_ENV,{
       .. serpent.line{key=key or '<nil>'}..'\n')
     end ,
   })
+
+if script.active_mods["gvv"] then require("__gvv__.gvv")() end
+

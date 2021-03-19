@@ -7,7 +7,7 @@
  *    - Loaded Vehicle Wagon (Car)
  *    - Loaded Vehicle Wagon (Tank)
  *    - Loaded Vehicle Wagon (Tarp)
- *    - Winch (capsule)
+ *    - Winch (selection tool)
  *    - Loaded Vehicle Wagon (Truck)
  *    - Loaded Vehicle Wagon (Cargo Plane)
  *    - Loaded Vehicle Wagon (Gunship)
@@ -17,7 +17,7 @@
 
 data:extend{
   {
-		type = "capsule",
+		type = "selection-tool",
 		name = "winch",
 		icon = "__VehicleWagon2__/graphics/winch-icon.png",
 		icon_size = 64,
@@ -25,44 +25,16 @@ data:extend{
 		subgroup = "transport",
 		order = "a[train-system]-w[winch]",
 		stack_size = 1,
-    capsule_action =
-		{
-			type = "throw",
-      uses_stack = false,
-			attack_parameters =
-			{
-				type = "projectile",
-				ammo_category = "melee",
-				cooldown = 15,
-				range = CAPSULE_RANGE,
-				ammo_type =
-				{
-					category = "melee",
-					target_type = "entity",
-					action =
-					{
-						type = "direct",
-						action_delivery =
-						{
-							type = "instant",
-							target_effects =
-							{
-								{
-									type = "play-sound",
-									sound =
-									{
-										{
-											filename = "__VehicleWagon2__/sound/latchOn.ogg",
-											volume = 0
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
+    
+    --mouse_cursor = "selection-tool-cursor",
+    selection_color = {r=0.75, g=0.75},
+    alt_selection_color = {g=1},
+    selection_cursor_box_type = "entity",
+    alt_selection_cursor_box_type = "entity",
+    selection_mode = "any-entity",
+    alt_selection_mode = "any-entity",
+    entity_type_filters = {"cargo-wagon","car","spider-vehicle"},
+    alt_entity_type_filters = {"cargo-wagon","car","spider-vehicle"},
 	}
 }
 

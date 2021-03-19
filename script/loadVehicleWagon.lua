@@ -6,11 +6,6 @@
  *    2. Store the Vehicle inventories, grid, and settings in the global.wagon_data table.
  --]]
 
--- defines.inventory.SPIDER_TRUNK = 2
--- defines.inventory.SPIDER_AMMO = 3
-
-local SPIDER_TRUNK = 2
-local SPIDER_AMMO = 3
 
 -------------------------
 -- Load Wagon
@@ -56,12 +51,13 @@ function loadVehicleWagon(action)
   saveData.health = vehicle.health
   saveData.color = vehicle.color
   saveData.last_user = vehicle.last_user and vehicle.last_user.index
+  saveData.entity_label = vehicle.entity_label
   if not vehicle.minable then saveData.minable = false end
   if not vehicle.destructible then saveData.destructible = false end
   if not vehicle.operable then saveData.operable = false end
   if not vehicle.rotatable then saveData.rotatable = false end
   if not vehicle.enable_logistics_while_moving then saveData.enable_logistics_while_moving = false end
-  
+  saveData.selected_gun_index = vehicle.selected_gun_index
   
   if vehicle.type == "car" then
     -- Store inventory contents
@@ -73,16 +69,31 @@ function loadVehicleWagon(action)
     -- Store inventory filters
     saveData.filters = {ammo = saveRestoreLib.saveFilters(vehicle.get_inventory(defines.inventory.car_ammo)),
                         trunk = saveRestoreLib.saveFilters(vehicle.get_inventory(defines.inventory.car_trunk)) }
+  
   elseif vehicle.type == "spider-vehicle" then
     -- Store inventory contents
     saveData.items = {
-                       ammo = saveRestoreLib.saveInventoryStacks(vehicle.get_inventory(SPIDER_AMMO)),
-                       trunk = saveRestoreLib.saveInventoryStacks(vehicle.get_inventory(SPIDER_TRUNK))
+                       ammo = saveRestoreLib.saveInventoryStacks(vehicle.get_inventory(defines.inventory.spider_ammo)),
+                       trunk = saveRestoreLib.saveInventoryStacks(vehicle.get_inventory(defines.inventory.spider_trunk)),
+                       trash = saveRestoreLib.saveInventoryStacks(vehicle.get_inventory(defines.inventory.spider_trash))
                      }
     
     -- Store inventory filters
-    saveData.filters = {ammo = saveRestoreLib.saveFilters(vehicle.get_inventory(SPIDER_AMMO)),
-                        trunk = saveRestoreLib.saveFilters(vehicle.get_inventory(SPIDER_TRUNK)) }
+    saveData.filters = {ammo = saveRestoreLib.saveFilters(vehicle.get_inventory(defines.inventory.spider_ammo)),
+                        trunk = saveRestoreLib.saveFilters(vehicle.get_inventory(defines.inventory.spider_trunk)) }
+                        
+    -- Store logistic requests and autotrash
+    local logistic = {}
+    for slot = 1, 65536 do
+      local d = vehicle.get_vehicle_logistic_slot(slot)
+      if d and d.name then
+        logistic[slot] = d
+      end
+    end
+    if table_size(logistic) > 0 then
+      saveData.logistic = logistic
+    end
+    
   end
   
   -- Store grid contents
@@ -92,20 +103,23 @@ function loadVehicleWagon(action)
   saveData.burner = saveRestoreLib.saveBurner(vehicle.burner)
   
   -- Store data for other mods
-  if remote.interfaces["autodrive"] and remote.interfaces["autodrive"].get_vehicle_data then
-    -- This will return a table with just { owner = player.index } for now!
-    saveData.autodrive_data = remote.call("autodrive", "get_vehicle_data", vehicle.unit_number, script.mod_name)
-    remote.call("autodrive", "vehicle_removed", vehicle)
-  end
-  if remote.interfaces["GCKI"] and remote.interfaces["GCKI"].get_vehicle_data then
-    -- This will return a table with { owner = player.index, locker = player.index }
-    saveData.GCKI_data = remote.call("GCKI", "get_vehicle_data", vehicle.unit_number)
-    remote.call("GCKI", "vehicle_removed", vehicle, script.mod_name)
-    if saveData.GCKI_data and settings.global["vehicle-wagon-use-GCKI-permissions"].value then
-      if saveData.GCKI_data.owner or saveData.GCKI_data.locker then
-        -- There is an owner or a locker of the vehicle on this wagon.  Make it un-minable.
-        -- GCKI will call an interface function to release it if the owner unclaims it.
-        loaded_wagon.minable = false
+  -- Pi-C Mods only work with type "car", not "spider-vehicle"
+  if vehicle.type == "car" then
+    if remote.interfaces["autodrive"] and remote.interfaces["autodrive"].get_vehicle_data then
+      -- This will return a table with just { owner = player.index } for now!
+      saveData.autodrive_data = remote.call("autodrive", "get_vehicle_data", vehicle.unit_number, script.mod_name)
+      remote.call("autodrive", "vehicle_removed", vehicle)
+    end
+    if remote.interfaces["GCKI"] and remote.interfaces["GCKI"].get_vehicle_data then
+      -- This will return a table with { owner = player.index, locker = player.index }
+      saveData.GCKI_data = remote.call("GCKI", "get_vehicle_data", vehicle.unit_number)
+      remote.call("GCKI", "vehicle_removed", vehicle, script.mod_name)
+      if saveData.GCKI_data and settings.global["vehicle-wagon-use-GCKI-permissions"].value then
+        if saveData.GCKI_data.owner or saveData.GCKI_data.locker then
+          -- There is an owner or a locker of the vehicle on this wagon.  Make it un-minable.
+          -- GCKI will call an interface function to release it if the owner unclaims it.
+          loaded_wagon.minable = false
+        end
       end
     end
   end
@@ -114,6 +128,13 @@ function loadVehicleWagon(action)
   saveData.icon = renderIcon(loaded_wagon, vehicle.name)
   
   global.wagon_data[unit_number] = saveData
+  
+  -- [AAI Programmable Vehicles compatibility]
+  -- Destroy AI driver if present
+  local driver = vehicle.get_driver()
+  if driver and string.find(driver.name, "%-_%-driver") then
+    driver.destroy()
+  end
   
   -- Destroy vehicle. Raise event with custom parameter so we don't immediately clear the loading ramp.
   script.raise_event(defines.events.script_raised_destroy, {entity=vehicle, vehicle_loaded=true})

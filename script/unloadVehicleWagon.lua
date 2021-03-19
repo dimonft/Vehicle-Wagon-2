@@ -11,12 +11,7 @@
  *    1. Replace Loaded Vehicle Wagon with Vehicle Wagon.
  --]]
  
--- defines.inventory.spider_trunk = 2
--- defines.inventory.SPIDER_AMMO = 3
-
-local SPIDER_TRUNK = 2
-local SPIDER_AMMO = 3
-
+ 
 -------------------------
 -- Unload Wagon (either manually or from mining)
 function unloadVehicleWagon(action)
@@ -125,6 +120,9 @@ function unloadVehicleWagon(action)
     vehicle.last_user = game.players[player_index]
   end
   
+  -- Restore custom Spidertron name (nil clears it, others ignore it)
+  vehicle.entity_label = wagon_data.entity_label
+  
   -- Restore vehicle parameters from global data
   vehicle.health = wagon_data.health
   if wagon_data.color then vehicle.color = wagon_data.color end
@@ -146,7 +144,7 @@ function unloadVehicleWagon(action)
   local r2 = saveRestoreLib.restoreGrid(vehicle.grid, wagon_data.grid)
   r1 = saveRestoreLib.mergeStackLists(r1, r2)
   
-  
+  -- Restore inventory contents and settings
   if vehicle.type == "car" then
     -- Restore inventory filters
     if wagon_data.filters then
@@ -159,6 +157,11 @@ function unloadVehicleWagon(action)
       local ammoInventory = vehicle.get_inventory(defines.inventory.car_ammo)
       local r2 = saveRestoreLib.insertInventoryStacks(ammoInventory, wagon_data.items.ammo)
       r1 = saveRestoreLib.mergeStackLists(r1, r2)
+    
+      -- Restore the selected gun index
+      if wagon_data.selected_gun_index then
+        vehicle.selected_gun_index = wagon_data.selected_gun_index
+      end
     end
     
     -- Restore the cargo inventory
@@ -175,28 +178,50 @@ function unloadVehicleWagon(action)
   elseif vehicle.type == "spider-vehicle" then
     -- Restore inventory filters
     if wagon_data.filters then
-      saveRestoreLib.restoreFilters(vehicle.get_inventory(SPIDER_AMMO), wagon_data.filters.ammo)
-      saveRestoreLib.restoreFilters(vehicle.get_inventory(SPIDER_TRUNK), wagon_data.filters.trunk)
+      saveRestoreLib.restoreFilters(vehicle.get_inventory(defines.inventory.spider_ammo), wagon_data.filters.ammo)
+      saveRestoreLib.restoreFilters(vehicle.get_inventory(defines.inventory.spider_trunk), wagon_data.filters.trunk)
     end
     
-    -- Restore ammo inventory if this car has guns
-    --if vehicle.type == "car" and vehicle.selected_gun_index then
-      local ammoInventory = vehicle.get_inventory(SPIDER_AMMO)
+    -- Restore ammo inventory if this spider has guns
+    if vehicle.selected_gun_index then
+      local ammoInventory = vehicle.get_inventory(defines.inventory.spider_ammo)
       local r2 = saveRestoreLib.insertInventoryStacks(ammoInventory, wagon_data.items.ammo)
       r1 = saveRestoreLib.mergeStackLists(r1, r2)
-    --end
+      
+      -- Restore the selected gun index
+      if wagon_data.selected_gun_index then
+        vehicle.selected_gun_index = wagon_data.selected_gun_index
+      end
+    elseif wagon_data.items.ammo then
+      r1 = saveRestoreLib.mergeStackLists(r1, wagon_data.items.ammo)
+    end
     
     -- Restore the cargo inventory
-    local trunkInventory = vehicle.get_inventory(SPIDER_TRUNK)
+    local trunkInventory = vehicle.get_inventory(defines.inventory.spider_trunk)
     local r2 = saveRestoreLib.insertInventoryStacks(trunkInventory, wagon_data.items.trunk)
     r1 = saveRestoreLib.mergeStackLists(r1, r2)
     
-    -- Try to insert remainders into trunk, spill whatever doesn't fit
+    -- Restore the trash inventory
+    local trashInventory = vehicle.get_inventory(defines.inventory.spider_trash)
+    local r2 = saveRestoreLib.insertInventoryStacks(trashInventory, wagon_data.items.trash)
+    r1 = saveRestoreLib.mergeStackLists(r1, r2)
+    
+    -- Try to insert remainders into trunk and trash, spill whatever doesn't fit
     if r1 then
       local r2 = saveRestoreLib.insertInventoryStacks(trunkInventory, r1)
-      saveRestoreLib.spillStacks(r2, surface, unload_position)
+      local r3 = saveRestoreLib.insertInventoryStacks(trashInventory, r2)
+      saveRestoreLib.spillStacks(r3, surface, unload_position)
     end
-  
+    
+    -- Restore logistic requests
+    if wagon_data.logistic then
+      for slot,d in pairs(wagon_data.logistic) do
+        if d and d.name then
+          vehicle.set_vehicle_logistic_slot(slot, d)
+        end
+      end
+    end
+    
   end
   
   

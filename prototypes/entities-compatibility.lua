@@ -15,9 +15,11 @@
 
 local useWeights = settings.startup["vehicle-wagon-use-custom-weights"].value
 local maxWeight = (useWeights and settings.startup["vehicle-wagon-maximum-weight"].value) or math.huge
+local compatibilityEntities = settings.startup["vehicle-wagon-compatibility-entities"].value
 
 local vehicle_wagon = data.raw["cargo-wagon"]["vehicle-wagon"]
 local loaded_tank = data.raw["cargo-wagon"]["loaded-vehicle-wagon-tank"]
+local loaded_vehicle_wagon_tarp = data.raw["cargo-wagon"]["loaded-vehicle-wagon-tarp"]
 
 if mods["bigtruck"] then
   if data.raw.car["dumper-truck"] and data.raw.car["dumper-truck"].weight <= maxWeight then
@@ -77,6 +79,12 @@ if mods["bigtruck"] then
     }
     data:extend{loaded_truck, makeDummyItem(loaded_truck.name)}
   end
+
+elseif compatibilityEntities then
+  -- Include a dummy for this one
+  local loaded_truck = util.table.deepcopy(loaded_vehicle_wagon_tarp)
+  loaded_truck.name = "loaded-vehicle-wagon-truck"
+  data:extend{loaded_truck, makeDummyItem(loaded_truck.name)}
 end
 
 
@@ -158,7 +166,21 @@ if mods["Aircraft"] then
     }
     data:extend{loaded_gunship, makeDummyItem(loaded_gunship.name)}
   end
+
+
+elseif compatibilityEntities then
+  -- Include a dummy for this one
+  local loaded_cargo_plane = util.table.deepcopy(loaded_vehicle_wagon_tarp)
+  loaded_cargo_plane.name = "loaded-vehicle-wagon-cargoplane"
+  data:extend{loaded_cargo_plane, makeDummyItem(loaded_cargo_plane.name)}
   
+  local loaded_jet = util.table.deepcopy(loaded_vehicle_wagon_tarp)
+  loaded_jet.name = "loaded-vehicle-wagon-jet"
+  data:extend{loaded_jet, makeDummyItem(loaded_jet.name)}
+  
+  local loaded_gunship = util.table.deepcopy(loaded_vehicle_wagon_tarp)
+  loaded_gunship.name = "loaded-vehicle-wagon-gunship"
+  data:extend{loaded_gunship, makeDummyItem(loaded_gunship.name)}
 end
 
 
@@ -202,6 +224,19 @@ if mods["SchallTankPlatoon"] then
     data:extend{loaded_tank_SH, makeDummyItem(loaded_tank_SH.name)}
   end
 
+elseif compatibilityEntities then
+  -- Include a dummy for this one
+  local loaded_tank_L = util.table.deepcopy(loaded_vehicle_wagon_tarp)
+  loaded_tank_L.name = "loaded-vehicle-wagon-tank-L"
+  data:extend{loaded_tank_L, makeDummyItem(loaded_tank_L.name)}
+  
+  local loaded_tank_H = util.table.deepcopy(loaded_vehicle_wagon_tarp)
+  loaded_tank_H.name = "loaded-vehicle-wagon-tank-H"
+  data:extend{loaded_tank_H, makeDummyItem(loaded_tank_H.name)}
+  
+  local loaded_tank_SH = util.table.deepcopy(loaded_vehicle_wagon_tarp)
+  loaded_tank_SH.name = "loaded-vehicle-wagon-tank-SH"
+  data:extend{loaded_tank_SH, makeDummyItem(loaded_tank_SH.name)}
 end
 
 
@@ -316,5 +351,10 @@ if mods["Krastorio2"] then
   
     data:extend{loaded_advanced_tank, makeDummyItem(loaded_advanced_tank.name)}
   end
+  
+elseif compatibilityEntities then
+  local loaded_advanced_tank = util.table.deepcopy(loaded_vehicle_wagon_tarp)
+  loaded_advanced_tank.name = "loaded-vehicle-wagon-kr-advanced-tank"
+  data:extend{loaded_advanced_tank, makeDummyItem(loaded_advanced_tank.name)}
 end
 

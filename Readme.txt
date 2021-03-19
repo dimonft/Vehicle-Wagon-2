@@ -1,14 +1,14 @@
-Vehicle Wagon 2.1.0
+Vehicle Wagon 3.1.10
 ===================
 
-Version 2.1.0 was released January 24, 2020, was tested using Factorio v0.18.1, and was authored by robot256 based on the original mod of Supercheese and original graphics from YuokiTani and others.
+Version 3.1.10 was released November 28, 2020, was tested using Factorio v1.1.1, and was authored by robot256 based on the original mod of Supercheese and original graphics from YuokiTani and others.
 Additional contributions from: CrazyMooncat, The_Destroyer, Phasma Felis, Brant Wedel, legendblade, narc, Artanis_Mattias, ST-DDT.
 
 This mod allows you to load your fully-laden car or tank onto a flatbed train wagon and take it with you on your rail journeys!
 Just use the Winch to haul your vehicle onto the wagon, and use the same Winch to unload it when you're ready to drive away.
 No more tedious re-inserting ammo, fuel, etc. into your combat vehicle after a long trip by rail to some remote outpost!
 
-This mod should play well with other tank or car mods, and has been successfully tested with the following mods from the mod portal:
+This mod should play well with other tank, car, and spidertron mods, and has been successfully tested with the following mods from the mod portal:
 
 - Bob's Warfare
 - Heavy Truck by MrSelfDestruct (originally by KatzSmile)
@@ -16,18 +16,19 @@ This mod should play well with other tank or car mods, and has been successfully
 - Aircraft by SuicidalKid
 - Aircraft Realism by haih_ys
 - Better Cargo Planes by Modernkennnern
-- AAI vehicles and tanks
 - Cargo Ships by schnurrebutz
 - Train & Fuel Overaul by Optera
+- Gizmo's Car Keys (imprved)
 
+Loaded wagons weigh more than unloaded wagons, in some cases according to what vehicle they load.  To change the weight effects or disable it, use the Mod Startup Settings.
 
-Modded/colored vehicle models will revert to a standard, grey-colored version while riding on the wagon, but after unloading it should be back to normal.
+Modded/colored vehicle models will revert to a standard, grey-colored version while riding on the wagon, but after unloading go back to normal.
 
 Vehicles that this mod cannot automatically identify will be loaded on the wagon covered in a tarp.
 
 You also cannot winch vehicles that have a passenger; all players must exit the relevant vehicles before loading/unloading.
 
-If there is ever a problem unloading a vehicle manually or by mining a wagon, some items may be spilled on the ground nearby.  Almost never will an item be permanently lost.
+If there is ever a problem unloading a vehicle manually or by mining a wagon, some items may be spilled on the ground nearby.  Normally this only happens if a vehicle inventory or item stack size gets smaller due to another mod change.  Almost never will an item be permanently lost.
 
 Robots can deconstruct loaded wagons by carrying away the contents of loaded vehicles, but only one robot will be sent for it so it might take a long time.
 
@@ -37,7 +38,9 @@ Known Issues/Quirks:
 If a mod adds a "car"-type entity that is not meant to be an actual vehicle, such as the Nixie Tubes mod (used to; it has changed by now), it may still be able to be loaded on a Vehicle Wagon under a tarp.
 Specific exceptions have been added for Nixie Tubes, Helicopters, and others to disallow this, but certain mods may exist that this mod lacks exceptions for.
 
-Direct compatibility with AAI Programmable Vehicles is untested.  Some very outdated compatibility code was not working and removed, and work is needed to improve compatibility with the present version.
+For vehicles with multiple of the same weapon type, the ammo is re-inserted in a random order.
+
+Direct compatibility with AAI Programmable Vehicles is unavailable.  AAI does not have code to detect when a vehicle is unloaded (script_raised_destroy), so you cannot use the AI functions after unloading any AAI vehicle.
 
 Credits:
 --------

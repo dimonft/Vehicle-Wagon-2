@@ -43,56 +43,56 @@ loaded_tank.braking_force = brakingForce
 loaded_tank.friction_force = loadedFriction
 
 local loaded_truck = data.raw["cargo-wagon"]["loaded-vehicle-wagon-truck"]
-if loaded_truck then
+if data.raw["car"]["dumper-truck"] and loaded_truck then
 	loaded_truck.weight = emptyWeight + (data.raw["car"]["dumper-truck"].weight * vehicleWeightFactor)
   loaded_tank.braking_force = brakingForce
   loaded_truck.friction_force = loadedFriction
 end
 
 local loaded_cargo_plane = data.raw["cargo-wagon"]["loaded-vehicle-wagon-cargoplane"]
-if loaded_cargo_plane then
+if data.raw["car"]["cargo-plane"] and loaded_cargo_plane then
 	loaded_cargo_plane.weight = emptyWeight + (data.raw["car"]["cargo-plane"].weight * vehicleWeightFactor)
   loaded_cargo_plane.braking_force = brakingForce
   loaded_cargo_plane.friction_force = loadedFriction
 end
 
 local loaded_jet = data.raw["cargo-wagon"]["loaded-vehicle-wagon-jet"]
-if loaded_jet then
+if data.raw["car"]["jet"] and loaded_jet then
 	loaded_jet.weight = emptyWeight + (data.raw["car"]["jet"].weight * vehicleWeightFactor)
   loaded_jet.braking_force = brakingForce
   loaded_jet.friction_force = loadedFriction
 end
 
 local loaded_gunship = data.raw["cargo-wagon"]["loaded-vehicle-wagon-gunship"]
-if loaded_gunship then
+if data.raw["car"]["gunship"] and loaded_gunship then
 	loaded_gunship.weight = emptyWeight + (data.raw["car"]["gunship"].weight * vehicleWeightFactor)
   loaded_gunship.braking_force = brakingForce
   loaded_gunship.friction_force = loadedFriction
 end
 
 local loaded_tank_L = data.raw["cargo-wagon"]["loaded-vehicle-wagon-tank-L"]
-if loaded_tank_L then
+if data.raw["car"]["Schall-tank-L"] and loaded_tank_L then
 	loaded_tank_L.weight = emptyWeight + (data.raw["car"]["Schall-tank-L"].weight * vehicleWeightFactor)
   loaded_tank_L.braking_force = brakingForce
   loaded_tank_L.friction_force = loadedFriction
 end
 
 local loaded_tank_H = data.raw["cargo-wagon"]["loaded-vehicle-wagon-tank-H"]
-if loaded_tank_H then
+if data.raw["car"]["Schall-tank-H"] and loaded_tank_H then
 	loaded_tank_H.weight = emptyWeight + (data.raw["car"]["Schall-tank-H"].weight * vehicleWeightFactor)
   loaded_tank_H.braking_force = brakingForce
   loaded_tank_H.friction_force = loadedFriction
 end
 
 local loaded_tank_SH = data.raw["cargo-wagon"]["loaded-vehicle-wagon-tank-SH"]
-if loaded_tank_SH then
+if data.raw["car"]["Schall-tank-SH"] and loaded_tank_SH then
 	loaded_tank_SH.weight = emptyWeight + (data.raw["car"]["Schall-tank-SH"].weight * vehicleWeightFactor)
   loaded_tank_SH.braking_force = brakingForce
   loaded_tank_SH.friction_force = loadedFriction
 end
 
 local loaded_advanced_tank = data.raw["cargo-wagon"]["loaded-vehicle-wagon-kr-advanced-tank"]
-if loaded_advanced_tank then
+if data.raw["car"]["kr-advanced-tank"] and loaded_advanced_tank then
 	loaded_advanced_tank.weight = emptyWeight + (data.raw["car"]["kr-advanced-tank"].weight * vehicleWeightFactor)
   loaded_advanced_tank.braking_force = brakingForce
   loaded_advanced_tank.friction_force = loadedFriction

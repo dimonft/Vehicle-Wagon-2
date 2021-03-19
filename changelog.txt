@@ -1,4 +1,85 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.1.19
+Date: 2021-03-13
+  Changes:
+    - Added another interface function for when another mod destroys a wagon's cargo.
+---------------------------------------------------------------------------------------------------
+Version: 3.1.18
+Date: 2021-03-03
+  Changes:
+    - Removed debug messages from wagon-data interface functions.
+    - Added handling of custom parameter "cloned" in the "script_raised_destroy" event to silence error messages.
+---------------------------------------------------------------------------------------------------
+Version: 3.1.17
+Date: 2021-03-01
+  Bugfixes:
+    - Fixed that Spidertron names were not saved (requires Factorio 1.1.9 or later).
+---------------------------------------------------------------------------------------------------
+Version: 3.1.16
+Date: 2021-03-01
+  Features:
+    - Added Beta version of remote interface to allow mods to save and restore vehicle wagon contents.
+---------------------------------------------------------------------------------------------------
+Version: 3.1.15
+Date: 2020-12-16
+  Bugfixes:
+    - Fixed compatibility with Gizmo's Car Keys (Improved) because they don't like being given spider-vehicle entities.
+---------------------------------------------------------------------------------------------------
+Version: 3.1.14
+Date: 2020-12-16
+  Bugfixes:
+    - Fixed that loaded vehicles would be deleted if you launch them on a spaceship, then change mods before unloading.
+    - Fixed that "Vehicle Lost!" messages would display after transporting loaded wagons on a spaceship.
+    - Fixed that localised name would not be displayed in some console messages.
+  Changes:
+    - Removed hidden dependencies that were actually not needed.  Just make sure to update Space Exploration and AAI Programmable Vehicles to the latest versions.
+  Features:
+    - Added support for Lua API global variable viewer (gvv).
+    - Added startup log messages showing which vehicles are allowed to be loaded on wagons.
+---------------------------------------------------------------------------------------------------
+Version: 3.1.13
+Date: 2020-12-13
+  Bugfixes:
+    - Fixed dependencies.
+---------------------------------------------------------------------------------------------------
+Version: 3.1.12
+Date: 2020-12-13
+  Features:
+    - Now fully compatible with AAI Programmable Vehicles.  Deploy loaded AI vehicles from trains all by remote control!
+    - Now fully compatible with Space Exploration.  Put your vehicles on a train, and the train in a spaceship!
+    - Spider Vehicles can be loaded and unloaded while in space.
+  Changes:
+    - Other mods that use the "clone" feature will also clone vehicles stored inside wagons.
+---------------------------------------------------------------------------------------------------
+Version: 3.1.11
+Date: 2020-12-05
+  Features:
+    - Added startup setting to include "comptibility entities" to help loading saves without all the vehicle mods.
+---------------------------------------------------------------------------------------------------
+Version: 3.1.10
+Date: 2020-11-28
+  Bugfixes:
+    - Fixed crash when unloading vehicle loaded prior to 3.1.8.
+---------------------------------------------------------------------------------------------------
+Version: 3.1.9
+Date: 2020-11-25
+  Features:
+    - Now you can load and unload using the winch in the map view.
+    - Now you can load a vehicle onto a wagon in one command by selecting them both at the same time!
+  Bugfixes:
+    - Technology description locale.
+---------------------------------------------------------------------------------------------------
+Version: 3.1.8
+Date: 2020-11-23
+  Changes:
+    - Updated for Factorio 1.1.0.
+    - Added support for saving the selected vehicle weapon.
+    - Added support for Spidertron logistics.
+    - Allowed loading of VW Transporter Cargo Van.
+  Bugfixes:
+    - Fixed some error messages in the migration scripts during loading.
+    - Fixed that migration script might crash if modded vehicles are removed.
+---------------------------------------------------------------------------------------------------
 Version: 3.0.7
 Date: 2020-08-22
   Features:
