@@ -1,3 +1,13 @@
+--[[ Copyright (c) 2020 robot256 (MIT License)
+ * Project: Vehicle Wagon 2 rewrite
+ * File: recipes.lua
+ * Description:  Add recipe prototypes.
+ *   Recipes added:
+ *    - Vehicle Wagon (empty)
+ *    - Winch (capsule)
+--]]
+
+
 data:extend({
 	{
 		type = "recipe",
@@ -6,8 +16,8 @@ data:extend({
 		ingredients =
 		{
 			{"iron-gear-wheel", 10},
-			{"iron-plate", 20},
-			{"steel-plate", 20}
+			{"iron-stick", 20},
+			{"steel-plate", 30}
 		},
 		result = "vehicle-wagon"
 	},
@@ -21,7 +31,7 @@ data:extend({
 			{"iron-gear-wheel", 5},
 			{"iron-plate", 5},
 		},
-		result_count = 2,
+		result_count = 1,
 		result = "winch"
 	}
 })
