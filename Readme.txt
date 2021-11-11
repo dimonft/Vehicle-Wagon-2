@@ -1,7 +1,7 @@
-Vehicle Wagon 3.1.10
+Vehicle Wagon 3.1.21
 ===================
 
-Version 3.1.10 was released November 28, 2020, was tested using Factorio v1.1.1, and was authored by robot256 based on the original mod of Supercheese and original graphics from YuokiTani and others.
+Version 3.1.21 was released November 11, 2021, was tested using Factorio v1.1.1, and was authored by robot256 based on the original mod of Supercheese and original graphics from YuokiTani and others.
 Additional contributions from: CrazyMooncat, The_Destroyer, Phasma Felis, Brant Wedel, legendblade, narc, Artanis_Mattias, ST-DDT.
 
 This mod allows you to load your fully-laden car or tank onto a flatbed train wagon and take it with you on your rail journeys!
@@ -19,6 +19,7 @@ This mod should play well with other tank, car, and spidertron mods, and has bee
 - Cargo Ships by schnurrebutz
 - Train & Fuel Overaul by Optera
 - Gizmo's Car Keys (imprved)
+- Space Exploration by Earendel
 
 Loaded wagons weigh more than unloaded wagons, in some cases according to what vehicle they load.  To change the weight effects or disable it, use the Mod Startup Settings.
 

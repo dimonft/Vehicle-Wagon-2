@@ -41,6 +41,17 @@ function makeGlobalMaps()
     elseif k and string.find(k,"airborne") then
       global.vehicleMap[k] = nil  -- can't load flying planes [Aircraft Realism compatibility]
     
+    -- SE has lots of non-vehicle entities
+    elseif k and string.find(k,"se%-rocket") then
+      global.vehicleMap[k] = nil
+    elseif k and string.find(k,"se%-spaceship") then
+      global.vehicleMap[k] = nil
+    elseif k == "shield-projector-barrier" then
+      global.vehicleMap[k] = nil
+    elseif k and string.find(k,"burbulator") then
+      global.vehicleMap[k] = nil
+    
+    
     elseif p.weight > maxWeight then
       global.vehicleMap[k] = nil  -- This vehicle is too heavy
       

@@ -86,8 +86,11 @@ local function OnPlayerSelectedArea(event)
         deleteWagon(unit_number)
         replaceCarriage(loaded_wagon, "vehicle-wagon", false, false)
 
-      elseif in_space and game.entity_prototypes[global.wagon_data[unit_number].name].type ~= "spider-vehicle" then
-        -- If it's not a Spidertron, can't unload in space, SE will delete the vehicle
+      elseif in_space and not (
+            (game.entity_prototypes[global.wagon_data[unit_number].name].type == "spider-vehicle") or 
+            (string.find(global.wagon_data[unit_number].name, "se-space", 1, true))
+          ) then
+        -- If it's not a Spidertron or a space thing, can't unload in space, since SE will delete the vehicle
         player.print{"vehicle-wagon2.train-in-space-error", game.entity_prototypes[global.wagon_data[unit_number].name].localised_name}
 
       elseif check_GCKI and global.wagon_data[unit_number].GCKI_data and global.wagon_data[unit_number].GCKI_data.locker and
@@ -166,7 +169,7 @@ local function OnPlayerSelectedArea(event)
       elseif is_vehicle_moving(vehicle) then
         player.print{"vehicle-wagon2.vehicle-in-motion-error"}
 
-      elseif in_space and vehicle.type ~= "spider-vehicle" then
+      elseif in_space and not ((vehicle.type == "spider-vehicle") or string.find(vehicle.name, "se-space", 1, true) ) then
         -- If it's not a Spidertron, can't load in space.
         player.print{"vehicle-wagon2.vehicle-in-space-error", vehicle.localised_name}
 

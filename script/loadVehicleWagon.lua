@@ -137,7 +137,6 @@ function loadVehicleWagon(action)
   end
   
   -- Destroy vehicle. Raise event with custom parameter so we don't immediately clear the loading ramp.
-  script.raise_event(defines.events.script_raised_destroy, {entity=vehicle, vehicle_loaded=true})
-  vehicle.destroy({raise_destroy=false})
-  
+  script.raise_script_destroy{entity=vehicle, vehicle_loaded=true}
+  vehicle.destroy()
 end

@@ -227,14 +227,13 @@ function unloadVehicleWagon(action)
   
   -- Raise event for scripts
   -- Added autodrive_data and GCKI_data to arguments. No need to test if they are set: If nil, they will be ignored!
-  script.raise_event( defines.events.script_raised_built, {
+  script.raise_script_built{
       entity = vehicle,
       player_index = player_index, 
       vehicle_unloaded=true,  -- Custom parameter used by Vehicle Wagon
       autodrive_data = wagon_data.autodrive_data,  -- Custom parameter used by Autodrive
       GCKI_data = wagon_data.GCKI_data  -- Custom parameter used by GCKI
     }
-  )
   
   -- Play sound associated with creating the vehicle
   surface.play_sound({path = "utility/build_medium", position = unload_position, volume_modifier = 0.7})
