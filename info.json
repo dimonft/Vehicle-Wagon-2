@@ -1,25 +1,14 @@
 {
 	"name": "VehicleWagon2",
-	"version": "1.2.13",
-	"factorio_version": "0.17",
+	"version": "3.1.21",
+	"factorio_version": "1.1",
 	"title": "Vehicle Wagon 2",
-	"author": "Artanis_Mattias",
+	"author": "robot256",
 	"homepage": "",
-	"contact": "gorlovdiman@gmail.com",
+	"contact": "https://forums.factorio.com/memberlist.php?mode=viewprofile&u=63685",
 	"dependencies": [
-		"base >= 0.17.0",
-		"? trucks",
-		"? aai-programmable-vehicles",
-		"? aai-vehicles-chaingunner",
-		"? aai-vehicles-hauler",
-		"? aai-vehicles-flame-tank",
-		"? aai-vehicles-flame-tumbler",
-		"? aai-vehicles-hauler",
-		"? aai-vehicles-laser-tank",
-		"? aai-vehicles-miner",
-		"? aai-vehicles-warden",
-		"? vwtransporter_A16",
-		"? SchallTransportGroup"
+    "base >= 1.1.27",
+    "Robot256Lib >= 0.1.1"
 	],
-	"description": "Возьмите с собой полностью заряженный и готовый к бою транспорт и отправьте его в путешествие по железной дороге."
+	"description": "Winch vehicles onto trains and go for a ride! | RU: Возьмите с собой полностью заряженный и готовый к бою транспорт и отправьте его в путешествие по железной дороге."
 }

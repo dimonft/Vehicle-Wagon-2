@@ -1,27 +1,248 @@
-Version: 1.2.13 [BETA]
+---------------------------------------------------------------------------------------------------
+Version: 3.1.21
+Date: 2021-11-11
+  Features:
+    - Improved compatibility with Space Exploration and Space Shuttle.
+  Changes:
+    - Update to use new LuaGameScript::script_raise_built() and script_raise_destroy() methods.
+  Bugfixes:
+    - Can no longer put SE dummy entities onto vehicle wagons.
+---------------------------------------------------------------------------------------------------
+Version: 3.1.20
+Date: 2021-03-19
+  Bugfixes:
+    - Fixed crash when using "kill_wagon_data" interface function.
+  Changes:
+    - Updated Russian translation. (Thanks to dimonft)
+---------------------------------------------------------------------------------------------------
+Version: 3.1.19
+Date: 2021-03-13
+  Changes:
+    - Added another interface function for when another mod destroys a wagon's cargo.
+---------------------------------------------------------------------------------------------------
+Version: 3.1.18
+Date: 2021-03-03
+  Changes:
+    - Removed debug messages from wagon-data interface functions.
+    - Added handling of custom parameter "cloned" in the "script_raised_destroy" event to silence error messages.
+---------------------------------------------------------------------------------------------------
+Version: 3.1.17
+Date: 2021-03-01
+  Bugfixes:
+    - Fixed that Spidertron names were not saved (requires Factorio 1.1.9 or later).
+---------------------------------------------------------------------------------------------------
+Version: 3.1.16
+Date: 2021-03-01
+  Features:
+    - Added Beta version of remote interface to allow mods to save and restore vehicle wagon contents.
+---------------------------------------------------------------------------------------------------
+Version: 3.1.15
+Date: 2020-12-16
+  Bugfixes:
+    - Fixed compatibility with Gizmo's Car Keys (Improved) because they don't like being given spider-vehicle entities.
+---------------------------------------------------------------------------------------------------
+Version: 3.1.14
+Date: 2020-12-16
+  Bugfixes:
+    - Fixed that loaded vehicles would be deleted if you launch them on a spaceship, then change mods before unloading.
+    - Fixed that "Vehicle Lost!" messages would display after transporting loaded wagons on a spaceship.
+    - Fixed that localised name would not be displayed in some console messages.
+  Changes:
+    - Removed hidden dependencies that were actually not needed.  Just make sure to update Space Exploration and AAI Programmable Vehicles to the latest versions.
+  Features:
+    - Added support for Lua API global variable viewer (gvv).
+    - Added startup log messages showing which vehicles are allowed to be loaded on wagons.
+---------------------------------------------------------------------------------------------------
+Version: 3.1.13
+Date: 2020-12-13
+  Bugfixes:
+    - Fixed dependencies.
+---------------------------------------------------------------------------------------------------
+Version: 3.1.12
+Date: 2020-12-13
+  Features:
+    - Now fully compatible with AAI Programmable Vehicles.  Deploy loaded AI vehicles from trains all by remote control!
+    - Now fully compatible with Space Exploration.  Put your vehicles on a train, and the train in a spaceship!
+    - Spider Vehicles can be loaded and unloaded while in space.
+  Changes:
+    - Other mods that use the "clone" feature will also clone vehicles stored inside wagons.
+---------------------------------------------------------------------------------------------------
+Version: 3.1.11
+Date: 2020-12-05
+  Features:
+    - Added startup setting to include "comptibility entities" to help loading saves without all the vehicle mods.
+---------------------------------------------------------------------------------------------------
+Version: 3.1.10
+Date: 2020-11-28
+  Bugfixes:
+    - Fixed crash when unloading vehicle loaded prior to 3.1.8.
+---------------------------------------------------------------------------------------------------
+Version: 3.1.9
+Date: 2020-11-25
+  Features:
+    - Now you can load and unload using the winch in the map view.
+    - Now you can load a vehicle onto a wagon in one command by selecting them both at the same time!
+  Bugfixes:
+    - Technology description locale.
+---------------------------------------------------------------------------------------------------
+Version: 3.1.8
+Date: 2020-11-23
+  Changes:
+    - Updated for Factorio 1.1.0.
+    - Added support for saving the selected vehicle weapon.
+    - Added support for Spidertron logistics.
+    - Allowed loading of VW Transporter Cargo Van.
+  Bugfixes:
+    - Fixed some error messages in the migration scripts during loading.
+    - Fixed that migration script might crash if modded vehicles are removed.
+---------------------------------------------------------------------------------------------------
+Version: 3.0.7
+Date: 2020-08-22
+  Features:
+    - First release for Factorio 1.0.0.
+    - Added BETA support for SPIDERTRON.
+---------------------------------------------------------------------------------------------------
+Version: 2.18.6
+Date: 2020-07-02
+  Bugfixes:
+    - Fixed icon mipmap warnings.
+    - Fixed crash when starting with Editor Extensions.
+---------------------------------------------------------------------------------------------------
+Version: 2.18.5
+Date: 2020-05-28
+  Features:
+    - Fixed Gizmo's Car Keys interface, so that it will actually work once Pi-C updates.
+    - Added compatibility with Unminable Vehicles.  "Make vehicles unminable" setting takes priority over Gizmo's Car Keys setting.
+  Changes:
+    - Moved migration code to migrations folder and cleaned them up significantly.
+    - Added migration step to convert double winches to single winches (only when upgrading from 1.2.x).
+  Bugfixes:
+    - Fixed that these vehicle flags would not be saved and restored: minable, destructible, operable, rotatable, enable_logistics_while_moving.
+    - Fixed that any mod changes would reset Vehicle Wagon tutorial states.
+---------------------------------------------------------------------------------------------------
+Version: 2.18.4
+Date: 2020-05-24
+  Bugfixes:
+    - Fixed missing dependency on Krastorio2 by moving modded wagons to data-updates. No more dependencies!
+    - Fixed that wagons would not always become minable again when GCKI ownership is released.
+    - Fixed that wagons would not become update minable state when GCKI mod was uninstalled or GCKI Permission setting changed.
+    - Fixed that vehicle color would not be reset if unloaded after GCKI ownership was released.
+---------------------------------------------------------------------------------------------------
+Version: 2.18.3
+Date: 2020-05-23
+  Features:
+    - Added (beta) compatibility with Gizmo's Cark Keys (Improved). Locked and claimed vehicles can only be loaded or unloaded by their owner.
+    - Added new scaled sprites for Schall Light Tank and Schall Heavy Tank, with matching wagon weights.
+    - Added startup settings to adjust braking and friction force of vehicle wagons.
+    - Added startup setting to control maximum weight of load-able vehicles.
+    - Added compability with Krastorio 2 Advanced Tank (beta graphics), if you change the Maximum Weight to more than 150000.
+    - Added alt-mode icons showing what vehicle is loaded in each wagon.
+    - Added custom boolean parameter "vehicle_loaded" to "script_raised_destroy" event when vehicle was loaded successfully.
+    - Added custom boolean parameter "vehicle_unloaded" to "script_raised_built" event when vehicle was unloaded successfully.
+    - Uploaded by robot256
+  Changes:
+    - Rebalanced wagon weights and stats so that vehicle weight is treated fairly. Hauling tanks needs multiple locomotives now.
+    - Fixed compatibility with Train Overhaul so wagon speed is set to match the Nuclear Locomotive.
+    - Updated German locale with the many new strings, thanks to ST-DDT and Pi-C (Work in Progress).
+    - Improved locale structure with cross-referencing.
+    - Improved behavior when players move or get in vehicles mid-loading.
+    - Changed selection indicator to an area highlight instead of giant arrows.
+    - Changed unloading zone to oblong shape surrounding wagon.
+    - Changed unloading behavior so that vehicles always point outwards, driving off the ramp.
+    - Improved loading ramp graphics.
+  Bugfixes:
+    - Fixed minimum and maximum parameters on weight scaling startup settings.
+    - Moved final weight calculations to data-final-fixes so that they are consistent with the final wagon and vehicle weights set by other mods.
+    - Added mininum distance based on vehicle size to avoid accidentally destroying the wago when unloading.
+---------------------------------------------------------------------------------------------------
+Version: 2.18.2
+Date: 2020-03-02
+  Features:
+    - Changed loading beam graphics to a conveyor belt.
+  Changes:
+    - Removed dependency on StdLib mod.
+  Bugfixes:
+    - Fixed compatibility with Mobile Factory mod by fixing how last_user and player_index are saved and restored.
+    - Fixed compatibility with Creative Mod by handling the case when magic robots with no inventory deconstruct a loaded wagon.
+---------------------------------------------------------------------------------------------------
+Version: 2.1.0
+Date: 24. 1. 2020
+  Changes:
+    - Initial support for Factorio 0.18.
+  Bugfixes:
+    - Fixed that clicking on a non-vehicle, non-vehicle-wagon entity would not unload a vehicle nearby.
+    - Fixed crash when unloading at certain angles on the track.
+---------------------------------------------------------------------------------------------------
+Version: 2.0.0
+Date: 23. 1. 2020
+  Major Features:
+    - Construction robots can unload or deconstruct Loaded Wagons without losing the loaded vehicle or any of its contents.
+    - Save/Restore logic updated so that vehicles and items are almost never permanently lost.
+    - New graphics by YuokiTani for the Aircraft mod's Cargo Plane, Gunship, and Jet.
+    - Weights of loaded and empty wagons can adjusted to represent the vehicles they contain.
+  Features:
+    - Items with partial ammo, durability, and health will be stored correctly.
+    - Blueprints, books, and planners stored in vehicles will be stored correctly.
+    - Grid-containing items stored in vehicles will be recreated without losing an equipment (but can't be reinserted into that item's grid).
+    - Any items that cannot be added to the fuel or ammo of the unloaded vehicle will be added to the trunk.
+    - Any items that cannot be added to the trunk will be spilled on the ground.
+    - When the player mines a loaded wagon, any items from the loaded vehicle that cannot be inserted into the player's inventory will be spilled on the ground.
+    - Runtime setting controls whether robots must always take vehicles back to logistic storage, or if they may try to unload the vehicle.
+      (The robot might put the vehicle on nearby train tracks, and your car will get run over by a train!)
+    - Startup settings to enable custom wagon weight calculations:
+      Empty Wagon Weight Factor sets the empty Vehicle Wagon weight as a fraction of the standard cargo wagon.  Flatbeds weight less than boxcars, so this is typically less than 1.
+      Vehicle Weight Factor sets the weight added to Loaded Vehicle Wagons as a fraction of the primary vehicle type for that Loaded Wagon sprite.  Vehicle weights are scaled differently than train weights, so this is typically less than 0.5.
+  Ease of Use:
+    - Players can load and unload multiple wagons simultaneously.
+    - Only one winch item is needed to operate the Vehicle Wagons, and it never leaves the cursor.
+    - Laser beam indicates in-progress loading and unloading actions.
+    - Improved status and error messages.
+  Bugfixes:
+    - Fixed that you had to click the winch on the center of a vehicle or wagon, not just in the selection box.
+    - Fixed that wagons would get recoupled incorrectly when loading/unloading.
+    - Fixed crash when unloading a vehicle, or vehicle with contents from, an uninstalled mod.
+    - Fixed that only one player could load/unload on exactly the same tick.
+    - Fixed that robots mining a loaded wagon would cause the loss of the loaded vehicle.
+    - Fixed that global data table was polluted when a loaded wagon was died without unloading.
+    - Fixed crash when vehicle or wagon was mined or destroyed during loading operation.
+    - Fixed crash when attempting to unload a wagon whose stored vehicle data is missing.
+    - Fixed that sometimes winch would not be returned to player.
+    - Fixed that using the "undo" tool after deconstructing a loaded wagon would produce an un-buildable loaded-wagon ghost.
+    - Fixed crash/glitchy behavior when unloading a vehicle whose currently_burning fuel item was uninstalled or modified.
+  Changes:
+    - Internal data structure has been redesigned for better maintainability and to hold all this new information.
+      Existing data will be migrated to the new structure.
+      Do not downgrade from VehicleWagon2 version 2.x to any 1.x version.
+    - Added dependency on StdLib mod, removed stdlib source from this mod.
+  Info:
+    - This release contains a nearly total rewrite of the Vehicle Wagon scripts by robot256.
+    - Many thanks to YuokiTani for providing new graphics for the loaded aircraft!
+---------------------------------------------------------------------------------------------------
+Version: 1.2.14
+Date: 18. 1. 2020
+  Bugfixes:
+    - RU: Исправления внесённые из GIT. Спасибо Schallfalke и robot256.
+    - EU: Corrections made from GIT. Thanks to Schallfalke and robot256. 
+---------------------------------------------------------------------------------------------------
+Version: 1.2.13
 Date: 14. 9. 2019
   Bugfixes:
-  	- RU: Исправлены расхождения версий. Теперь основная версия базируется в GIT.
-	- EU: Version discrepancies fixed. Now the main version is based in GIT.
-  Changes:
-    	- RU:
-	- EN:
-  The note:
-    	- RU: ЭТО ВЕРСИЯ ЭКСПЕРЕМЕНТАЛЬНАЯ, НЕКОТОРЫЙ ФУНКЦИОНАЛ МОЖЕТ НЕ РАБОТАТЬ ИЗ-ЗА ВОЗМОЖНЫХ ОШИБОК!
-    	- EN: THIS IS AN EXPERIMENTAL VERSION, SOME FUNCTIONALS MAY NOT WORK DUE TO POSSIBLE ERRORS!
+    - RU: Исправлены расхождения версий. Теперь основная версия базируется в GIT.
+    - EU: Version discrepancies fixed. Now the main version is based in GIT.
+  Info:
+    - RU: ЭТО ВЕРСИЯ ЭКСПЕРЕМЕНТАЛЬНАЯ, НЕКОТОРЫЙ ФУНКЦИОНАЛ МОЖЕТ НЕ РАБОТАТЬ ИЗ-ЗА ВОЗМОЖНЫХ ОШИБОК!
+    - EN: THIS IS AN EXPERIMENTAL VERSION, SOME FUNCTIONALS MAY NOT WORK DUE TO POSSIBLE ERRORS!
 ---------------------------------------------------------------------------------------------------
 Version: 1.2.12
 Date: 17. 8. 2019
   Bugfixes:
     - RU: Добавлены описания мода для разных языков.
-		  Теперь при погрузке, количество щитов для танспорта будет сохраняться предварительно убедившись что это необходимо.
-		  Исправлена ошибка, связанная с инвентаризацией сгоревшего топлива.
-	- EU: Added mod descriptions for different languages.
-		  Now, when loading, the number of shields for vehicles will be saved, a check has been added to see if this action is necessary.
-		  Fixed a bug related to the inventory of burned fuel.
-  Changes:
-    -
-  The note:
+      Теперь при погрузке, количество щитов для танспорта будет сохраняться предварительно убедившись что это необходимо.
+      Исправлена ошибка, связанная с инвентаризацией сгоревшего топлива.
+    - EU: Added mod descriptions for different languages.
+      Now, when loading, the number of shields for vehicles will be saved, a check has been added to see if this action is necessary.
+      Fixed a bug related to the inventory of burned fuel.
+  Info:
     - RU: Это исправление было введено в качестве экспериментального, поскольку во время выпуска обновления у меня не было физической возможности проверить производительность этого решения.
     - EN: This fix was introduced as an experimental one, since during the release of the update I didn’t have the physical ability to test the performance of this solution.
 ---------------------------------------------------------------------------------------------------
@@ -29,14 +250,10 @@ Version: 1.2.11
 Date: 3. 4. 2019
   Bugfixes:
     - RU: Исправление дефектов версии 1.2.8 (спасибо robot256)
-	- EN: Correction of defects of version 1.2.8 (Thanks to robot256)
-  Changes:
-    -
+    - EN: Correction of defects of version 1.2.8 (Thanks to robot256)
 ---------------------------------------------------------------------------------------------------
 Version: 1.2.10
 Date: 31. 3. 2019
-  Bugfixes:
-    -
   Changes:
     - Dodano obsługę języka polskiego. | Polish language support added.
 ---------------------------------------------------------------------------------------------------
@@ -44,11 +261,9 @@ Version: 1.2.9
 Date: 31. 3. 2019
   Bugfixes:
     - RU: Исправлено падение игрового клиента.
-Во время копирования транспортного вагона нажатием кнопки «Q» и одновременного удержания автомобиля на платформе транспортного вагона и последующей попытки выгрузить автомобиль из транспортного вагона клиент игры потерпел краш. (Спасибо robot256 за подробное объяснение и предложение способа решения проблемы)
-	  EU: Fixed game client crash.During copying of the transport vagon, pressing the “Q” button and simultaneously holding the car on the platform of the transport vagon and the subsequent attempt to unload the car from the transport vagon, the game client suffered a crash. (Thanks to robot256 for a detailed explanation and suggestion of a way to solve the problem)
-  Changes:
-    -
-  The note:
+      Во время копирования транспортного вагона нажатием кнопки «Q» и одновременного удержания автомобиля на платформе транспортного вагона и последующей попытки выгрузить автомобиль из транспортного вагона клиент игры потерпел краш. (Спасибо robot256 за подробное объяснение и предложение способа решения проблемы)
+    - EU: Fixed game client crash.During copying of the transport vagon, pressing the “Q” button and simultaneously holding the car on the platform of the transport vagon and the subsequent attempt to unload the car from the transport vagon, the game client suffered a crash. (Thanks to robot256 for a detailed explanation and suggestion of a way to solve the problem)
+  Info:
     - RU: Это исправление было введено в качестве экспериментального, поскольку во время выпуска обновления у меня не было физической возможности проверить производительность этого решения.
     - EN: This fix was introduced as an experimental one, since during the release of the update I didn’t have the physical ability to test the performance of this solution.
 ---------------------------------------------------------------------------------------------------
@@ -56,10 +271,8 @@ Version: 1.2.8
 Date: 31. 3. 2019
   Bugfixes:
     - RU: Исправлено падение клиента игры. Во время выгрузки из транспортного вагона в моде "Disco Science" клиент игры вылетал. (Спасибо robot256 за подробное объяснение и предложение способа решения проблемы)
-	  EU: Fixed crash. During the unloading from the vehicle in the mod "Disco Science" the client of the game crashed. (Thanks to robot256 for a detailed explanation and suggestion of a way to solve the problem)
-  Changes:
-    -
-  The note:
+    - EU: Fixed crash. During the unloading from the vehicle in the mod "Disco Science" the client of the game crashed. (Thanks to robot256 for a detailed explanation and suggestion of a way to solve the problem)
+  Info:
     - RU: Это исправление было введено в качестве экспериментального, поскольку во время выпуска обновления у меня не было физической возможности проверить производительность этого решения.
     - EN: This fix was introduced as an experimental one, since during the release of the update I didn’t have the physical ability to test the performance of this solution.
 ---------------------------------------------------------------------------------------------------
@@ -67,16 +280,16 @@ Version: 1.2.7
 Date: 17. 3. 2019
   Bugfixes:
     - RU: Так как Лебёдка больше не работает корректно из-за изменения принципа работы пояса инструментов из версии 0.16, был частично изменён рецепт создания лебёдки. (Теперь у вас 2 лебёдки)
-	  EU: Since the Winch is no longer working correctly due to a change in the principle of operation of the tool belt from version 0.16, the recipe for winch creation has been partially changed. (Now you have 2 winches)
+    - EU: Since the Winch is no longer working correctly due to a change in the principle of operation of the tool belt from version 0.16, the recipe for winch creation has been partially changed. (Now you have 2 winches)
   Changes:
     - Добавлена поддержка Русского языка. | Added support for Russian language.
 ---------------------------------------------------------------------------------------------------
 Version: 1.2.6
 Date: 17. 3. 2019
-  Bugfixes:
-    -
   Changes:
     - В мод введена поддержка версии игры 0.17 | The mod introduced support for the game version 0.17
+  Info:
+    - First release by Artanis_Mattias.
 ---------------------------------------------------------------------------------------------------
 Version: 1.2.5
 Date: 18. 6. 2018
@@ -191,9 +404,7 @@ Date: 25. 8. 2016
     - It is no longer possible to ride in empty vehicle wagons.
     - Added support for the Trucks mod by KatzSmile.
 ---------------------------------------------------------------------------------------------------
-Version: 1.0.0 - First public release
+Version: 1.0.0
 Date: 24. 8. 2016
   Major Features:
     - Initial release, featuring Vehicle Wagons that can carry your fully-laden combat vehicle so you can take it along with you on your rail journey!
-
-              
