@@ -93,7 +93,7 @@ end
 -- Executes queued load/unload actions after the correct time has elapsed.
 function process_tick(event)
   local current_tick = event.tick
-  
+
   for player_index, selection in pairs(global.player_selection) do
     -- Check if the selected wagon & vehicle died or started moving
     if selection.wagon_unit_number and not(selection.wagon and selection.wagon.valid) then
@@ -113,7 +113,7 @@ function process_tick(event)
       clearVehicle(selection.vehicle, {silent=true, sound=true})
     end
   end
-  
+
   -- Check Action queue to see if any are ready this tick, or became invalid
   for unit_number, action in pairs(global.action_queue) do
     if action.player_index and game.players[action.player_index] and action.status then
@@ -124,7 +124,7 @@ function process_tick(event)
       if not wagon or not wagon.valid or wagon.train.speed ~= 0 or (vehicle and is_vehicle_moving(vehicle)) then
         -- Train/vehicle started moving, cancel action silently
         clearWagon(unit_number, {silent=true, sound=false})
-      
+
       ------- LOADING OPERATION --------
       elseif action.status == "load" and action.tick == current_tick then
         -- Check that the wagon and vehicle indicated by the player are a valid target for loading
@@ -142,7 +142,7 @@ function process_tick(event)
         end
         -- Clear from queue after completion
         global.action_queue[unit_number] = nil
-        
+
       ------- UNLOADING OPERATION --------
       elseif action.status == "unload" and action.tick == current_tick then
         -- Check that the wagon indicated by the player is a valid target for unloading
@@ -169,7 +169,7 @@ function process_tick(event)
       global.action_queue[unit_number] = nil
     end
   end
-  
+
   -- Unsubscribe from on_tick if no actions remains in queue
   if table_size(global.action_queue) == 0 and table_size(global.player_selection) == 0 then
     script.on_event(defines.events.on_tick, nil)
@@ -183,9 +183,9 @@ end
 --== ON_PRE_PLAYER_REMOVED EVENT ==--
 function onPrePlayerRemoved(event)
   local player_index = event.player_index
-  
+
   local unminable_enabled = game.active_mods["UnminableVehicles"] and settings.global["unminable_vehicles_make_unminable"].value
-  
+
   for wagon_id,data in pairs(global.wagon_data) do
     if data.GCKI_data then
       if data.GCKI_data.owner and data.GCKI_data.owner == player_index then
@@ -196,7 +196,7 @@ function onPrePlayerRemoved(event)
         -- Locker was removed
         data.GCKI_data.locker = nil
       end
-      
+
       -- If UnminableVehicles is not enabled, update minable states.
       if not unminable_enabled then
         -- Make wagon minable when it belongs to no one
@@ -228,9 +228,9 @@ function release_owned_by_player(p)
   if type(p) ~= "number" then
     player_index = p.index
   end
-  
+
   local unminable_enabled = game.active_mods["UnminableVehicles"] and settings.global["unminable_vehicles_make_unminable"].value
-  
+
   for wagon_id,data in pairs(global.wagon_data) do
     if data.GCKI_data then
       if data.GCKI_data.owner and data.GCKI_data.owner == player_index then
@@ -333,7 +333,7 @@ function clearWagon(unit_number, flags)
     end
   end
   global.action_queue[unit_number] = nil
-  
+
   -- Clear player selections of this wagon
   for player_index,selection in pairs(global.player_selection) do
     if selection.wagon and (not selection.wagon.valid or selection.wagon.unit_number == unit_number) then
@@ -404,7 +404,7 @@ script.on_event(defines.events.on_robot_pre_mined, require("script.OnRobotPreMin
 
 
 --== ON_PICKED_UP_ITEM ==--
--- When player picks up an item, change loaded wagons to empty wagons.  
+-- When player picks up an item, change loaded wagons to empty wagons.
 function OnPickedUpItem(event)
   if global.loadedWagonMap[event.item_stack.name] then
     game.players[event.player_index].remove_item(event.item_stack)
@@ -469,12 +469,26 @@ function OnEntityDied(event)
       else
         game.print{"vehicle-wagon2.wagon-destroyed", "#"..entity.unit_number.." ", global.wagon_data[entity.unit_number].name}
       end
+
+      -- As of version 1.1.2, GCKI will allow players to add a custom name to vehicles,
+      -- whether it has owner/locker or not. When a vehicle is loaded on a vehicle
+      -- wagon, the custom name will be reserved until the vehicle is unloaded again.
+      -- When the vehicle wagon is destroyed before it could be unloaded, GCKI should
+      -- remove the name from its list, so it can be used again for another vehicle.
+      if global.wagon_data[entity.unit_number].GCKI_data and
+          remote.interfaces["GCKI"] and remote.interfaces["GCKI"].vehicle_proxy_destroyed then
+        log("Vehicle wagon loaded with a GCKI_vehicle was destroyed. Calling remote.interfaces[\"GCKI\"].vehicle_proxy_destroyed()!")
+        remote.call("GCKI", "vehicle_proxy_destroyed", {
+          GCKI_data = global.wagon_data[entity.unit_number].GCKI_data,
+          mod_name = script.mod_name,
+        })
+      end
     end
     deleteWagon(entity.unit_number)
   elseif entity.name == "vehicle-wagon" then
     clearWagon(entity.unit_number)
   elseif (event.entity.type == "car" or event.entity.type == "spider-vehicle") and not event.vehicle_loaded then
-    -- Car died, 
+    -- Car died,
     clearVehicle(entity, {silent=true})
   end
 end
@@ -492,13 +506,13 @@ function OnEntityCloned(event)
     if global.wagon_data[source.unit_number] then
       -- Copy the data table for the cloned entity, so the loaded vehicle is cloned too
       global.wagon_data[destination.unit_number] = table.deepcopy(global.wagon_data[source.unit_number])
-      
+
       -- Reference the new wagon
       global.wagon_data[destination.unit_number].wagon = destination
-      
+
       -- Store a flag saying the old data was cloned
       global.wagon_data[source.unit_number].cloned = true
-      
+
       -- Put an icon on the new wagon showing contents
       global.wagon_data[destination.unit_number].icon = renderIcon(destination, global.wagon_data[destination.unit_number].name)
     end
@@ -522,7 +536,7 @@ function OnPlayerDrivingChangedState(event)
       clearVehicle(vehicle, {silent=true, sound=true})
     end
   end
-  
+
 end
 script.on_event(defines.events.on_player_driving_changed_state, OnPlayerDrivingChangedState)
 
@@ -534,7 +548,7 @@ script.on_event(defines.events.on_player_driving_changed_state, OnPlayerDrivingC
 --== ON_PLAYER_PIPETTE ==--
 -- Fires when player presses 'Q'.  We need to sneakily grab the correct item from inventory if it exists,
 --  or sneakily give the correct item in cheat mode.
-script.on_event(defines.events.on_player_pipette, 
+script.on_event(defines.events.on_player_pipette,
                 function(event) blueprintLib.mapPipette(event, global.loadedWagonMap) end)
 
 --== ON_PLAYER_CONFIGURED_BLUEPRINT ==--
@@ -542,14 +556,14 @@ script.on_event(defines.events.on_player_pipette,
 --== ON_PLAYER_SETUP_BLUEPRINT ==--
 -- ID 68, fires when you select an area to make a blueprint or copy
 -- Force Blueprints to only store empty vehicle wagons
-script.on_event({defines.events.on_player_setup_blueprint, defines.events.on_player_configured_blueprint}, 
+script.on_event({defines.events.on_player_setup_blueprint, defines.events.on_player_configured_blueprint},
                 function(event) blueprintLib.mapBlueprint(event, global.loadedWagonMap) end)
 
 
 --------------------------------------
 -- REMOTE MOD INTERFACES
 remote.add_interface('VehicleWagon2', {
-  
+
   -- GCKI COMPATIBILITY
   -- Removes this player as "owner" of any loaded vehicles.  Called when this player claims a different vehicle.
   release_owned_by_player = release_owned_by_player,
@@ -588,7 +602,7 @@ function print_file(...)
     end
   end
   log(text)
-end  
+end
 
 -- Debug command
 function cmd_debug(params)
@@ -622,4 +636,3 @@ setmetatable(_ENV,{
   })
 
 if script.active_mods["gvv"] then require("__gvv__.gvv")() end
-

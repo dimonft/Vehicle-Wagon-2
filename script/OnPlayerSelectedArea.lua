@@ -87,7 +87,7 @@ local function OnPlayerSelectedArea(event)
         replaceCarriage(loaded_wagon, "vehicle-wagon", false, false)
 
       elseif in_space and not (
-            (game.entity_prototypes[global.wagon_data[unit_number].name].type == "spider-vehicle") or 
+            (game.entity_prototypes[global.wagon_data[unit_number].name].type == "spider-vehicle") or
             (string.find(global.wagon_data[unit_number].name, "se-space", 1, true))
           ) then
         -- If it's not a Spidertron or a space thing, can't unload in space, since SE will delete the vehicle
@@ -154,10 +154,15 @@ local function OnPlayerSelectedArea(event)
       -- Compatibility with GCKI:
       local owner = nil
       local locker = nil
+      -- We can get along with fewer remote calls to GCKI!
       if check_GCKI then
+        local v_data = remote.call("GCKI", "get_vehicle_data", vehicle)
+
         -- Either or both of these may be set to a player
-        owner = remote.call("GCKI", "vehicle_owned_by", vehicle)
-        locker = remote.call("GCKI", "vehicle_locked_by", vehicle)
+        if v_data then
+          owner = v_data.owner and game.players[v_data.owner]
+          locker = v_data.locker and game.players[v_data.locker]
+        end
       end
 
       if not global.vehicleMap[vehicle.name] then
