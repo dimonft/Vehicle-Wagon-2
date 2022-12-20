@@ -20,7 +20,7 @@ require("script.makeGlobalMaps")
 
 -- Runs when new game starts
 function OnInit()
-  -- Generate wagon-vehicle mapping tables 
+  -- Generate wagon-vehicle mapping tables
   makeGlobalMaps()
   -- Create global data tables
   makeGlobalTables()
@@ -28,13 +28,13 @@ end
 
 
 function OnConfigurationChanged(event)
-
+log("Entered function OnConfigurationChanged("..serpent.line(event)..")")
   -- Migrations run before on_configuration_changed.
   -- Data structure should already be 2.x.3.
 
   -- Regenerate maps with any new prototypes.
   makeGlobalMaps()
-  
+
   -- Purge data for any entities that were removed
   -- Migration should already have added "wagon" entity reference to each valid entry
   for id,data in pairs(global.wagon_data) do
@@ -43,10 +43,10 @@ function OnConfigurationChanged(event)
       global.wagon_data[id] = nil
     end
   end
-  
+
   local gcki_enabled = game.active_mods["GCKI"] and settings.global["vehicle-wagon-use-GCKI-permissions"].value
   local unminable_enabled = game.active_mods["UnminableVehicles"] and settings.global["unminable_vehicles_make_unminable"].value
-  
+
   -- Run when GCKI is uninstalled:
   if event.mod_changes["GCKI"] and event.mod_changes["GCKI"].new_version == nil then
     -- Make sure all loaded wagons are minable
@@ -62,10 +62,34 @@ function OnConfigurationChanged(event)
       if not unminable_enabled then
         data.minable = nil
       end
-      data.GCKI_data = nil
+      -- Keep GCKI data if it contains a custom name and Autodrive is active, but
+      -- hasn't stored the custom name
+      if script.active_mods["autodrive"] and
+        (data.GCKI_data and data.GCKI_data.custom_name) and
+        not (data.autodrive_data and data.autodrive_data.custom_name) then
+        log("Keeping GCKI data of wagon "..id)
+      else
+        data.GCKI_data = nil
+      end
     end
   end
-  
+
+  -- Run when Autodrive is uninstalled:
+  if event.mod_changes["autodrive"] and event.mod_changes["autodrive"].new_version == nil then
+    for id, data in pairs(global.wagon_data) do
+      -- Remove Autodrive data unless it contains a custom name and GCKI is active,
+      -- but hasn't stored the custom name
+      if script.active_mods["GCKI"] and
+        (data.autodrive_data and data.autodrive_data.custom_name) and
+        not (data.GCKI_data and data.GCKI_data.custom_name) then
+
+        log("Keeping Autodrive data of wagon "..id)
+      else
+        data.autodrive_data = nil
+      end
+    end
+  end
+
   -- Run when Unminable Vehicles is installed or uninstalled:
   if event.mod_changes["UnminableVehicles"] then
     -- Update loaded vehicle state in response to Unminable Vehicles setting
@@ -85,14 +109,14 @@ function OnConfigurationChanged(event)
 end
 
 function OnRuntimeModSettingChanged(event)
-  
+
   local gcki_enabled = game.active_mods["GCKI"] and settings.global["vehicle-wagon-use-GCKI-permissions"].value
   local unminable_enabled = game.active_mods["UnminableVehicles"] and settings.global["unminable_vehicles_make_unminable"].value
-    
+
   -- Reset minable state when GCKI setting changes
   if event.setting == "vehicle-wagon-use-GCKI-permissions" then
     for id,data in pairs(global.wagon_data) do
-      -- Double-check GCKI-controlled lock state. 
+      -- Double-check GCKI-controlled lock state.
       -- Reset all wagons if GCKI permissions are disabled or GCKI is uninstalled.
       -- If UnminableVehicles is enabled, don't set to true
       if (gcki_enabled and data.GCKI_data and (data.GCKI_data.owner or data.GCKI_data.locker))  then
@@ -108,7 +132,7 @@ function OnRuntimeModSettingChanged(event)
       end
     end
   end
-  
+
   -- Update loaded vehicle state in response to Unminable Vehicles setting
   if event.setting == "unminable_vehicles_make_unminable" then
     for id, data in pairs(global.wagon_data) do
@@ -121,5 +145,5 @@ function OnRuntimeModSettingChanged(event)
       end
     end
   end
-  
+
 end

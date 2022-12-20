@@ -104,15 +104,16 @@ function loadVehicleWagon(action)
 
   -- Store data for other mods
   -- Pi-C Mods only work with type "car", not "spider-vehicle"
-  -- (GCKI supports spider-vehicle now!)
-  if vehicle.type == "car" and remote.interfaces["autodrive"] and remote.interfaces["autodrive"].get_vehicle_data then
-    -- This will return a table with just { owner = player.index } for now!
+  -- (Both Autodrive and GCKI support "spider-vehicle" now!)
+  --if vehicle.type == "car" and remote.interfaces["autodrive"] and remote.interfaces["autodrive"].get_vehicle_data then
+  if remote.interfaces["autodrive"] and remote.interfaces["autodrive"].get_vehicle_data then
+    -- This will return a table with data stored by Autodrive. As of version 1.1.3, this includes { owner = player.index, request_from_buffers = bool, custom_name = "string", named_by = player.index }.
     saveData.autodrive_data = remote.call("autodrive", "get_vehicle_data", vehicle.unit_number, script.mod_name)
     remote.call("autodrive", "vehicle_removed", vehicle)
   end
   if remote.interfaces["GCKI"] and remote.interfaces["GCKI"].get_vehicle_data then
     -- This will return a table with data stored by GCKI. As of GCKI 1.1.2, this includes the following:
-    -- { owner = player.index, locker = player.index, name = "string" }
+    -- { owner = player.index, locker = player.index, custom_name = "string", named_by = player.index }
     saveData.GCKI_data = remote.call("GCKI", "get_vehicle_data", vehicle.unit_number)
     remote.call("GCKI", "vehicle_removed", vehicle, script.mod_name)
 

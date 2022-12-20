@@ -470,13 +470,30 @@ function OnEntityDied(event)
         game.print{"vehicle-wagon2.wagon-destroyed", "#"..entity.unit_number.." ", global.wagon_data[entity.unit_number].name}
       end
 
-      -- As of version 1.1.2, GCKI will allow players to add a custom name to vehicles,
-      -- whether it has owner/locker or not. When a vehicle is loaded on a vehicle
-      -- wagon, the custom name will be reserved until the vehicle is unloaded again.
-      -- When the vehicle wagon is destroyed before it could be unloaded, GCKI should
-      -- remove the name from its list, so it can be used again for another vehicle.
-      if global.wagon_data[entity.unit_number].GCKI_data and
-          remote.interfaces["GCKI"] and remote.interfaces["GCKI"].vehicle_proxy_destroyed then
+      -- As of version 1.1.2/1.1.3, GCKI and Autodrive will allow players to add a
+      -- custom name to vehicles, the prototype is used by the respective mod or not.
+      -- When a vehicle is loaded on a vehicle wagon, the custom name will be
+      -- reserved until the vehicle is unloaded again. When the vehicle wagon is
+      -- destroyed before it could be unloaded, GCKI and Autodrive should remove the
+      -- name from its list, so it can be used again for another vehicle.
+log("global.wagon_data["..entity.unit_number.."]: "..serpent.line(global.wagon_data[entity.unit_number]))
+log("remote.interfaces[\"autodrive\"]: "..serpent.block(remote.interfaces["autodrive"]))
+      if global.wagon_data[entity.unit_number].autodrive_data and
+          remote.interfaces["autodrive"] and
+          remote.interfaces["autodrive"].vehicle_proxy_destroyed then
+
+        log("Vehicle wagon loaded with an Autodrive vehicle was destroyed. Calling remote.interfaces[\"autodrive\"].vehicle_proxy_destroyed()!")
+        remote.call("autodrive", "vehicle_proxy_destroyed", {
+          autodrive_data = global.wagon_data[entity.unit_number].autodrive_data,
+          mod_name = script.mod_name,
+        })
+
+      -- If Autodrive is active, it will inform GCKI that the name should be removed,
+      -- so we can skip the call to GCKI!
+      elseif global.wagon_data[entity.unit_number].GCKI_data and
+          remote.interfaces["GCKI"] and
+          remote.interfaces["GCKI"].vehicle_proxy_destroyed then
+
         log("Vehicle wagon loaded with a GCKI_vehicle was destroyed. Calling remote.interfaces[\"GCKI\"].vehicle_proxy_destroyed()!")
         remote.call("GCKI", "vehicle_proxy_destroyed", {
           GCKI_data = global.wagon_data[entity.unit_number].GCKI_data,
