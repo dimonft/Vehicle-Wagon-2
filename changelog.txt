@@ -1,8 +1,11 @@
 ---------------------------------------------------------------------------------------------------
 Version: 3.1.22
-Date: 2022-12-19
+Date: 2022-12-26
   Changes:
-    - Compatibility with new version of Gizmo's Car Keys Improved (GCKI).
+    - Compatibility with new versions of Gizmo's Car Keys Improved (GCKI) and Autodrive.
+  Bugfixes:
+    - Fixed that empty wagons were not minable after unloading a GCKI-locked vehicle.
+    - Fixed that unloaded vehicles were not operable if they had been GCKI-locked and GCKI was uninstalled.
 ---------------------------------------------------------------------------------------------------
 Version: 3.1.21
 Date: 2021-11-11

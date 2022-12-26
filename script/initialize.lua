@@ -20,7 +20,13 @@ require("script.makeGlobalMaps")
 
 
 function getUnminableStatus()
-  return (game.active_mods["unminable-vehicles"]) or (game.active_mods["UnminableVehicles"] and settings.global["unminable_vehicles_make_unminable"].value)
+  local unminable_enabled = (game.active_mods["unminable-vehicles"]) or (game.active_mods["UnminableVehicles"] and settings.global["unminable_vehicles_make_unminable"].value)
+  if global.unminable_enabled then
+    game.print({"vehicle-wagon2.enabled-unminable-vehicles"})
+  else
+    game.print({"vehicle-wagon2.disabled-unminable-vehicles"})
+  end
+  return unminable_enabled
 end
 
 
@@ -32,12 +38,7 @@ function OnInit()
   makeGlobalTables()
   -- Check mod and seting state for unminable-ness
   global.unminable_enabled = getUnminableStatus()
-  if global.unminable_enabled then
-      game.print("VehicleWagon2 has Enabled support for unminable vehicles.")
-    else
-      game.print("VehicleWagon2 has Disabled support for unminable vehicles.")
-    end
-  end
+end
 
 
 function OnConfigurationChanged(event)
@@ -72,8 +73,13 @@ log("Entered function OnConfigurationChanged("..serpent.line(event)..")")
     end
     -- Make sure all loaded vehicles are stored as minable, clear GCKI data
     for id, data in pairs(global.wagon_data) do
+      -- Vehicle had been owned and/or locked, which might make it unminable. If no other mod cares, make it minable again
       if not unminable_enabled then
         data.minable = nil
+      end
+      -- Vehicle had been locked, which makes it inoperable. Restore operability
+      if data.GCKI_data and data.GCKI_data.locker then
+        data.operable = nil
       end
       -- Keep GCKI data if it contains a custom name and Autodrive is active, but
       -- hasn't stored the custom name
@@ -81,6 +87,9 @@ log("Entered function OnConfigurationChanged("..serpent.line(event)..")")
         (data.GCKI_data and data.GCKI_data.custom_name) and
         not (data.autodrive_data and data.autodrive_data.custom_name) then
         log("Keeping GCKI data of wagon "..id)
+        -- Clear the locker and owner since GCKI is not present anymore
+        data.GCKI_data.locker = nil
+        data.GCKI_data.owner = nil
       else
         data.GCKI_data = nil
       end
@@ -118,11 +127,6 @@ log("Entered function OnConfigurationChanged("..serpent.line(event)..")")
     end
     -- Store new value in global
     global.unminable_enabled = unminable_enabled
-    if global.unminable_enabled then
-      game.print("VehicleWagon2 has Enabled support for unminable vehicles.")
-    else
-      game.print("VehicleWagon2 has Disabled support for unminable vehicles.")
-    end
   end
 
 end
@@ -170,11 +174,6 @@ function OnRuntimeModSettingChanged(event)
     end
     -- Store new value in global
     global.unminable_enabled = unminable_enabled
-    if global.unminable_enabled then
-      game.print("VehicleWagon2 has Enabled support for unminable vehicles.")
-    else
-      game.print("VehicleWagon2 has Disabled support for unminable vehicles.")
-    end
   end
 
 end
