@@ -184,8 +184,6 @@ end
 function onPrePlayerRemoved(event)
   local player_index = event.player_index
 
-  local unminable_enabled = game.active_mods["UnminableVehicles"] and settings.global["unminable_vehicles_make_unminable"].value
-
   for wagon_id,data in pairs(global.wagon_data) do
     if data.GCKI_data then
       if data.GCKI_data.owner and data.GCKI_data.owner == player_index then
@@ -198,7 +196,7 @@ function onPrePlayerRemoved(event)
       end
 
       -- If UnminableVehicles is not enabled, update minable states.
-      if not unminable_enabled then
+      if not global.unminable_enabled then
         -- Make wagon minable when it belongs to no one
         if not (data.GCKI_data.owner or data.GCKI_data.locker) and data.wagon and data.wagon.valid then
           data.wagon.minable = true
@@ -229,15 +227,13 @@ function release_owned_by_player(p)
     player_index = p.index
   end
 
-  local unminable_enabled = game.active_mods["UnminableVehicles"] and settings.global["unminable_vehicles_make_unminable"].value
-
   for wagon_id,data in pairs(global.wagon_data) do
     if data.GCKI_data then
       if data.GCKI_data.owner and data.GCKI_data.owner == player_index then
         -- Owner was removed
         data.GCKI_data.owner = nil
         -- If UnminableVehicles is not enabled, update minable states.
-        if not unminable_enabled then
+        if not global.unminable_enabled then
           -- Make wagon minable when it belongs to no one
           if not (data.GCKI_data.owner or data.GCKI_data.locker) and data.wagon and data.wagon.valid then
             data.wagon.minable = true

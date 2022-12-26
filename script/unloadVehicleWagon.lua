@@ -249,7 +249,16 @@ function unloadVehicleWagon(action)
     local wagon = replaceCarriage(loaded_wagon, "vehicle-wagon", false, false)
     
     -- Check that unloaded wagon was created correctly
-    if not(wagon and wagon.valid) then
+    if wagon and wagon.valid then
+      -- Restore correct minable property
+      if not wagon.minable then
+        game.print("Unloaded wagon was first made not minable")
+        if not global.unminable_enabled then
+          game.print("Unminable Mod not enabled, Making unloaded wagon minable")
+          wagon.minable = true
+        end
+      end
+    else
       if player then
         player.print({"vehicle-wagon2.empty-wagon-error"})
       else
