@@ -18,7 +18,7 @@
 --== ON_PRE_PLAYER_MINED_ITEM ==--
 -- When player mines a loaded wagon, try to unload the vehicle first
 -- If vehicle cannot be unloaded, give its contents to the player and spill the rest.
-local function OnPrePlayerMinedItem(event)
+function OnPrePlayerMinedItem(event)
   local entity = event.entity
   if global.loadedWagonMap[entity.name] then
     -- Player is mining a loaded wagon
@@ -110,5 +110,3 @@ local function OnPrePlayerMinedItem(event)
   end
   
 end
-
-return OnPrePlayerMinedItem

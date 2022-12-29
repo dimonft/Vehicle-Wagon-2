@@ -17,7 +17,7 @@
 --== ON_ROBOT_PRE_MINED ==--
 -- When robot tries to mine a loaded wagon, try to unload the vehicle first!
 -- If vehicle cannot be unloaded, send its contents away in the robot piece by piece.
-local function OnRobotPreMined(event)
+function OnRobotPreMined(event)
   local entity = event.entity
   if global.loadedWagonMap[entity.name] then
       
@@ -174,5 +174,3 @@ local function OnRobotPreMined(event)
   end
   
 end
-
-return OnRobotPreMined

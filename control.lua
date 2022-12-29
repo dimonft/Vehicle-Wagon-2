@@ -31,11 +31,14 @@ require("config")
 replaceCarriage = require("__Robot256Lib__/script/carriage_replacement").replaceCarriage
 blueprintLib = require("__Robot256Lib__/script/blueprint_replacement")
 saveRestoreLib = require("__Robot256Lib__/script/save_restore")
+filterLib = require("__Robot256Lib__/script/event_filters")
 
 require("script.renderVisuals")
 require("script.loadVehicleWagon")
 require("script.unloadVehicleWagon")
 require("script.initialize")
+require("script.OnPrePlayerMinedItem")
+require("script.OnRobotPreMined")
 
 --== ON_INIT ==--
 -- Initialize global data tables
@@ -49,16 +52,6 @@ script.on_configuration_changed(OnConfigurationChanged)
 -- Update loaded_wagon.minable properties when GCKI permission setting changes
 script.on_event(defines.events.on_runtime_mod_setting_changed, OnRuntimeModSettingChanged)
 
-
---== ON_LOAD ==--
--- Enable on_tick event according to global variable state
-function OnLoad()
-  if (global.action_queue and table_size(global.action_queue) > 0) or
-     (global.player_selection and table_size(global.player_selection) > 0) then
-    script.on_event(defines.events.on_tick, process_tick)
-  end
-end
-script.on_load(OnLoad)
 
 
 -- Figure out of a character is driving or riding this car, spider, or wagon
@@ -388,17 +381,6 @@ end
 script.on_event(defines.events.on_player_cursor_stack_changed, OnPlayerCursorStackChanged)
 
 
---== ON_PRE_PLAYER_MINED_ITEM ==--
--- When player mines a loaded wagon, try to unload the vehicle first
--- If vehicle cannot be unloaded, give its contents to the player and spill the rest.
-script.on_event(defines.events.on_pre_player_mined_item, require("script.OnPrePlayerMinedItem"))
-
---== ON_ROBOT_PRE_MINED ==--
--- When robot tries to mine a loaded wagon, try to unload the vehicle first!
--- If vehicle cannot be unloaded, send its contents away in the robot piece by piece.
-script.on_event(defines.events.on_robot_pre_mined, require("script.OnRobotPreMined"))
-
-
 --== ON_PICKED_UP_ITEM ==--
 -- When player picks up an item, change loaded wagons to empty wagons.
 function OnPickedUpItem(event)
@@ -421,7 +403,6 @@ function OnMarkedForDeconstruction(event)
     clearVehicle(entity)
   end
 end
-script.on_event(defines.events.on_marked_for_deconstruction, OnMarkedForDeconstruction)
 
 
 --== ON_BUILT_ENTITY ==--
@@ -447,8 +428,6 @@ function OnBuiltEntity(event)
     end
   end
 end
-script.on_event(defines.events.on_built_entity, OnBuiltEntity)
-script.on_event(defines.events.script_raised_built, OnBuiltEntity)
 
 
 --== ON_ENTITY_DIED ==--
@@ -472,8 +451,8 @@ function OnEntityDied(event)
       -- reserved until the vehicle is unloaded again. When the vehicle wagon is
       -- destroyed before it could be unloaded, GCKI and Autodrive should remove the
       -- name from its list, so it can be used again for another vehicle.
-log("global.wagon_data["..entity.unit_number.."]: "..serpent.line(global.wagon_data[entity.unit_number]))
-log("remote.interfaces[\"autodrive\"]: "..serpent.block(remote.interfaces["autodrive"]))
+      log("global.wagon_data["..entity.unit_number.."]: "..serpent.line(global.wagon_data[entity.unit_number]))
+      log("remote.interfaces[\"autodrive\"]: "..serpent.block(remote.interfaces["autodrive"]))
       if global.wagon_data[entity.unit_number].autodrive_data and
           remote.interfaces["autodrive"] and
           remote.interfaces["autodrive"].vehicle_proxy_destroyed then
@@ -505,8 +484,6 @@ log("remote.interfaces[\"autodrive\"]: "..serpent.block(remote.interfaces["autod
     clearVehicle(entity, {silent=true})
   end
 end
-script.on_event(defines.events.on_entity_died, OnEntityDied)
-script.on_event(defines.events.script_raised_destroy, OnEntityDied)
 
 
 --== ON_ENTITY_CLONED ==--
@@ -531,7 +508,6 @@ function OnEntityCloned(event)
     end
   end
 end
-script.on_event(defines.events.on_entity_cloned, OnEntityCloned)
 
 
 --== ON_PLAYER_DRIVING_CHANGED_STATE ==--
@@ -549,9 +525,53 @@ function OnPlayerDrivingChangedState(event)
       clearVehicle(vehicle, {silent=true, sound=true})
     end
   end
-
 end
 script.on_event(defines.events.on_player_driving_changed_state, OnPlayerDrivingChangedState)
+
+
+--== ON_LOAD ==--
+-- Event registration
+function OnLoad()
+  -- Register conditional on_tick event based on global variables
+  if (global.action_queue and table_size(global.action_queue) > 0) or
+     (global.player_selection and table_size(global.player_selection) > 0) then
+    script.on_event(defines.events.on_tick, process_tick)
+  end
+  
+  -- Register filtered events based on global variables
+  --== ON_PRE_PLAYER_MINED_ITEM ==--
+  -- When player mines a loaded wagon, try to unload the vehicle first
+  -- If vehicle cannot be unloaded, give its contents to the player and spill the rest.
+  local wagon_vehicle_item_filter = filterLib.generateNameFilter("item-on-ground", "vehicle-wagon", global.loadedWagonList)
+  table.insert(wagon_vehicle_item_filter, {filter="type", type="car", mode="or"})
+  table.insert(wagon_vehicle_item_filter, {filter="type", type="spider-vehicle", mode="or"})
+  script.on_event(defines.events.on_pre_player_mined_item, OnPrePlayerMinedItem, wagon_vehicle_item_filter)
+
+
+  --== ON_ROBOT_PRE_MINED ==--
+  -- When robot tries to mine a loaded wagon, try to unload the vehicle first!
+  -- If vehicle cannot be unloaded, send its contents away in the robot piece by piece.
+  -- This event fires *before* the item is placed in the robot, so we can put something else there instead and the original item cannot be mined.
+  local wagon_item_filter = filterLib.generateNameFilter("item-on-ground", "vehicle-wagon", global.loadedWagonList)
+  script.on_event(defines.events.on_robot_pre_mined, OnRobotPreMined, wagon_item_filter)
+
+  local wagon_vehicle_filter = filterLib.generateNameFilter("vehicle-wagon", global.loadedWagonList)
+  table.insert(wagon_vehicle_filter, {filter="type", type="car", mode="or"})
+  table.insert(wagon_vehicle_filter, {filter="type", type="spider-vehicle", mode="or"})
+  script.on_event(defines.events.on_marked_for_deconstruction, OnMarkedForDeconstruction, wagon_vehicle_filter)
+
+  local loaded_ghost_filter = filterLib.generateGhostFilter("vehicle-wagon", global.loadedWagonList)
+  script.on_event(defines.events.on_built_entity, OnBuiltEntity, loaded_ghost_filter)
+  script.on_event(defines.events.script_raised_built, OnBuiltEntity, loaded_ghost_filter)
+
+  script.on_event(defines.events.on_entity_died, OnEntityDied, wagon_vehicle_filter)
+  script.on_event(defines.events.script_raised_destroy, OnEntityDied, wagon_vehicle_filter)
+
+  local loaded_filter = filterLib.generateNameFilter("vehicle-wagon", global.loadedWagonList)
+  script.on_event(defines.events.on_entity_cloned, OnEntityCloned, loaded_filter)
+
+end
+script.on_load(OnLoad)
 
 
 
